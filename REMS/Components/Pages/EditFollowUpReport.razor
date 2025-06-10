@@ -1,0 +1,66 @@
+﻿@page "/followup-report/{id:int}"
+@inject IFollowUpReportService _service
+@inject NavigationManager Navigation
+
+<PageTitle>تعديل التقرير</PageTitle>
+
+<h3>تعديل تقرير المتابعة</h3>
+
+<EditForm Model="report" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+   
+    <div class="form-group">
+        <label for="Content">المحتوى</label>
+        <InputTextArea id="Content" class="form-control" @bind-Value="report.Content" />
+    </div>
+
+    <div class="form-group">
+        <label for="IsDone">الحالة</label>
+        <InputCheckbox id="IsDone" @bind-Value="report.IsDone" />
+    </div>
+
+    <div class="form-group">
+        <label for="IsDone">الملف</label>
+        <InputFile id="IsDone" OnChange="HandleFileSelected" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
+</EditForm>
+
+@code {
+
+    [Parameter] public int Id { get; set; }
+    private FollowUpReport report = new FollowUpReport();
+
+    protected override async Task OnInitializedAsync()
+    {
+        report = await _service.Get(Id); 
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (file is not null)
+        {
+            var fileName = $"{DateTime.Now.ToString("hh-mm-ss_dd-MM-yyyy")}_{file.Name}";
+            var path = $"{AppDomain.CurrentDomain.BaseDirectory}wwwroot\\Files\\{Path.GetFileName(fileName)}";
+            using var Stream = file.OpenReadStream(maxAllowedSize: 104857600);
+            using var fileStream = new FileStream(path, FileMode.Create);
+            await Stream.CopyToAsync(fileStream);
+            Console.WriteLine($"file:{file.Name} Uploaded successfully");
+            await _service.Update(report,path); 
+            Navigation.NavigateTo("/followupreport");
+            return;
+        }
+        await _service.Update(report);
+        Navigation.NavigateTo("/followupreport");
+    }
+
+
+    private IBrowserFile? file { get; set; }
+    async void HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        file = e.File;
+    }
+
+}

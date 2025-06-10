@@ -1,0 +1,79 @@
+﻿@page "/user"
+@page "/user/{Id:int}"
+@using MudBlazor
+@using REMS.Enititys
+@inject IHttpContextAccessor HttpContextAccessor
+@inject NavigationManager Navigation
+@attribute [Authorize]
+<style>
+    .user-card {
+        padding: 20px;
+        margin: 20px;
+        transition: transform 0.3s ease-in-out;
+    }
+
+        .user-card:hover {
+            transform: scale(1.05);
+        }
+
+</style>
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <MudAlert Severity="Severity.Error">@ErrorMessage</MudAlert>
+}
+else
+{
+    <MudPaper Elevation="4" Class="user-card" dir="rtl">
+       
+        <h4>@User.FullName</h4>
+        <h5>@User.Email</h5>
+        <MudButton OnClick="NavigateToChangePassword" Color="Color.Primary" Variant="Variant.Filled">
+            تغيير كلمة السر
+        </MudButton>
+    </MudPaper>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    [Inject]
+    public UserService UserRepo { get; set; }
+
+    private string ErrorMessage { get; set; } = string.Empty;
+
+    private User User { get; set; }
+
+    private void NavigateToChangePassword()
+    {
+        Navigation.NavigateTo("/changepassword");
+    }
+
+    protected async override Task OnParametersSetAsync()
+    {
+        if (Id == 0)
+        {
+            Id = LoggedUserId;
+        }
+
+        var result = await UserRepo.GetById(Id);
+        if (result.IsFailure)
+        {
+            ErrorMessage = $"There is no user with Id {Id}.";
+        }
+        else
+        {
+            var cur = result.Value;
+            if (LoggedUserId != cur.Id)
+            {
+                ErrorMessage = "You do not have permission to view other users' profiles.";
+            }
+            else
+            {
+                User = cur;
+            }
+        }
+    }
+
+    private int LoggedUserId => Convert.ToInt32(HttpContextAccessor.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "Id").Value);
+}

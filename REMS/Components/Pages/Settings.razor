@@ -1,0 +1,69 @@
+﻿@using MudBlazor
+@inject ISettings _service
+@inject NavigationManager Navigation
+@page "/setting"
+@inject ISnackbar Snackbar
+@attribute [Authorize(Roles = "Manager,Admin1")]
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <EditForm Model="setting" OnValidSubmit="HandleValidSubmit">
+                <DataAnnotationsValidator />
+                <Microsoft.AspNetCore.Components.Forms.ValidationSummary />
+
+                <div class="form-group">
+                    <label for="Content">الساعة</label>
+                    <input id="Content" type="time" class="form-control" @bind-value="@time"/>
+                </div>
+
+               @*  <div class="form-group">
+                    <label for="IsDone">الدقائق</label>
+                    <InputNumber id="IsDone" class="form-control" @bind-Value="setting.Minute" />
+                </div> *@
+
+                <div class="form-group">
+                    <label for="SendTo">Send To</label>
+                    <InputTextArea id="SendTo" class="form-control" @bind-Value="setting.SendTo" />
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block">حفظ التعديلات</button>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    public Setting setting { get; set; } = new Setting();
+
+    [SupplyParameterFromForm]
+    public TimeOnly time { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        var settingResult = await _service.GetSettings();
+        if (settingResult.IsFailure)
+        {
+            return;
+        }
+        setting = settingResult.Value!;
+        time = new TimeOnly(setting.Hour, setting.Minute);
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        setting.Hour = time.Hour;
+        setting.Minute = time.Minute;
+        var result = await _service.UpdateSettings(setting);
+        if (result.IsSuccess)
+        {
+            Snackbar.Add("تم التعديل", Severity.Success);
+            Navigation.NavigateTo("/home");
+        }
+        else
+        {
+            Snackbar.Add("لم يتم التعدديل",Severity.Error);
+            return;
+        }
+    }
+}

@@ -1,0 +1,104 @@
+﻿@page "/register"
+@using REMS.Enititys
+@inject UserService UserService
+@inject NavigationManager NavigationManager
+@attribute [Authorize(Roles ="Manager,Admin,Admin1")]  
+
+
+<h3>إنشاء حساب جديد</h3>
+
+@if (registrationFailed)
+{
+    <div class="alert alert-danger">فشل إنشاء الحساب. حاول مرة أخرى.</div>
+}
+
+<EditForm Model="Users" OnValidSubmit="HandleRegister">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label for="fullName" class="form-label">الاسم الكامل</label>
+        <InputText id="fullName" class="form-control" @bind-Value="@Users.FullName" />
+    </div>
+
+    <div class="mb-3">
+        <label for="email" class="form-label">البريد الإلكتروني</label>
+        <InputText id="email" class="form-control" @bind-Value="@Users.Email" />
+    </div>
+    <div class="mb-3">
+        <label for="password" class="form-label">كلمة المرور</label>
+        <InputText id="password" type="password" class="form-control" @bind-Value="@Users.PasswordHash" />
+    </div>
+    <div class="mb-3">
+        <label   class="form-label">رقم الهاتف</label>
+        <InputText     class="form-control" @bind-Value="@Users.PhoneNumber" />
+    </div>
+    <div class="mb-3">
+        <label for="password" class="form-label">Telegram ChatId</label>
+        <InputNumber id="password" type="password" class="form-control" @bind-Value="@Users.ChatId" />
+    </div>
+
+    <AuthorizeView Context="IsAdminContext" Roles="Manager">
+        <Authorized>
+            <div class="mb-3">
+                <label for="isAdmin" class="form-label">مدير البرنامج</label>
+                <InputCheckbox id="isAdmin" @bind-Value="@Users.IsAdmin" />
+            </div>
+              <div class="mb-3">
+                <label for="isAdmin" class="form-label">ادمن قسم البرمجة</label>
+                <InputCheckbox id="isAdmin" @bind-Value="@Users.IsItAdmin" />
+            </div>
+            <div class="mb-3">
+                <label for="isAdmin" class="form-label">ادمن قسم المتابعة</label>
+                <InputCheckbox id="isAdmin" @bind-Value="@Users.IsFollowUpAdmin" />
+            </div>
+        </Authorized>
+    </AuthorizeView>
+    <AuthorizeView Context="IsAdminContext" Roles="Admin">
+        <Authorized>
+            <div class="mb-3">
+                <label for="isAdmin" class="form-label">ادمن قسم المتابعة</label>
+                <InputCheckbox id="isAdmin" @bind-Value="@Users.IsFollowUpAdmin" />
+            </div>
+           
+        </Authorized>
+    </AuthorizeView>
+    <AuthorizeView Context="IsAdminContext" Roles="Admin1">
+        <Authorized>
+            <div class="mb-3">
+                <label for="isAdmin" class="form-label">ادمن قسم البرمجة</label>
+                <InputCheckbox id="isAdmin" @bind-Value="@Users.IsItAdmin" />
+            </div>
+          
+        </Authorized>
+    </AuthorizeView>
+    <button type="submit" class="btn btn-primary">إنشاء حساب</button>
+</EditForm>
+
+@code {
+    private User Users = new User();
+    private bool registrationFailed = false;
+
+    [CascadingParameter]
+    public Task<AuthenticationState> AuthenticationState { get; set; }
+
+    protected async override Task OnParametersSetAsync()
+    {
+        var state = await AuthenticationState;
+        Users.IsFUser = state.User.IsInRole("Admin");
+        await base.OnParametersSetAsync();
+    }
+
+    private async Task HandleRegister()
+    {
+        try
+        {
+            await UserService.CreateUserAsync(Users);
+            NavigationManager.NavigateTo("/login", forceLoad: true);
+        }
+        catch (Exception)
+        {
+            registrationFailed = true;
+        }
+    }
+}

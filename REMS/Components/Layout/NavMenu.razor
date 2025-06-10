@@ -1,0 +1,90 @@
+﻿<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">REMS</a>
+    </div>
+</div>
+
+<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+
+<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+    <nav class="flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/user">
+                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> الحساب
+            </NavLink>
+        </div>
+        <AuthorizeView Roles="User,Manager,Admin1">
+            <Authorized>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="/home" Match="NavLinkMatch.All">
+                        <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> الصفحة الرئيسية
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="/Tasks">
+                        <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> جدولة المهام
+                    </NavLink>
+                </div>
+            </Authorized>
+        </AuthorizeView>
+        <AuthorizeView Roles="Manager,Admin1">
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/Task/listing">
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> مهام اليوم
+                </NavLink>
+            </div>
+        </AuthorizeView>
+        <AuthorizeView Roles="Manager,Admin,Admin1">
+            <Authorized>
+              
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="/register">
+                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> تسجيل حساب جديد
+                    </NavLink>
+                </div>
+            </Authorized>
+        </AuthorizeView>
+        <AuthorizeView Roles="Manager,Admin">
+            <Authorized>
+
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="/followupreport">
+                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> التقارير
+                    </NavLink>
+                </div>
+            </Authorized>
+        </AuthorizeView>
+        <AuthorizeView Roles="Manager,Admin,FUser">
+            <Authorized>
+
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="/addfollowupreport">
+                        <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> اضافة تقرير قسم المتابعة
+                    </NavLink>
+                </div>
+            </Authorized>
+        </AuthorizeView>
+        <AuthorizeView Roles="Manager">
+            <Authorized>
+
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="/setting">
+                        <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> الاعدادات
+                    </NavLink>
+                </div>
+            </Authorized>
+        </AuthorizeView>
+        <AuthorizeView>
+            <Authorized>
+                <NavLink style="position: absolute; bottom: 5px; left: 5px;" href="/logout"><button style="background:#1b6ec2;" onkeydown="Animation"> تسجيل خروج</button> </NavLink>
+            </Authorized>
+        </AuthorizeView>
+    </nav>
+</div>
+
+

@@ -1,0 +1,62 @@
+﻿@page "/Complaint"
+@using REMS.Interfaces
+@using REMS.Enititys
+@inject IReportService ComplaintService
+<PageTitle>المهمات</PageTitle>
+@* <img src="logo1.png" alt="Alternate Text" style="width:600px; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); opacity: 1; z-index: -1; pointer-events: none;" />
+ *@
+<div>
+    <div class="container mt-5 p-4 rounded shadow-lg" style="background: linear-gradient(135deg, #1e3c72, #2a5298); border-radius: 15px; color: white;">
+        <h3 class="text-center mb-4" style="color: white; font-weight: bold;">
+            <i class="fas fa-plus-circle" style="color: #ffffff;"></i> اضافة شكوى
+        </h3>
+
+        <EditForm Model="@Complaint" OnValidSubmit="HandleValidSubmit" dir="rtl">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+           
+            
+            <div class="form-group mb-3">
+                <label style="color: white;">المحتوى:</label>
+                <InputTextArea class="form-control shadow-sm" @bind-Value="Complaint.Content" placeholder="أدخل محتوى الشكوى" rows="4" style="border-radius: 10px;" />
+            </div>
+
+       
+
+            <button type="submit" class="btn btn-primary btn-block" style="background-color: #3498db; border-color: #3498db; border-radius: 10px;">
+                <i class="fas fa-paper-plane"></i> اضافة شكوى
+            </button>
+        </EditForm>
+
+        @if (successMessage != null)
+        {
+            <div class="alert alert-success mt-3 fade show" role="alert" style="background-color: #2ecc71; color: white; border-radius: 10px;">
+                <i class="fas fa-check-circle"></i> @successMessage
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .watermark-container {
+        position: relative;
+        background-image: url('logo1.png');
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: 600px 600px;
+        opacity: 0.1;
+    }
+</style>
+
+@code {
+    private Complaint Complaint = new Complaint();
+    private string? successMessage;
+
+    private async Task HandleValidSubmit()
+    {
+        await ComplaintService.AddComplaint(Complaint);
+        successMessage = "تم إضافة التقرير بنجاح!";
+        Complaint = new Complaint();
+    }
+}

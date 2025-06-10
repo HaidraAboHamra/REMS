@@ -1,0 +1,273 @@
+﻿@page "/followupreport"
+@using REMS.Enititys
+@using REMS.Services
+@using MudBlazor
+@using REMS.Interfaces
+@inject NavigationManager NavigationManager
+@inject IFollowUpReportService _service
+@inject ExcelService _excel
+@inject Test _repo
+@attribute [Authorize(Roles = "Manager,Admin,FUser")]
+@inject ISnackbar Snackbar
+
+@using Blazorise
+<PageTitle>جدول العرض</PageTitle>
+<img src="logo1.png" alt="Alternate Text" class="watermark" />
+
+<div class="container">
+    @if (Reports is null)
+    {
+        <div id="test">
+            <div class="loader"></div>
+        </div>
+    }
+    else if (Reports.Count == 0)
+    {
+        <h2 class="no-reports">لا يوجد تقارير لليوم</h2>
+    }
+    else
+    {
+        <table class="styled-table">
+            <thead>
+                <tr>
+                    <th>الاسم</th>
+                    <th>المحتوى</th>
+                    <th>الحالة</th>
+                    <th>التاريخ</th>
+                    <th>الملف</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Reports)
+                {
+                    <tr>
+                        <td>@item.FullName</td>
+                        <td>@item.Content</td>
+                        <td>@item.IsDoneOrNot</td>
+                        <td>@item.DateTime</td>
+                        <td>@Split(item.Path)</td>
+                        <td>
+                            <MudButton Variant="Variant.Outlined" Color="MudBlazor.Color.Primary" OnClick="() => EditReport(item.Id)">
+                                تعديل
+                            </MudButton>
+                        </td>
+                    </tr>
+
+                }
+            </tbody>
+
+        </table>
+
+    }
+
+    
+    <MudDatePicker Label="اختر تاريخ التقرير" @bind-Date="reportDate" />
+    @if (reportDate is not null)
+    {
+        ChooseDate = false;
+    }
+    <MudButton Variant="Variant.Filled" Color="MudBlazor.Color.Primary" Class="action-button" OnClick="GenerateReport" Disabled="ChooseDate">توليد التقرير</MudButton>
+
+    <InputText @bind-Value="Email" Placeholder="ادخل الايميل الذي تريد الارسال اليه" @oninput="CheckEmail" class="input-field"></InputText>
+    <MudButton Variant="MudBlazor.Variant.Filled" Color="MudBlazor.Color.Secondary" Class="action-button" OnClick="@SendBaby" Disabled="@IsSendDisabled">ارسال التقرير</MudButton>
+
+    @if (!string.IsNullOrEmpty(reportUrl))
+    {
+        <h4>يمكنك تحميل التقرير من هنا:</h4>
+        <a href="@reportUrl" download class="download-link">تحميل التقرير</a>
+    }
+</div>
+
+<style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f4f4f9;
+        color: #333;
+        margin: 0;
+        padding: 0;
+    }
+
+    .container {
+        padding: 20px;
+        max-width: 900px;
+        margin: auto;
+        background-color: #fff;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        border-radius: 10px;
+    }
+
+    .watermark {
+        width: 400px;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        opacity: 0.05;
+        z-index: -1;
+        pointer-events: none;
+    }
+
+    .no-reports {
+        text-align: center;
+        color: #e74c3c;
+        font-size: 1.5em;
+        margin: 20px 0;
+    }
+
+    .styled-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 25px 0;
+        font-size: 1.1em;
+        text-align: right;
+    }
+
+    .styled-table thead tr {
+        background-color: #3498db;
+        color: #ffffff;
+        text-align: center;
+        font-weight: bold;
+    }
+
+    .styled-table th, .styled-table td {
+        padding: 12px 15px;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .styled-table tbody tr:nth-of-type(even) {
+        background-color: #f3f3f3;
+    }
+
+    .styled-table tbody tr:hover {
+        background-color: #f1f1f1;
+    }
+
+    .action-button {
+        margin-top: 20px;
+        margin-right: 10px;
+    }
+
+    .input-field {
+        margin-top: 20px;
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #ddd;
+        width: calc(100% - 22px);
+        font-size: 1em;
+    }
+
+    .download-link {
+        display: inline-block;
+        margin-top: 20px;
+        color: #3498db;
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+    .download-link:hover {
+        color: #2980b9;
+    }
+
+    .loader {
+        border: 16px solid #f3f3f3;
+        border-radius: 50%;
+        border-top: 16px solid #3498db;
+        width: 120px;
+        height: 120px;
+        animation: spin 2s linear infinite;
+    }
+
+    @@keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    #test {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+</style>
+
+@code {
+    public DateTime? reportDate;
+    public List<FollowUpReport>? Reports { get; set; }
+    public bool isGeneratingExcel = false;
+    private string reportUrl;
+    private string reportUrl1;
+    private bool ChooseDate=true;
+    private string Email;
+    private bool IsSendDisabled = true;
+    private IBrowserFile? file { get; set; }
+    public FollowUpReport? followUpReport { get; set; }
+
+
+    string Split(string path)
+    {
+        if (string.IsNullOrEmpty(path))
+            return string.Empty;
+
+        var fileName = System.IO.Path.GetFileName(path);
+
+        return fileName;
+    }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await _service.GetReportsByDate(DateTime.Now.Date);
+        if (result != null)
+            Reports = result;
+    }
+
+    private async Task GenerateReport()
+    {
+        isGeneratingExcel = true;
+        var request = await _service.GetReportsByDate(reportDate.Value);
+        reportUrl = await _excel.GenerateFollowUpReportExcel(request, reportDate.Value);
+        isGeneratingExcel = false;
+        await ViewReport();
+    }
+
+    private async Task ViewReport()
+    {
+        var result = await _service.GetReportsByDate(reportDate.Value);
+        if (result != null)
+            Reports = result;
+    }
+
+    async void HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        file = e.File;
+    }
+
+    private async Task SendBaby()
+    {
+        try
+        {
+            if (!string.IsNullOrEmpty(Email))
+            {
+                await _repo.SendTryFollowUpReport(Email, reportDate.Value);
+            }
+            Snackbar.Add("👌تم ارسال التقرير", Severity.Success);
+
+        }
+        catch
+        {
+            Snackbar.Add("👌لم يتم ارساله راجع القسم البرمجي", Severity.Error);
+
+            Console.WriteLine("يرجى إدخال البريد الإلكتروني بشكل صحيح.");
+        }
+    }
+
+    private void CheckEmail(ChangeEventArgs e)
+    {
+        Email = e.Value?.ToString();
+        IsSendDisabled = string.IsNullOrEmpty(Email);
+    }
+    private void EditReport(int reportId)
+    {
+        NavigationManager.NavigateTo($"/followup-report/{reportId}");
+    }
+}
