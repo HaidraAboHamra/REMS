@@ -11,8 +11,8 @@ using REMS.Data;
 namespace REMS.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241021121848_init98")]
-    partial class init98
+    [Migration("20250917175138_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -112,11 +112,9 @@ namespace REMS.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("AcademicYear")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Address")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Age")
@@ -126,50 +124,39 @@ namespace REMS.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Domain")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Email")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ExpectedGradutionYear")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("FamiliarLanguages")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("FirstName")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("IndividualTasksAbility")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("LastName")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("LearningProblems")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Major")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Phone")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ProficientLanguages")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("ProgrammingAbility")
@@ -253,11 +240,9 @@ namespace REMS.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Email")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("FullName")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("IsAdmin")
@@ -273,11 +258,9 @@ namespace REMS.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("PasswordHash")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("PhoneNumber")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");

@@ -33,7 +33,7 @@
 
   <ItemGroup>
     <Content Update="wwwroot\REMS.db">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 

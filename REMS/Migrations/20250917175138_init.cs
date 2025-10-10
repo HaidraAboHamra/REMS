@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace REMS.Migrations
 {
     /// <inheritdoc />
-    public partial class init98 : Migration
+    public partial class init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -68,20 +68,20 @@ namespace REMS.Migrations
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    FirstName = table.Column<string>(type: "TEXT", nullable: false),
-                    LastName = table.Column<string>(type: "TEXT", nullable: false),
+                    FirstName = table.Column<string>(type: "TEXT", nullable: true),
+                    LastName = table.Column<string>(type: "TEXT", nullable: true),
                     Age = table.Column<int>(type: "INTEGER", nullable: false),
-                    Email = table.Column<string>(type: "TEXT", nullable: false),
-                    Phone = table.Column<string>(type: "TEXT", nullable: false),
-                    Address = table.Column<string>(type: "TEXT", nullable: false),
-                    FamiliarLanguages = table.Column<string>(type: "TEXT", nullable: false),
-                    ProficientLanguages = table.Column<string>(type: "TEXT", nullable: false),
-                    LearningProblems = table.Column<string>(type: "TEXT", nullable: false),
-                    Domain = table.Column<string>(type: "TEXT", nullable: false),
-                    Major = table.Column<string>(type: "TEXT", nullable: false),
-                    AcademicYear = table.Column<string>(type: "TEXT", nullable: false),
-                    Description = table.Column<string>(type: "TEXT", nullable: false),
-                    ExpectedGradutionYear = table.Column<string>(type: "TEXT", nullable: false),
+                    Email = table.Column<string>(type: "TEXT", nullable: true),
+                    Phone = table.Column<string>(type: "TEXT", nullable: true),
+                    Address = table.Column<string>(type: "TEXT", nullable: true),
+                    FamiliarLanguages = table.Column<string>(type: "TEXT", nullable: true),
+                    ProficientLanguages = table.Column<string>(type: "TEXT", nullable: true),
+                    LearningProblems = table.Column<string>(type: "TEXT", nullable: true),
+                    Domain = table.Column<string>(type: "TEXT", nullable: true),
+                    Major = table.Column<string>(type: "TEXT", nullable: true),
+                    AcademicYear = table.Column<string>(type: "TEXT", nullable: true),
+                    Description = table.Column<string>(type: "TEXT", nullable: true),
+                    ExpectedGradutionYear = table.Column<string>(type: "TEXT", nullable: true),
                     ProgrammingAbility = table.Column<bool>(type: "INTEGER", nullable: false),
                     TeamWorkAbility = table.Column<bool>(type: "INTEGER", nullable: false),
                     IndividualTasksAbility = table.Column<bool>(type: "INTEGER", nullable: false),
@@ -131,11 +131,11 @@ namespace REMS.Migrations
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    FullName = table.Column<string>(type: "TEXT", nullable: false),
-                    PhoneNumber = table.Column<string>(type: "TEXT", nullable: false),
+                    FullName = table.Column<string>(type: "TEXT", nullable: true),
+                    PhoneNumber = table.Column<string>(type: "TEXT", nullable: true),
                     ChatId = table.Column<long>(type: "INTEGER", nullable: true),
-                    Email = table.Column<string>(type: "TEXT", nullable: false),
-                    PasswordHash = table.Column<string>(type: "TEXT", nullable: false),
+                    Email = table.Column<string>(type: "TEXT", nullable: true),
+                    PasswordHash = table.Column<string>(type: "TEXT", nullable: true),
                     IsAdmin = table.Column<bool>(type: "INTEGER", nullable: false),
                     IsItAdmin = table.Column<bool>(type: "INTEGER", nullable: false),
                     IsFollowUpAdmin = table.Column<bool>(type: "INTEGER", nullable: false),
