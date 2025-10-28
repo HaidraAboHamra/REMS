@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace REMS.Migrations
 {
     /// <inheritdoc />
-    public partial class init : Migration
+    public partial class sdad : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -55,7 +55,8 @@ namespace REMS.Migrations
                     DateTime = table.Column<DateTime>(type: "TEXT", nullable: false),
                     IsDone = table.Column<bool>(type: "INTEGER", nullable: false),
                     IsDoneOrNot = table.Column<string>(type: "TEXT", nullable: true),
-                    Path = table.Column<string>(type: "TEXT", nullable: true)
+                    Path = table.Column<string>(type: "TEXT", nullable: true),
+                    CustomFieldsJson = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {

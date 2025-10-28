@@ -11,7 +11,7 @@ using REMS.Data;
 namespace REMS.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250917175138_init")]
+    [Migration("20251028141846_init")]
     partial class init
     {
         /// <inheritdoc />
@@ -82,13 +82,37 @@ namespace REMS.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("Address")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("AllTasksDone")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Content")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("ContractDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ContractFileName")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ContractFilePath")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Coordinator")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CustomFieldsJson")
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("DateTime")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("FullName")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Governorate")
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("IsDone")
@@ -98,6 +122,24 @@ namespace REMS.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Path")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Phone")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("ProductsCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Region")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("StoreName")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("StoreType")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("WorkDate")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");

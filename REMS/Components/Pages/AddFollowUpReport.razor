@@ -1,9 +1,13 @@
 ﻿@page "/AddFollowUpReport"
 @using REMS.Interfaces
 @using REMS.Enititys
+@using System.Text.Json
+@using System.IO
+@using Microsoft.AspNetCore.Components.Forms
 @inject IFollowUpReportService ReportService
 @inject IHttpContextAccessor HttpContextAccessor
-@attribute [Authorize(Roles ="Manager,Admin,FUser")]
+@inject IWebHostEnvironment env
+@attribute [Authorize(Roles = "Manager,Admin,FUser")]
 
 <div>
     <div class="container mt-5 p-4 rounded shadow-lg" style="background: linear-gradient(135deg, #1e3c72, #2a5298); border-radius: 15px; color: white;">
@@ -11,28 +15,191 @@
             <i class="fas fa-plus-circle" style="color: #ffffff;"></i> إضافة تقرير
         </h3>
 
+        <!-- ========== الحقول الأساسية (ثابتة) ========== -->
         <EditForm Model="@report" OnValidSubmit="HandleValidSubmit" dir="rtl">
             <DataAnnotationsValidator />
             <ValidationSummary />
 
-            <div class="form-group mb-3">
-                <label style="color: white;">الاسم الكامل:</label>
-                <h5>@User.FullName</h5>
+            <div class="card mb-4 p-3" style="background: rgba(255,255,255,0.04); border-radius:10px;">
+                <h5>الحقول الأساسية</h5>
+
+                <div class="row g-3">
+                    <div class="col-12 col-md-4">
+                        <label style="color:white">اسم المنطقة</label>
+                        <InputText class="form-control" @bind-Value="Region" />
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label style="color:white">اسم المحافظة</label>
+                        <InputText class="form-control" @bind-Value="Governorate" />
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label style="color:white">اسم المنسق</label>
+                        <InputText class="form-control" @bind-Value="Coordinator" />
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label style="color:white">تاريخ العمل</label>
+                        <InputDate TValue="DateTime?" class="form-control" @bind-Value="WorkDate" />
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label style="color:white">اسم المتجر</label>
+                        <InputText class="form-control" @bind-Value="StoreName" />
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label style="color:white">نوع المتجر</label>
+                        <!-- مثال على select بسيط؛ غيّر القيم حسب حاجتك -->
+                        <select class="form-select" @bind="StoreType">
+                            <option value="">اختر نوع المتجر</option>
+                            <option value="مخابز">مخابز</option>
+                            <option value="بقالة">بقالة</option>
+                            <option value="مستلزمات">مستلزمات</option>
+                            <option value="أخرى">أخرى</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label style="color:white">العنوان</label>
+                        <InputText class="form-control" @bind-Value="Address" />
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label style="color:white">رقم الهاتف</label>
+                        <InputText class="form-control" @bind-Value="Phone" />
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label style="color:white">توقيع العقد (صورة / ملف)</label>
+                        <InputFile OnChange="OnContractFileSelected" />
+                        @if (!string.IsNullOrEmpty(ContractFileName))
+                        {
+                            <div class="small mt-1" style="color:#ddd">ملف: @ContractFileName</div>
+                        }
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label style="color:white">تاريخ العقد</label>
+                        <InputDate TValue="DateTime?" class="form-control" @bind-Value="ContractDate" />
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label style="color:white">إنجاز كافة المهام</label>
+                        <div class="form-check">
+                            <InputCheckbox class="form-check-input" @bind-Value="AllTasksDone" />
+                            <label class="form-check-label" style="color:#ddd">نعم / لا</label>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label style="color:white">عدد المنتجات التي تم إدخالها</label>
+                        <InputNumber TValue="int?" class="form-control" @bind-Value="ProductsCount" />
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label style="color:white">حالة التقرير</label>
+                        <div>
+                            <InputCheckbox class="form-check-input me-2" @bind-Value="report.IsDone" />
+                            <span style="color:#ddd">@((report.IsDone) ? "تم" : "قيد التنفيذ")</span>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <label style="color:white">المحتوى العام</label>
+                        <InputTextArea class="form-control" @bind-Value="report.Content" rows="4" />
+                    </div>
+                </div>
             </div>
 
-            <div class="form-group mb-3">
-                <label style="color: white;">المحتوى:</label>
-                <InputTextArea class="form-control shadow-sm" @bind-Value="report.Content" placeholder="أدخل محتوى التقرير" rows="4" style="border-radius: 10px;" />
-            </div>
+            <!-- ========== BUILDER: الحقول المخصصة (اختياري) ========== -->
+            <div class="card mb-4 p-3" style="background: rgba(255,255,255,0.06); border-radius:10px;">
+                <h5>الحقول المخصصة (اختياري)</h5>
+                <div class="d-flex gap-2 mb-2">
+                    <input class="form-control" placeholder="اسم الحقل" @bind="newFieldName" />
+                    <select class="form-select" @bind="newFieldType" style="width:160px;">
+                        <option value="@FieldType.Text">نص</option>
+                        <option value="@FieldType.Date">تاريخ</option>
+                        <option value="@FieldType.Number">رقم</option>
+                        <option value="@FieldType.File">ملف</option>
+                        <option value="@FieldType.Image">صورة</option>
+                        <option value="@FieldType.Checkbox">خانة اختيار</option>
+                    </select>
+                    <button class="btn btn-success" @onclick="AddField">أضف حقل</button>
+                    <button class="btn btn-outline-secondary" @onclick="ClearCustomFields">مسح الحقول المخصصة</button>
+                </div>
 
-            <div class="form-group form-check mb-4">
-                <InputCheckbox class="form-check-input" @bind-Value="report.IsDone" style="transform: scale(1.2);" />
-                <label class="form-check-label" style="color: white;">تم الانتهاء</label>
-            </div>
+                @if (fieldDefinitions.Count > 0)
+                {
+                    <div class="row g-3">
+                        @foreach (var f in fieldDefinitions)
+                        {
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div style="color:white"><strong>@f.Name</strong> <span class="badge bg-secondary">@f.Type</span></div>
+                                    <div><button class="btn btn-sm btn-outline-danger" @onclick="() => RemoveField(f.Id)">حذف</button></div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
 
-            <div class="form-group form-check mb-4">
-            <InputFile OnChange="HandleFileSelected" title="اضافة ملف" />
-             </div>
+                <hr class="my-3" style="border-color: rgba(255,255,255,0.08)" />
+
+                @if (fieldDefinitions.Count == 0)
+                {
+                    <p style="color:#ddd">لا توجد حقول مخصصة. يمكنك إضافة حقول حسب الحاجة.</p>
+                }
+                else
+                {
+                    <div class="row g-3">
+                        @foreach (var def in fieldDefinitions)
+                        {
+                            var entry = fieldEntries.FirstOrDefault(e => e.Id == def.Id);
+                            <div class="col-12 col-md-6 mb-2">
+                                <label style="color:white">@def.Name (@def.Type)</label>
+
+                                @if (def.Type == FieldType.Text)
+                                {
+                                    <InputText class="form-control" @bind-Value="entry.StringValue" />
+                                }
+                                else if (def.Type == FieldType.Date)
+                                {
+                                    <InputDate TValue="DateTime?" class="form-control" @bind-Value="entry.DateValue" />
+                                }
+                                else if (def.Type == FieldType.Number)
+                                {
+                                    <InputNumber TValue="int?" class="form-control" @bind-Value="entry.NumberValue" />
+                                }
+                                else if (def.Type == FieldType.Checkbox)
+                                {
+                                    <div class="form-check">
+                                        <InputCheckbox class="form-check-input" @bind-Value="entry.BoolValue" />
+                                        <label class="form-check-label" style="color:#ddd">نعم / لا</label>
+                                    </div>
+                                }
+                                else if (def.Type == FieldType.File)
+                                {
+                                    <InputFile OnChange="e => OnFileSelected(e, def.Id)" />
+                                    @if (fileNames.ContainsKey(def.Id))
+                                    {
+                                        <div class="small mt-1" style="color:#ddd">ملف: @fileNames[def.Id]</div>
+                                    }
+                                }
+                                else if (def.Type == FieldType.Image)
+                                {
+                                    <InputFile OnChange="e => OnFileSelected(e, def.Id)" accept="image/*" />
+                                    @if (fileNames.ContainsKey(def.Id))
+                                    {
+                                        <div class="small mt-1" style="color:#ddd">صورة: @fileNames[def.Id]</div>
+                                    }
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
 
             <button type="submit" class="btn btn-primary btn-block" style="background-color: #3498db; border-color: #3498db; border-radius: 10px;">
                 <i class="fas fa-paper-plane"></i> إضافة تقرير
@@ -44,6 +211,11 @@
             <div class="alert alert-success mt-3 fade show" role="alert" style="background-color: #2ecc71; color: white; border-radius: 10px;">
                 <i class="fas fa-check-circle"></i> @successMessage
             </div>
+        }
+
+        @if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+            <div class="alert alert-danger mt-3" role="alert">@ErrorMessage</div>
         }
     </div>
 </div>
@@ -60,28 +232,260 @@
 </style>
 
 @code {
+    // ----- نموذج التقرير -----
     private FollowUpReport report = new FollowUpReport();
     private string? successMessage;
-    private IBrowserFile? file { get; set; }
+    private string newFieldName = string.Empty;
+    private FieldType newFieldType = FieldType.Text;
 
-    private async Task HandleValidSubmit()
+    // --- الحقول الأساسية (ثابتة) ---
+    private string? Region { get; set; } = string.Empty;
+    private string? Governorate { get; set; } = string.Empty;
+    private string? Coordinator { get; set; } = string.Empty;
+    private DateTime? WorkDate { get; set; }
+    private string? StoreName { get; set; } = string.Empty;
+    private string? StoreType { get; set; } = string.Empty;
+    private string? Address { get; set; } = string.Empty;
+    private string? Phone { get; set; } = string.Empty;
+    private IBrowserFile? ContractFile { get; set; }
+    private string? ContractFileName { get; set; } = string.Empty;
+    private DateTime? ContractDate { get; set; }
+    private bool AllTasksDone { get; set; } = false;
+    private int? ProductsCount { get; set; }
+
+    // تعريف الحقول المخصصة
+    private List<FieldDefinition> fieldDefinitions = new List<FieldDefinition>();
+    private List<FieldEntry> fieldEntries = new List<FieldEntry>();
+
+    // ملفات مختارة لكل حقل (key = field Id)
+    private Dictionary<Guid, IBrowserFile> fileValues = new Dictionary<Guid, IBrowserFile>();
+    private Dictionary<Guid, string> fileNames = new Dictionary<Guid, string>();
+
+    // ملفات تحميل خاصة للحقل الأساسي (توقيع العقد)
+    async Task OnContractFileSelected(InputFileChangeEventArgs e)
     {
-        if (file is not null)
+        var file = e.File;
+        const long max = 104_857_600;
+        if (file.Size > max)
         {
-            var fileName = $"{DateTime.Now.ToString("hh-mm-ss_dd-MM-yyyy")}_{file.Name}";
-            var path = $"{AppDomain.CurrentDomain.BaseDirectory}wwwroot\\Files\\{Path.GetFileName(fileName)}";
-            using var Stream = file.OpenReadStream(maxAllowedSize: 104857600);
-            using var fileStream = new FileStream(path, FileMode.Create);
-            await Stream.CopyToAsync(fileStream);
-            Console.WriteLine($"file:{file.Name} Uploaded successfully");
-            report.Path = path;
+            ContractFileName = $"الملف كبير جداً ({file.Size} bytes)";
+            ContractFile = null;
+            return;
         }
-        report.FullName = User.FullName;
-        await ReportService.AddReport(report);
-        successMessage = "تم إضافة التقرير بنجاح!";
-        report = new FollowUpReport();
+
+        ContractFile = file;
+        ContractFileName = file.Name;
     }
 
+    protected override void OnInitialized()
+    {
+        // عند تحميل الصفحة لا نحمّل الحقول الأساسية كحقول مخصصة.
+        // الحقول الأساسية تظهر ثابتة كما في أعلى النموذج.
+    }
+
+    // ---------- Add/Remove للحقل المخصص ----------
+    void AddField()
+    {
+        if (string.IsNullOrWhiteSpace(newFieldName))
+        {
+            return;
+        }
+
+        var id = Guid.NewGuid();
+        fieldDefinitions.Add(new FieldDefinition { Id = id, Name = newFieldName.Trim(), Type = newFieldType });
+
+        var entry = new FieldEntry { Id = id };
+
+        if (newFieldType == FieldType.Checkbox) entry.BoolValue = false;
+        else if (newFieldType == FieldType.Number) entry.NumberValue = null;
+        else if (newFieldType == FieldType.Date) entry.DateValue = null;
+        else entry.StringValue = string.Empty;
+
+        fieldEntries.Add(entry);
+
+        newFieldName = string.Empty;
+        newFieldType = FieldType.Text;
+    }
+
+    void RemoveField(Guid id)
+    {
+        var def = fieldDefinitions.FirstOrDefault(x => x.Id == id);
+        if (def != null)
+        {
+            fieldDefinitions.Remove(def);
+            var en = fieldEntries.FirstOrDefault(e => e.Id == id);
+            if (en != null) fieldEntries.Remove(en);
+            fileValues.Remove(id);
+            fileNames.Remove(id);
+        }
+    }
+
+    void ClearCustomFields()
+    {
+        fieldDefinitions.Clear();
+        fieldEntries.Clear();
+        fileValues.Clear();
+        fileNames.Clear();
+    }
+
+    // --------- التقاط ملفات لكل حقل مخصص ----------
+    async Task OnFileSelected(InputFileChangeEventArgs e, Guid fieldId)
+    {
+        var file = e.File;
+        const long max = 104_857_600;
+        if (file.Size > max)
+        {
+            fileNames[fieldId] = $"الملف كبير جداً ({file.Size} bytes)";
+            return;
+        }
+
+        fileValues[fieldId] = file;
+        fileNames[fieldId] = file.Name;
+    }
+
+    // --------- حفظ التقرير ----------
+    private async Task HandleValidSubmit()
+    {
+        var savedFields = new List<ReportField>();
+
+        // موقع التحميل داخل wwwroot
+        var webRoot = env.WebRootPath;
+        var uploadsFolder = Path.Combine(webRoot, "Files");
+        if (!Directory.Exists(uploadsFolder))
+            Directory.CreateDirectory(uploadsFolder);
+
+        // ----- أولًا: أضف الحقول الأساسية إلى savedFields -----
+        savedFields.Add(new ReportField { Name = "اسم المنطقة", Type = "Basic", Value = Region ?? string.Empty });
+        savedFields.Add(new ReportField { Name = "اسم المحافظة", Type = "Basic", Value = Governorate ?? string.Empty });
+        savedFields.Add(new ReportField { Name = "اسم المنسق", Type = "Basic", Value = Coordinator ?? string.Empty });
+        savedFields.Add(new ReportField { Name = "تاريخ العمل", Type = "Basic", Value = WorkDate?.ToString("yyyy-MM-dd") ?? string.Empty });
+        savedFields.Add(new ReportField { Name = "اسم المتجر", Type = "Basic", Value = StoreName ?? string.Empty });
+        savedFields.Add(new ReportField { Name = "نوع المتجر", Type = "Basic", Value = StoreType ?? string.Empty });
+        savedFields.Add(new ReportField { Name = "العنوان", Type = "Basic", Value = Address ?? string.Empty });
+        savedFields.Add(new ReportField { Name = "رقم الهاتف", Type = "Basic", Value = Phone ?? string.Empty });
+        savedFields.Add(new ReportField { Name = "تاريخ العقد", Type = "Basic", Value = ContractDate?.ToString("yyyy-MM-dd") ?? string.Empty });
+        savedFields.Add(new ReportField { Name = "إنجاز كافة المهام", Type = "Basic", Value = (AllTasksDone ? "true" : "false") });
+        savedFields.Add(new ReportField { Name = "عدد المنتجات التي تم إدخالها", Type = "Basic", Value = ProductsCount?.ToString() ?? string.Empty });
+
+        // حفظ ملف توقيع العقد إن وُجد
+        if (ContractFile != null)
+        {
+            var fileName = $"{DateTime.Now:yyyy-MM-dd_HH-mm-ss}_{Guid.NewGuid()}{Path.GetExtension(ContractFile.Name)}";
+            var physicalPath = Path.Combine(uploadsFolder, fileName);
+
+            await using var stream = ContractFile.OpenReadStream(maxAllowedSize: 104857600);
+            await using var fs = new FileStream(physicalPath, FileMode.Create);
+            await stream.CopyToAsync(fs);
+
+            var relativePath = $"/Files/{fileName}";
+            savedFields.Add(new ReportField { Name = "توقيع العقد (ملف)", Type = "Basic", Value = relativePath });
+
+            // **تعيين خصائص الـ entity مباشرةً**
+            report.ContractFilePath = relativePath;
+            report.ContractFileName = ContractFileName;
+            if (string.IsNullOrEmpty(report.Path))
+                report.Path = relativePath;
+        }
+        else
+        {
+            savedFields.Add(new ReportField { Name = "توقيع العقد (ملف)", Type = "Basic", Value = string.Empty });
+
+            // تأكد من تفريغ مسار التوقيع في الـ entity لو لا يوجد ملف
+            report.ContractFilePath = null;
+            report.ContractFileName = null;
+        }
+
+        // ----- ثم: أضف الحقول المخصصة (إن وُجدت) -----
+        foreach (var def in fieldDefinitions)
+        {
+            var entry = fieldEntries.FirstOrDefault(e => e.Id == def.Id);
+
+            if (def.Type == FieldType.Text)
+            {
+                var txt = entry?.StringValue ?? string.Empty;
+                savedFields.Add(new ReportField { Name = def.Name, Type = def.Type.ToString(), Value = txt });
+            }
+            else if (def.Type == FieldType.Date)
+            {
+                var txt = entry?.DateValue?.ToString("yyyy-MM-dd") ?? string.Empty;
+                savedFields.Add(new ReportField { Name = def.Name, Type = def.Type.ToString(), Value = txt });
+            }
+            else if (def.Type == FieldType.Number)
+            {
+                var txt = entry?.NumberValue?.ToString() ?? string.Empty;
+                savedFields.Add(new ReportField { Name = def.Name, Type = def.Type.ToString(), Value = txt });
+            }
+            else if (def.Type == FieldType.Checkbox)
+            {
+                var txt = (entry?.BoolValue ?? false) ? "true" : "false";
+                savedFields.Add(new ReportField { Name = def.Name, Type = def.Type.ToString(), Value = txt });
+            }
+            else // File or Image
+            {
+                if (fileValues.TryGetValue(def.Id, out var browserFile))
+                {
+                    var fileName = $"{DateTime.Now:yyyy-MM-dd_HH-mm-ss}_{Guid.NewGuid()}{Path.GetExtension(browserFile.Name)}";
+                    var physicalPath = Path.Combine(uploadsFolder, fileName);
+
+                    await using var stream = browserFile.OpenReadStream(maxAllowedSize: 104857600);
+                    await using var fs = new FileStream(physicalPath, FileMode.Create);
+                    await stream.CopyToAsync(fs);
+
+                    var relativePath = $"/Files/{fileName}";
+                    savedFields.Add(new ReportField { Name = def.Name, Type = def.Type.ToString(), Value = relativePath });
+
+                    if (string.IsNullOrEmpty(report.Path))
+                        report.Path = relativePath;
+                }
+                else
+                {
+                    savedFields.Add(new ReportField { Name = def.Name, Type = def.Type.ToString(), Value = string.Empty });
+                }
+            }
+        }
+
+        // تحويل إلى JSON
+        try
+        {
+            report.CustomFieldsJson = JsonSerializer.Serialize(savedFields);
+        }
+        catch
+        {
+            report.CustomFieldsJson = null;
+        }
+
+        // ------------------ ربط الحقول الأساسية مباشرةً بالـ entity ------------------
+        report.Region = Region;
+        report.Governorate = Governorate;
+        report.Coordinator = Coordinator;
+        report.WorkDate = WorkDate;
+        report.StoreName = StoreName;
+        report.StoreType = StoreType;
+        report.Address = Address;
+        report.Phone = Phone;
+        report.ContractDate = ContractDate;
+        report.AllTasksDone = AllTasksDone;
+        report.ProductsCount = ProductsCount;
+
+        // بيانات تقرير إضافية
+        report.FullName = User?.FullName ?? string.Empty;
+        report.DateTime = DateTime.Now;
+        report.IsDoneOrNot = report.IsDone ? "تم" : "قيد التنفيذ";
+
+        // استدعاء الخدمة لحفظ التقرير
+        await ReportService.AddReport(report);
+
+        successMessage = "تم إضافة التقرير بنجاح!";
+        // إعادة تهيئة النموذج بعد الحفظ
+        report = new FollowUpReport();
+        Region = Governorate = Coordinator = StoreName = StoreType = Address = Phone = string.Empty;
+        WorkDate = ContractDate = null;
+        ContractFile = null; ContractFileName = string.Empty;
+        AllTasksDone = false; ProductsCount = null;
+        ClearCustomFields();
+    }
+
+    // ----- الباقي: تحميل المستخدم والتحقق كما في كودك الأصلي -----
     [Parameter]
     public int Id { get; set; }
 
@@ -89,7 +493,6 @@
     public UserService UserRepo { get; set; }
 
     private string ErrorMessage { get; set; } = string.Empty;
-
     private User User { get; set; }
 
     protected async override Task OnParametersSetAsync()
@@ -120,9 +523,45 @@
 
     private int LoggedUserId => Convert.ToInt32(HttpContextAccessor.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "Id").Value);
 
-    async void HandleFileSelected(InputFileChangeEventArgs e)
+    // ----- الموديلات المساعدة -----
+    enum FieldType
     {
-        file = e.File;
+        Text,
+        Date,
+        Number,
+        File,
+        Image,
+        Checkbox
     }
 
+    class FieldDefinition
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public FieldType Type { get; set; } = FieldType.Text;
+    }
+
+    class FieldEntry
+    {
+        public Guid Id { get; set; }
+
+        // نصوص عامة
+        public string StringValue { get; set; } = string.Empty;
+
+        // تواريخ (يدعم القيمة الفارغة)
+        public DateTime? DateValue { get; set; }
+
+        // أعداد صحيحة قابلة للفراغ
+        public int? NumberValue { get; set; }
+
+        // خيار نعم/لا
+        public bool BoolValue { get; set; } = false;
+    }
+
+    class ReportField
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Type { get; set; } = string.Empty; // "Basic" / "Text" / "File" / "Image" / "Date" / "Number" / "Checkbox"
+        public string Value { get; set; } = string.Empty; // نص أو مسار الملف
+    }
 }

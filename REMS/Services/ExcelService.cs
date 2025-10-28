@@ -48,65 +48,129 @@ namespace REMS.Services
 
         private string GenerateHtmlTable<T>(List<T> data, string reportName) where T : class
         {
+            if (data == null || data.Count == 0)
+                return "<h3>لا توجد بيانات لعرضها</h3>";
+
+            // الخصائص الأساسية
             var properties = typeof(T).GetProperties()
-                                      .Where(prop => prop.GetCustomAttributes(typeof(System.ComponentModel.DisplayNameAttribute), false)
-                                                         .Any())
-                                      .ToList();
+                .Where(p => p.CanRead &&
+                    (p.PropertyType.IsPrimitive ||
+                     p.PropertyType == typeof(string) ||
+                     p.PropertyType == typeof(DateTime) ||
+                     p.PropertyType == typeof(decimal) ||
+                     p.PropertyType.IsEnum ||
+                     Nullable.GetUnderlyingType(p.PropertyType) != null))
+                .ToList();
+
+            // استخراج كل أسماء الحقول المخصصة
+            var customFieldNames = new HashSet<string>();
+            foreach (var item in data)
+            {
+                var jsonProp = typeof(T).GetProperty("CustomFieldsJson");
+                if (jsonProp == null) continue;
+
+                var jsonValue = jsonProp.GetValue(item)?.ToString();
+                if (string.IsNullOrWhiteSpace(jsonValue)) continue;
+
+                try
+                {
+                    var fields = System.Text.Json.JsonSerializer.Deserialize<List<CustomField>>(jsonValue);
+                    if (fields != null)
+                    {
+                        foreach (var f in fields)
+                            customFieldNames.Add(f.Name);
+                    }
+                }
+                catch { }
+            }
 
             var html = new StringWriter();
-
-            html.WriteLine("<html>");
-            html.WriteLine("<head>");
-            html.WriteLine("<style>");
-            html.WriteLine(
-                "*{\r\n    padding: 0;\r\n    margin: 0;\r\n} " +
-                "table {\r\n" +
-                "font-family: Arial, sans-serif;\r\n        border-collapse: collapse;\r\n        width: 100%;\r\n    }\r\n    \r\n    th, td {\r\n        border: 1px solid #ddd;\r\n\r\n        text-align: center;\r\n    }\r\n    \r\n    th {\r\n        background-color: #f2f2f2;\r\n    }\r\n    \r\n    tr:nth-child(even) {\r\n        background-color: #f9f9f9;\r\n    }\r\n    \r\n    tr:hover {\r\n        background-color: #e9e9e9;\r\n    }\r\n    \r\n    h1 {\r\n        text-align: center;\r\n    }\r\n    \r\n    table th:first-child,\r\n    table td:first-child {\r\n        text-align: center;\r\n    }"
-                );
-            html.WriteLine("</style>");
-            html.WriteLine("</head>");
-            html.WriteLine("<body>");
+            html.WriteLine("<html><head><meta charset='UTF-8'/><style>");
+            html.WriteLine(@"
+        table { width:100%; border-collapse:collapse; direction:rtl; font-family:Arial; }
+        th, td { border:1px solid #ccc; text-align:center; padding:6px; vertical-align:middle; }
+        th { background:#f2f2f2; }
+        tr:nth-child(even) { background:#fafafa; }
+        h1 { text-align:center; margin:10px; }
+    ");
+            html.WriteLine("</style></head><body>");
             html.WriteLine($"<h1>{reportName}</h1>");
-            html.WriteLine("<table>");
+            html.WriteLine("<table><tr>");
 
-            html.WriteLine("<tr>");
+            // رؤوس الأعمدة الأساسية
             foreach (var prop in properties)
-            {
-                var displayName = prop.GetCustomAttributes(typeof(System.ComponentModel.DisplayNameAttribute), false)
-                                      .Cast<System.ComponentModel.DisplayNameAttribute>()
-                                      .FirstOrDefault()?.DisplayName;
+                html.WriteLine($"<th>{prop.Name}</th>");
 
-                if (!string.IsNullOrEmpty(displayName))
-                {
-                    html.WriteLine($"<th>{displayName}</th>");
-                }
-            }
+            // رؤوس الحقول المخصصة
+            foreach (var fieldName in customFieldNames)
+                html.WriteLine($"<th>{fieldName}</th>");
+
             html.WriteLine("</tr>");
 
+            // الصفوف
             foreach (var item in data)
             {
                 html.WriteLine("<tr>");
                 foreach (var prop in properties)
                 {
-                    var displayName = prop.GetCustomAttributes(typeof(System.ComponentModel.DisplayNameAttribute), false)
-                                          .Cast<System.ComponentModel.DisplayNameAttribute>()
-                                          .FirstOrDefault()?.DisplayName;
-
-                    if (!string.IsNullOrEmpty(displayName))
+                    var value = prop.GetValue(item);
+                    string text = value switch
                     {
-                        var value = prop.GetValue(item);
-                        html.WriteLine($"<td>{value?.ToString() ?? string.Empty}</td>");
+                        null => "",
+                        DateTime dt => dt.ToString("yyyy-MM-dd HH:mm"),
+                        bool b => b ? "نعم" : "لا",
+                        _ => value.ToString()
+                    };
+                    html.WriteLine($"<td>{System.Net.WebUtility.HtmlEncode(text)}</td>");
+                }
+
+                // تعبئة الحقول المخصصة
+                var fieldValues = new Dictionary<string, string>();
+                try
+                {
+                    var jsonProp = typeof(T).GetProperty("CustomFieldsJson");
+                    if (jsonProp != null)
+                    {
+                        var jsonValue = jsonProp.GetValue(item)?.ToString();
+                        if (!string.IsNullOrEmpty(jsonValue))
+                        {
+                            var fields = System.Text.Json.JsonSerializer.Deserialize<List<CustomField>>(jsonValue);
+                            if (fields != null)
+                            {
+                                foreach (var f in fields)
+                                {
+                                    string val = f.Value ?? "";
+                                    if (f.Type == "File" || f.Type == "Image")
+                                        val = f.Value; // يمكن وضع رابط مباشر هنا
+                                    fieldValues[f.Name] = val;
+                                }
+                            }
+                        }
                     }
                 }
+                catch { }
+
+                foreach (var fieldName in customFieldNames)
+                {
+                    fieldValues.TryGetValue(fieldName, out var val);
+                    html.WriteLine($"<td>{System.Net.WebUtility.HtmlEncode(val ?? "")}</td>");
+                }
+
                 html.WriteLine("</tr>");
             }
 
-            html.WriteLine("</table>");
-            html.WriteLine("</body>");
-            html.WriteLine("</html>");
-
+            html.WriteLine("</table></body></html>");
             return html.ToString();
         }
+
+        private class CustomField
+        {
+            public string Name { get; set; } = "";
+            public string Type { get; set; } = "";
+            public string Value { get; set; } = "";
+        }
+
+
 
         private async Task<string> GenerateExcelFromHtmlAsync(string html, string sheetName, DateTime Date)
         {

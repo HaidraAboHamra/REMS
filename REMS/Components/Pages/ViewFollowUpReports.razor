@@ -11,6 +11,9 @@
 @inject ISnackbar Snackbar
 
 @using Blazorise
+@using System.Text.Json
+@using System.IO
+
 <PageTitle>جدول العرض</PageTitle>
 <img src="logo1.png" alt="Alternate Text" class="watermark" />
 
@@ -27,40 +30,151 @@
     }
     else
     {
-        <table class="styled-table">
-            <thead>
-                <tr>
-                    <th>الاسم</th>
-                    <th>المحتوى</th>
-                    <th>الحالة</th>
-                    <th>التاريخ</th>
-                    <th>الملف</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Reports)
-                {
+        <div style="overflow-x:auto">
+            <table class="styled-table">
+                <thead>
                     <tr>
-                        <td>@item.FullName</td>
-                        <td>@item.Content</td>
-                        <td>@item.IsDoneOrNot</td>
-                        <td>@item.DateTime</td>
-                        <td>@Split(item.Path)</td>
-                        <td>
-                            <MudButton Variant="Variant.Outlined" Color="MudBlazor.Color.Primary" OnClick="() => EditReport(item.Id)">
-                                تعديل
-                            </MudButton>
-                        </td>
+                        <th>الاسم</th>
+                        <th>المنطقة</th>
+                        <th>المحافظة</th>
+                        <th>المنسق</th>
+                        <th>تاريخ العمل</th>
+                        <th>اسم المتجر</th>
+                        <th>نوع المتجر</th>
+                        <th>العنوان</th>
+                        <th>الهاتف</th>
+                        <th>عدد المنتجات</th>
+                        <th>إنجاز كافة المهام</th>
+                        <th>المحتوى</th>
+                        @* <th>الحقول المخصّصة</th> *@
+                        <th>توقيع العقد</th>
+                        <th>الملف الرئيسي</th>
+                        <th>الحالة</th>
+                        <th>التاريخ</th>
+                        <th>إجراءات</th>
                     </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Reports)
+                    {
+                        <tr>
+                            <td>@item.FullName</td>
+                            <td>@(string.IsNullOrEmpty(item.Region) ? "-" : item.Region)</td>
+                            <td>@(string.IsNullOrEmpty(item.Governorate) ? "-" : item.Governorate)</td>
+                            <td>@(string.IsNullOrEmpty(item.Coordinator) ? "-" : item.Coordinator)</td>
+                            <td>@(item.WorkDate.HasValue? item.WorkDate.Value.ToString("yyyy-MM-dd") : "-")</td>
+                            <td>@(string.IsNullOrEmpty(item.StoreName) ? "-" : item.StoreName)</td>
+                            <td>@(string.IsNullOrEmpty(item.StoreType) ? "-" : item.StoreType)</td>
+                            <td style="max-width:200px; white-space:normal;">@(string.IsNullOrEmpty(item.Address) ? "-" : item.Address)</td>
+                            <td>@(string.IsNullOrEmpty(item.Phone) ? "-" : item.Phone)</td>
+                            <td>@(item.ProductsCount.HasValue? item.ProductsCount.Value.ToString() : "-")</td>
+                            <td>@(item.AllTasksDone ? "نعم" : "لا")</td>
+                            <td style="white-space: pre-wrap; max-width:260px;">@item.Content</td>
 
-                }
-            </tbody>
+                            <!-- custom fields column -->
+                           @*  <td>
+                                @{
+                                    var customFields = GetCustomFields(item);
+                                    if (customFields == null || customFields.Count == 0)
+                                    {
+                                        <div class="small" style="color: #777">لا توجد حقول مخصّصة</div>
+                                        ;
+                                    }
+                                    else
+                                    {
+                                        foreach (var f in customFields)
+                                        {
+                                            <div class="mb-2">
+                                                <strong>@f.Name:</strong>
+                                                @if (IsImageFile(f.Value))
+                                                {
+                                                    <div class="thumb-wrapper">
+                                                        <img src="@DisplayPath(f.Value)" alt="@f.Name" class="thumb" />
+                                                        <div class="small mt-1"><a target="_blank" href="@DisplayPath(f.Value)">عرض الصورة بحجم كامل</a></div>
+                                                    </div>
+                                                }
+                                                else if (!string.IsNullOrEmpty(f.Value))
+                                                {
+                                                    <div class="small mt-1">
+                                                        <a target="_blank" href="@DisplayPath(f.Value)">تحميل / فتح الملف</a>
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <span class="small" style="color:#666">لا يوجد قيمة</span>
+                                                }
+                                            </div>
+                                        }
+                                    }
+                                }
+                            </td> *@
 
-        </table>
+                            <!-- Contract file (from new entity field) -->
+                            <td>
+                                @if (!string.IsNullOrEmpty(item.ContractFilePath))
+                                {
+                                    if (IsImageFile(item.ContractFilePath))
+                                    {
+                                        <div>
+                                            <img src="@DisplayPath(item.ContractFilePath)" alt="contract" class="thumb" />
+                                            <div class="small mt-1"><a target="_blank" href="@DisplayPath(item.ContractFilePath)">عرض الصورة بحجم كامل</a></div>
+                                            @if (!string.IsNullOrEmpty(item.ContractFileName))
+                                            {
+                                                <div class="small mt-1">@item.ContractFileName</div>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div>
+                                            <a target="_blank" href="@DisplayPath(item.ContractFilePath)">تحميل / فتح توقيع العقد</a>
+                                            @if (!string.IsNullOrEmpty(item.ContractFileName))
+                                            {
+                                                <div class="small mt-1">@item.ContractFileName</div>
+                                            }
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="small" style="color:#777">لا يوجد توقيع</span>
+                                }
+                            </td>
 
+                            <!-- Path (legacy or primary file) -->
+                            <td>
+                                @if (string.IsNullOrEmpty(item.Path))
+                                {
+                                    <span class="small" style="color:#777">لا يوجد ملف</span>
+                                }
+                                else if (IsImageFile(item.Path))
+                                {
+                                    <div>
+                                        <img src="@DisplayPath(item.Path)" alt="file" class="thumb" />
+                                        <div class="small mt-1"><a target="_blank" href="@DisplayPath(item.Path)">عرض الصورة بحجم كامل</a></div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <a target="_blank" href="@DisplayPath(item.Path)">تحميل الملف</a>
+                                }
+                            </td>
+
+                            <td>@item.IsDoneOrNot</td>
+                            <td>@item.DateTime.ToString("yyyy-MM-dd HH:mm")</td>
+
+                            <td>
+                                <MudButton Variant="Variant.Outlined" Color="MudBlazor.Color.Primary" OnClick="() => EditReport(item.Id)">
+                                    تعديل
+                                </MudButton>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     }
 
-    
     <MudDatePicker Label="اختر تاريخ التقرير" @bind-Date="reportDate" />
     @if (reportDate is not null)
     {
@@ -89,7 +203,7 @@
 
     .container {
         padding: 20px;
-        max-width: 900px;
+        max-width: 1100px;
         margin: auto;
         background-color: #fff;
         box-shadow: 0 4px 8px rgba(0,0,0,0.1);
@@ -118,29 +232,31 @@
         width: 100%;
         border-collapse: collapse;
         margin: 25px 0;
-        font-size: 1.1em;
+        font-size: 1.05em;
         text-align: right;
     }
 
-    .styled-table thead tr {
-        background-color: #3498db;
-        color: #ffffff;
-        text-align: center;
-        font-weight: bold;
-    }
+        .styled-table thead tr {
+            background-color: #3498db;
+            color: #ffffff;
+            text-align: center;
+            font-weight: bold;
+        }
 
-    .styled-table th, .styled-table td {
-        padding: 12px 15px;
-        border-bottom: 1px solid #ddd;
-    }
+        .styled-table th, .styled-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #ddd;
+            vertical-align: top;
+            text-align: right;
+        }
 
-    .styled-table tbody tr:nth-of-type(even) {
-        background-color: #f3f3f3;
-    }
+        .styled-table tbody tr:nth-of-type(even) {
+            background-color: #f3f3f3;
+        }
 
-    .styled-table tbody tr:hover {
-        background-color: #f1f1f1;
-    }
+        .styled-table tbody tr:hover {
+            background-color: #f1f1f1;
+        }
 
     .action-button {
         margin-top: 20px;
@@ -164,9 +280,9 @@
         font-weight: bold;
     }
 
-    .download-link:hover {
-        color: #2980b9;
-    }
+        .download-link:hover {
+            color: #2980b9;
+        }
 
     .loader {
         border: 16px solid #f3f3f3;
@@ -178,8 +294,13 @@
     }
 
     @@keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
     }
 
     #test {
@@ -188,6 +309,19 @@
         align-items: center;
         height: 100vh;
     }
+
+    .thumb {
+        max-width: 160px;
+        max-height: 120px;
+        border-radius: 6px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+        display: block;
+        margin-top: 6px;
+    }
+
+    .thumb-wrapper {
+        margin-top: 6px;
+    }
 </style>
 
 @code {
@@ -195,24 +329,11 @@
     public List<FollowUpReport>? Reports { get; set; }
     public bool isGeneratingExcel = false;
     private string reportUrl;
-    private string reportUrl1;
-    private bool ChooseDate=true;
+    private bool ChooseDate = true;
     private string Email;
     private bool IsSendDisabled = true;
     private IBrowserFile? file { get; set; }
     public FollowUpReport? followUpReport { get; set; }
-
-
-    string Split(string path)
-    {
-        if (string.IsNullOrEmpty(path))
-            return string.Empty;
-
-        var fileName = System.IO.Path.GetFileName(path);
-
-        return fileName;
-    }
-
 
     protected override async Task OnInitializedAsync()
     {
@@ -251,12 +372,10 @@
                 await _repo.SendTryFollowUpReport(Email, reportDate.Value);
             }
             Snackbar.Add("👌تم ارسال التقرير", Severity.Success);
-
         }
         catch
         {
             Snackbar.Add("👌لم يتم ارساله راجع القسم البرمجي", Severity.Error);
-
             Console.WriteLine("يرجى إدخال البريد الإلكتروني بشكل صحيح.");
         }
     }
@@ -269,5 +388,49 @@
     private void EditReport(int reportId)
     {
         NavigationManager.NavigateTo($"/followup-report/{reportId}");
+    }
+
+    // ---------- Helpers for custom fields ----------
+    class ReportField
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Type { get; set; } = string.Empty; // "Text" / "File" / "Image"
+        public string Value { get; set; } = string.Empty; // نص أو مسار الملف
+    }
+
+    List<ReportField> GetCustomFields(FollowUpReport report)
+    {
+        if (report == null || string.IsNullOrEmpty(report.CustomFieldsJson))
+            return new List<ReportField>();
+
+        try
+        {
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var list = JsonSerializer.Deserialize<List<ReportField>>(report.CustomFieldsJson, options);
+            return list ?? new List<ReportField>();
+        }
+        catch
+        {
+            return new List<ReportField>();
+        }
+    }
+
+    bool IsImageFile(string? pathOrName)
+    {
+        if (string.IsNullOrEmpty(pathOrName)) return false;
+        var ext = Path.GetExtension(pathOrName).ToLowerInvariant();
+        var images = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg", ".webp" };
+        return images.Contains(ext);
+    }
+
+    string DisplayPath(string? value)
+    {
+        if (string.IsNullOrEmpty(value)) return string.Empty;
+        if (value.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+            value.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            return value;
+        var normalized = value.Replace("\\", "/");
+        if (!normalized.StartsWith("/")) normalized = "/" + normalized;
+        return normalized;
     }
 }
