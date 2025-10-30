@@ -1,0 +1,475 @@
+﻿@page "/users-and-reports"
+@using REMS.Enititys
+@using System.Text.Json
+@inject UserService UserRepo
+@inject IFollowUpReportService _service
+@inject ExcelService _excel
+@inject IHttpContextAccessor HttpContextAccessor
+
+<h3 class="text-center mb-4 text-white bg-orange p-3 rounded">الموظفين والمهام</h3>
+
+<div class="row">
+    <!-- ========== قائمة المستخدمين (يسار) ========== -->
+    <div class="col-12 col-md-4">
+        <div class="card shadow p-3 mb-3 border-orange">
+            <div class="mb-2">
+                <label class="text-orange">ابحث عن موظف</label>
+                <input class="form-control border-orange" @bind="UserSearch" @bind:event="oninput" placeholder="اكتب اسم الموظف..." />
+            </div>
+
+            <div style="max-height:60vh; overflow:auto;">
+                @if (!IsAdmin)
+                {
+                    <div class="alert alert-warning text-center">
+                        أنت مستخدم عادي، ترى فقط تقاريرك الخاصة.
+                    </div>
+                }
+                else if (Userss == null)
+                {
+                    <div>جارٍ التحميل...</div>
+                }
+                else if (Userss.Count == 0)
+                {
+                    <div>لا يوجد موظفين</div>
+                }
+                else
+                {
+                    <ul class="list-group">
+                        @foreach (var u in FilteredUsers)
+                        {
+                            <li class="list-group-item"
+                                style="cursor:pointer;"
+                                @onclick="@(() => SelectUser(u))">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>@u.FullName</span>
+                                    <span class="badge bg-orange">@GetUserReportsCount(u)</span>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ========== جدول التقارير والفلاتر (يمين) ========== -->
+    <div class="col-12 col-md-8">
+        <div class="card shadow p-3 mb-3 border-orange">
+            <h5 class="text-orange">مرشحات العرض</h5>
+            <div class="row g-2 align-items-end">
+                <div class="col-12 col-md-4">
+                    <label>نوع المتجر</label>
+                    <select class="form-select border-orange" @bind="SelectedStoreType">
+                        <option value="">(الكل)</option>
+                        @foreach (var st in StoreTypes)
+                        {
+                            <option value="@st">@st</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-6 col-md-4">
+                    <label>من تاريخ</label>
+                    <InputDate class="form-control border-orange" @bind-Value="FromDate" />
+                </div>
+
+                <div class="col-6 col-md-4">
+                    <label>إلى تاريخ</label>
+                    <InputDate class="form-control border-orange" @bind-Value="ToDate" />
+                </div>
+
+                <div class="col-6 col-md-4">
+                    <label>الحالة</label>
+                    <select class="form-select border-orange" @bind="SelectedStatus">
+                        <option value="All">الكل</option>
+                        <option value="Done">المنتهية</option>
+                        <option value="NotDone">غير المنتهية</option>
+                    </select>
+                </div>
+
+                <div class="col-6 col-md-4">
+                    <button class="btn btn-orange w-100" @onclick="ApplyFilters">تطبيق</button>
+                </div>
+                <div class="col-6 col-md-4">
+                    <button class="btn btn-outline-orange w-100" @onclick="ResetFilters">إعادة تعيين</button>
+                </div>
+            </div>
+
+            @if (IsAdmin)
+            {
+                <div class="mt-3">
+                    <button class="btn btn-success" @onclick="ExportReportsToExcel" disabled="@(SelectedUser == null || isExporting)" dir="rtl">
+                        @if (isExporting)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                            <span>جار تحضير التقرير...</span>
+                        }
+                        else
+                        {
+                            <i class="fa fa-file-excel-o me-1"></i>
+                        }
+                    </button>
+
+                    @if (!string.IsNullOrEmpty(excelUrl))
+                    {
+                        <a class="btn btn-link ms-3" href="@excelUrl" target="_blank">تحميل الملف</a>
+                    }
+
+                    @if (!string.IsNullOrEmpty(exportMessage))
+                    {
+                        <span class="text-muted ms-3">@exportMessage</span>
+                    }
+                </div>
+            }
+        </div>
+
+        <div class="card shadow p-3 border-orange">
+            <h5 class="text-orange">
+                تقارير الموظف:
+                @if (SelectedUser != null)
+                {
+                    <span class="badge bg-orange text-white">@SelectedUser.FullName</span>
+                    <small class="text-muted ms-2">عدد النتائج: @FilteredReports.Count()</small>
+                }
+                else
+                {
+                    <span class="text-muted">لم يتم اختيار موظف</span>
+                }
+            </h5>
+
+            @if (SelectedUser == null)
+            {
+                <div class="text-muted">اختر موظفاً من اليسار لعرض تقاريره.</div>
+            }
+            else if (IsLoadingReports)
+            {
+                <div>جارٍ تحميل التقارير...</div>
+            }
+            else
+            {
+                <div style="overflow-x:auto;">
+                    <table class="table table-striped table-bordered">
+                        <thead class="bg-orange text-white">
+                            <tr>
+                                <th>التاريخ</th>
+                                <th>المنطقة</th>
+                                <th>المحافظة</th>
+                                <th>اسم المتجر</th>
+                                <th>نوع المتجر</th>
+                                <th>ملاحظات</th>
+                                <th>إنجاز</th>
+                                <th>عدد المنتجات</th>
+                                <th>توقيع العقد</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var r in FilteredReports)
+                            {
+                                <tr>
+                                    <td>@(r.WorkDate?.ToString("yyyy-MM-dd") ?? r.DateTime.ToString("yyyy-MM-dd"))</td>
+                                    <td>@(r.Region ?? "-")</td>
+                                    <td>@(r.Governorate ?? "-")</td>
+                                    <td>@(r.StoreName ?? "-")</td>
+                                    <td>@(r.StoreType ?? "-")</td>
+                                    <td style="max-width:260px; white-space:pre-wrap;">@r.Content</td>
+
+                                    <td>
+                                        @if (CanEditReport(r))
+                                        {
+                                            <input type="checkbox" checked="@r.IsDone" @onchange="(e) => ToggleDone(r, e.Value)" />
+                                        }
+                                        else
+                                        {
+                                            @(r.IsDone ? "نعم" : "لا")
+                                        }
+                                    </td>
+
+                                    <td>@(r.ProductsCount?.ToString() ?? "-")</td>
+
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(r.ContractFilePath))
+                                        {
+                                            <a target="_blank" href="@DisplayPath(r.ContractFilePath)">عرض</a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">لا يوجد</span>
+                                        }
+                                    </td>
+
+                                    
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+
+                    @if (!FilteredReports.Any())
+                    {
+                        <div class="text-muted">لا توجد نتائج مطابقة للمرشحات.</div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    // ========== المتغيرات ==========
+    List<User> Userss = new();
+    List<User> FilteredUsers => string.IsNullOrWhiteSpace(UserSearch)
+        ? Userss ?? new List<User>()
+        : (Userss ?? new List<User>()).Where(u => (u.FullName ?? "").Contains(UserSearch, StringComparison.OrdinalIgnoreCase)).ToList();
+
+    User SelectedUser;
+    List<FollowUpReport> AllReports = new();
+    IEnumerable<FollowUpReport> FilteredReports = Enumerable.Empty<FollowUpReport>();
+
+    // المرشحات
+    string UserSearch = string.Empty;
+    string SelectedStoreType = string.Empty;
+    DateTime? FromDate = null;
+    DateTime? ToDate = null;
+    string SelectedStatus = "All";
+    List<string> StoreTypes = new();
+    bool IsLoadingReports = false;
+
+    // حالة التصدير
+    bool isExporting = false;
+    string excelUrl = string.Empty;
+    string exportMessage = string.Empty;
+    private User User { get; set; } = new User();
+
+    // صلاحية المستخدم
+    bool IsAdmin = false; // تُحدد من النظام
+    string CurrentUserName = "user1"; // لاحقاً تربطها بالـ Authentication
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var idClaim = HttpContextAccessor.HttpContext?.User?.Claims?.FirstOrDefault(c => c.Type == "Id")?.Value;
+            if (!string.IsNullOrEmpty(idClaim) && int.TryParse(idClaim, out var uid))
+            {
+                var res = await UserRepo.GetById(uid);
+                if (res.IsSuccess)
+                {
+                    User = res.Value;
+                    IsAdmin = User.IsFollowUpAdmin;
+                    CurrentUserName = User.FullName;
+                }
+            }
+        }
+        catch
+        {
+        }
+
+        await LoadUsersAsync();
+
+        await LoadReportsForDate(DateTime.Now.Date);
+
+        BuildStoreTypes();
+
+        if (!IsAdmin)
+        {
+            Userss = Userss.Where(u => u.Id == User.Id).ToList();
+            SelectedUser = User;
+            await RefreshFilteredReportsAsync();
+        }
+    }
+
+
+    // تحميل المستخدمين
+    private async Task LoadUsersAsync()
+    {
+        try
+        {
+            var result = await UserRepo.GetAll();
+            Userss = result.Value ?? new List<User>();
+        }
+        catch { Userss = new(); }
+    }
+
+    private async Task LoadReportsForDate(DateTime date)
+    {
+        try
+        {
+            var result = await _service.GetReportsByDate(date);
+            if (IsAdmin)
+            {
+                AllReports = result?.ToList() ?? new();
+            }
+            else
+            {
+                AllReports = result?
+                    .Where(r => string.Equals(r.FullName?.Trim(), User.FullName?.Trim(), StringComparison.OrdinalIgnoreCase))
+                    .ToList() ?? new();
+            }
+        }
+        catch
+        {
+            AllReports = new();
+        }
+    }
+
+
+    private async Task<List<FollowUpReport>> FetchReportsForDateRange(DateTime from, DateTime to)
+    {
+        var combined = new List<FollowUpReport>();
+        for (var d = from.Date; d <= to.Date; d = d.AddDays(1))
+        {
+            var r = await _service.GetReportsByDate(d);
+            if (r != null) combined.AddRange(r);
+        }
+        return combined;
+    }
+
+    private void BuildStoreTypes()
+    {
+        StoreTypes = AllReports
+            .Where(r => !string.IsNullOrWhiteSpace(r.StoreType))
+            .Select(r => r.StoreType.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(s => s)
+            .ToList();
+    }
+
+    private async Task SelectUser(User u)
+    {
+        SelectedUser = u;
+        await RefreshFilteredReportsAsync();
+    }
+
+    private int GetUserReportsCount(User u)
+    {
+        return AllReports.Count(r => string.Equals(r.FullName?.Trim(), u.FullName?.Trim(), StringComparison.OrdinalIgnoreCase));
+    }
+
+    private async Task ApplyFilters()
+    {
+        if (FromDate.HasValue && ToDate.HasValue)
+        {
+            IsLoadingReports = true;
+            var reports = await FetchReportsForDateRange(FromDate.Value, ToDate.Value);
+
+            if (IsAdmin)
+            {
+                AllReports = reports;
+            }
+            else
+            {
+                AllReports = reports
+                    .Where(r => string.Equals(r.FullName?.Trim(), User.FullName?.Trim(), StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+            }
+
+            BuildStoreTypes();
+            IsLoadingReports = false;
+        }
+
+        await RefreshFilteredReportsAsync();
+    }
+
+
+    private async Task RefreshFilteredReportsAsync()
+    {
+        if (SelectedUser == null)
+        {
+            FilteredReports = Enumerable.Empty<FollowUpReport>();
+            return;
+        }
+
+        IsLoadingReports = true;
+
+        var userReports = AllReports
+            .Where(r => string.Equals(r.FullName?.Trim(), SelectedUser.FullName?.Trim(), StringComparison.OrdinalIgnoreCase));
+
+        if (!string.IsNullOrEmpty(SelectedStoreType))
+            userReports = userReports.Where(r => r.StoreType == SelectedStoreType);
+
+        if (SelectedStatus == "Done")
+            userReports = userReports.Where(r => r.IsDone);
+        else if (SelectedStatus == "NotDone")
+            userReports = userReports.Where(r => !r.IsDone);
+
+        FilteredReports = userReports.OrderByDescending(r => r.DateTime).ToList();
+        IsLoadingReports = false;
+    }
+
+    private void ResetFilters()
+    {
+        SelectedStoreType = string.Empty;
+        FromDate = null;
+        ToDate = null;
+        SelectedStatus = "All";
+        _ = RefreshFilteredReportsAsync();
+    }
+
+    // ========= صلاحيات وتحديث الحالة =========
+    private bool CanEditReport(FollowUpReport r)
+        => IsAdmin || string.Equals(r.FullName?.Trim(), CurrentUserName, StringComparison.OrdinalIgnoreCase);
+
+    private async Task ToggleDone(FollowUpReport report, object? value)
+    {
+        report.IsDone = Convert.ToBoolean(value);
+        await _service.Update(report);
+    }
+
+    // ========= تصدير إكسل =========
+    private async Task ExportReportsToExcel()
+    {
+        if (SelectedUser == null) return;
+        var reports = FilteredReports.ToList();
+        if (!reports.Any()) return;
+
+        isExporting = true;
+        excelUrl = await _excel.GenerateFollowUpReportExcelAsync(reports, DateTime.Now);
+        exportMessage = $"تم إنشاء ملف Excel للمستخدم {SelectedUser.FullName}";
+        isExporting = false;
+    }
+
+    string DisplayPath(string? v)
+    {
+        if (string.IsNullOrEmpty(v)) return string.Empty;
+        var n = v.Replace("\\", "/");
+        return n.StartsWith("/") ? n : "/" + n;
+    }
+}
+
+<style>
+    .text-orange {
+        color: #ff6600;
+    }
+
+    .bg-orange {
+        background-color: #ff6600;
+    }
+
+    .border-orange {
+        border: 1px solid #ff6600;
+    }
+
+    .btn-orange {
+        background-color: #ff6600;
+        color: white;
+        border: none;
+    }
+
+        .btn-orange:hover {
+            background-color: #e65c00;
+        }
+
+    .btn-outline-orange {
+        border: 1px solid #ff6600;
+        color: #ff6600;
+    }
+
+        .btn-outline-orange:hover {
+            background-color: #ff6600;
+            color: white;
+        }
+
+    .badge.bg-orange {
+        background-color: #ff6600;
+    }
+</style>

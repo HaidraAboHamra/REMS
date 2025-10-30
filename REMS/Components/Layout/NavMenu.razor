@@ -1,6 +1,6 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿<div class="top-row ps-3 navbar navbar-dark custom-navbar">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">REMS</a>
+        <a class="navbar-brand fw-bold" href="">BEMS</a>
     </div>
 </div>
 
@@ -10,81 +10,174 @@
     <nav class="flex-column">
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="/user">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> الحساب
+                <span class="bi bi-person-circle-nav-menu" aria-hidden="true"></span> الحساب
             </NavLink>
         </div>
+
         <AuthorizeView Roles="User,Manager,Admin1">
             <Authorized>
-
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="/home" Match="NavLinkMatch.All">
                         <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> الصفحة الرئيسية
                     </NavLink>
                 </div>
+
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="/Tasks">
-                        <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> جدولة المهام
+                        <span class="bi bi-calendar-check-fill-nav-menu" aria-hidden="true"></span> جدولة المهام
                     </NavLink>
                 </div>
             </Authorized>
         </AuthorizeView>
+
         <AuthorizeView Roles="Manager,Admin1">
-            <div class="nav-item px-3">
-                <NavLink class="nav-link" href="/Task/listing">
-                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> مهام اليوم
-                </NavLink>
-            </div>
+            <Authorized>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="/Task/listing">
+                        <span class="bi bi-list-task-nav-menu" aria-hidden="true"></span> مهام اليوم
+                    </NavLink>
+                </div>
+            </Authorized>
         </AuthorizeView>
+
         <AuthorizeView Roles="Manager,Admin,Admin1">
             <Authorized>
-              
-
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="/register">
-                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> تسجيل حساب جديد
+                        <span class="bi bi-person-plus-fill-nav-menu" aria-hidden="true"></span> تسجيل حساب جديد
                     </NavLink>
                 </div>
             </Authorized>
         </AuthorizeView>
+
         <AuthorizeView Roles="Manager,Admin">
             <Authorized>
-
-
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="/followupreport">
-                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> التقارير
+                        <span class="bi bi-file-earmark-text-fill-nav-menu" aria-hidden="true"></span> التقارير
                     </NavLink>
                 </div>
             </Authorized>
         </AuthorizeView>
+
         <AuthorizeView Roles="Manager,Admin,FUser">
             <Authorized>
-
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="/users-and-reports">
+                        <span class="bi bi-people-fill-nav-menu" aria-hidden="true"></span> المنسقين
+                    </NavLink>
+                </div>
 
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="/addfollowupreport">
-                        <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> اضافة تقرير قسم المتابعة
+                        <span class="bi bi-journal-plus-nav-menu" aria-hidden="true"></span> اضافة تقرير قسم المتابعة
                     </NavLink>
                 </div>
             </Authorized>
         </AuthorizeView>
+
         <AuthorizeView Roles="Manager">
             <Authorized>
-
-
                 <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="/setting">
-                        <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> الاعدادات
+                    <NavLink class="nav-link" href="/setting" >
+                        <span class="bi bi-gear-fill-nav-menu" aria-hidden="true"></span> الاعدادات
                     </NavLink>
                 </div>
             </Authorized>
         </AuthorizeView>
+
         <AuthorizeView>
             <Authorized>
-                <NavLink style="position: absolute; bottom: 5px; left: 5px;" href="/logout"><button style="background:#1b6ec2;" onkeydown="Animation"> تسجيل خروج</button> </NavLink>
+                <NavLink style="position: absolute; bottom: 5px; left: 5px;" href="/logout">
+                    <button class="logout-btn">تسجيل خروج</button>
+                </NavLink>
             </Authorized>
         </AuthorizeView>
     </nav>
 </div>
+
+<style>
+    .custom-navbar {
+        background: linear-gradient(90deg, #ff7b00, #ff9a42, #ffb347); /* برتقالي عصري */
+        color: white;
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.25);
+        font-size: 1.3rem;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .navbar-brand {
+        font-size: 2rem;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        color: white !important;
+        font-weight: 900;
+    }
+
+    .nav-scrollable {
+        background: linear-gradient(180deg, #fff3e0 0%, #ffc966 100%); /* تدرج برتقالي فاتح */
+        padding-top: 15px;
+    }
+
+    .nav-link {
+        color: #ff6600; /* برتقالي واضح */
+        font-weight: 800;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        border-radius: 10px;
+        padding: 10px 15px;
+        text-transform: uppercase;
+    }
+
+        .nav-link:hover {
+            color: #ff4500 !important; /* برتقالي داكن عند المرور */
+            transform: translateX(5px);
+        }
+
+    .nav-item {
+        margin-bottom: 8px;
+    }
+
+    .bi {
+        margin-right: 8px;
+        font-size: 1.2rem;
+        color: #ff6600;
+    }
+
+    .logout-btn {
+        background: linear-gradient(90deg, #ff6600, #ff8533); /* زر عصري بالبرتقالي */
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-weight: 800;
+        font-size: 1.1rem;
+        transition: background 0.3s ease, transform 0.2s ease;
+        text-transform: uppercase;
+    }
+
+        .logout-btn:hover {
+            background: linear-gradient(90deg, #ff8533, #ffa64d);
+            transform: scale(1.05);
+        }
+
+    nav {
+        color: #ff6600;
+        font-size: 1.15rem;
+        font-weight: 700;
+    }
+
+    .nav-scrollable nav a {
+        color: #ff6600;
+        font-weight: 700;
+        font-size: 1.1rem;
+        text-transform: uppercase;
+    }
+
+        .nav-scrollable nav a:hover {
+            color: #ff4500 !important;
+        }
+</style>
 
 

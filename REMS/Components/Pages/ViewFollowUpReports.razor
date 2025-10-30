@@ -48,10 +48,9 @@
                         <th>المحتوى</th>
                         @* <th>الحقول المخصّصة</th> *@
                         <th>توقيع العقد</th>
-                        <th>الملف الرئيسي</th>
                         <th>الحالة</th>
                         <th>التاريخ</th>
-                        <th>إجراءات</th>
+                        @* <th>إجراءات</th> *@
                     </tr>
                 </thead>
                 <tbody>
@@ -110,7 +109,7 @@
                             </td> *@
 
                             <!-- Contract file (from new entity field) -->
-                            <td>
+                            @* <td>
                                 @if (!string.IsNullOrEmpty(item.ContractFilePath))
                                 {
                                     if (IsImageFile(item.ContractFilePath))
@@ -139,7 +138,7 @@
                                 {
                                     <span class="small" style="color:#777">لا يوجد توقيع</span>
                                 }
-                            </td>
+                            </td> *@
 
                             <!-- Path (legacy or primary file) -->
                             <td>
@@ -162,12 +161,12 @@
 
                             <td>@item.IsDoneOrNot</td>
                             <td>@item.DateTime.ToString("yyyy-MM-dd HH:mm")</td>
-
+@* 
                             <td>
                                 <MudButton Variant="Variant.Outlined" Color="MudBlazor.Color.Primary" OnClick="() => EditReport(item.Id)">
                                     تعديل
                                 </MudButton>
-                            </td>
+                            </td> *@
                         </tr>
                     }
                 </tbody>
@@ -346,7 +345,7 @@
     {
         isGeneratingExcel = true;
         var request = await _service.GetReportsByDate(reportDate.Value);
-        reportUrl = await _excel.GenerateFollowUpReportExcel(request, reportDate.Value);
+        reportUrl = await _excel.GenerateFollowUpReportExcelAsync(request, reportDate.Value);
         isGeneratingExcel = false;
         await ViewReport();
     }
@@ -398,22 +397,22 @@
         public string Value { get; set; } = string.Empty; // نص أو مسار الملف
     }
 
-    List<ReportField> GetCustomFields(FollowUpReport report)
-    {
-        if (report == null || string.IsNullOrEmpty(report.CustomFieldsJson))
-            return new List<ReportField>();
+    // List<ReportField> GetCustomFields(FollowUpReport report)
+    // {
+    //     if (report == null || string.IsNullOrEmpty(report.CustomFieldsJson))
+    //         return new List<ReportField>();
 
-        try
-        {
-            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            var list = JsonSerializer.Deserialize<List<ReportField>>(report.CustomFieldsJson, options);
-            return list ?? new List<ReportField>();
-        }
-        catch
-        {
-            return new List<ReportField>();
-        }
-    }
+    //     try
+    //     {
+    //         var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+    //         var list = JsonSerializer.Deserialize<List<ReportField>>(report.CustomFieldsJson, options);
+    //         return list ?? new List<ReportField>();
+    //     }
+    //     catch
+    //     {
+    //         return new List<ReportField>();
+    //     }
+    // }
 
     bool IsImageFile(string? pathOrName)
     {

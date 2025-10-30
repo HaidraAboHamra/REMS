@@ -1,10 +1,11 @@
-﻿using Microsoft.AspNetCore.Identity;
-using REMS.Enititys;
-using REMS.Data;
-using System.Threading.Tasks;
+﻿using DocumentFormat.OpenXml.Office2010.Excel;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using REMS.Abstractions;
-using Microsoft.AspNetCore.Authorization;
+using REMS.Data;
+using REMS.Enititys;
+using System.Threading.Tasks;
 
 public class UserService
 {
@@ -35,7 +36,18 @@ public class UserService
         }
         return Result<User>.Success(user);
     }
+    public async Task<Result<List<User>>> GetAll()
+    {
+        var users = await _context.Users.ToListAsync();
 
+        if (users == null || users.Count == 0)
+        {
+            return Result<List<User>>.Failure(new Error("لا يوجد مستخدمون في النظام."));
+        }
+
+        return Result<List<User>>.Success(users);
+
+    }
     public async Task<User?> LoginAsync(string email, string password)
     {
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);

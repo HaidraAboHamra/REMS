@@ -76,6 +76,6 @@ namespace REMS.Enititys
 
         // ------------------ الحقول المخصصة (كما كان) ------------------
         // حفظ الحقول المخصصة بصيغة JSON (مصفوفة من { Name, Type, Value })
-        public string? CustomFieldsJson { get; set; }
+        //public string? CustomFieldsJson { get; set; }
     }
 }

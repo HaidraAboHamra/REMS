@@ -1,4 +1,4 @@
-﻿@page "/Task/listing"
+﻿@* @page "/Task/listing"
 @using REMS.Enititys
 @using REMS.Services
 @using MudBlazor
@@ -197,7 +197,7 @@
     {
         isGeneratingExcel = true;
         var request = await _service.GetReportsByDate(reportDate.Value);
-        reportUrl = await _excel.GenerateReportExcel(request, reportDate.Value);
+        reportUrl = await _excel.GenerateFollowUpReportExcelAsync(request, reportDate.Value);
         isGeneratingExcel = false;
         await ViewReport();
     }
@@ -233,3 +233,4 @@
         IsSendDisabled = string.IsNullOrEmpty(Email);
     }
 }
+ *@
