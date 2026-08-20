@@ -1,4 +1,1146 @@
 ﻿@page "/home"
 @attribute [Authorize]
+
 <PageTitle>Dashboard</PageTitle>
 
+<div class="hems-dashboard">
+
+    <!-- Ambient Background -->
+    <div class="dashboard-orb orb-one"></div>
+    <div class="dashboard-orb orb-two"></div>
+    <div class="dashboard-orb orb-three"></div>
+
+    <!-- Animated Grid -->
+    <div class="dashboard-grid"></div>
+
+    <!-- Scan Line -->
+    <div class="dashboard-scan"></div>
+
+    <!-- Content -->
+    <main class="dashboard-content">
+
+        <section class="dashboard-hero">
+
+            <div class="hero-glow"></div>
+
+            <div class="hero-content">
+
+                <span class="hero-kicker">
+                    HEMS • HEX STUDIO
+                </span>
+
+                <h1>
+                    لوحة التحكم
+                    <span class="hero-accent">Dashboard</span>
+                </h1>
+
+                <p>
+                    مرحباً بك في نظام HEMS لإدارة ومتابعة الأعمال والمهام.
+                </p>
+
+            </div>
+
+            <div class="hero-badge">
+                <div class="hero-badge-core"></div>
+            </div>
+
+        </section>
+
+
+        <!--
+            ضع هنا محتوى الـ Dashboard الحالي
+            إذا كان لديك Cards / Tables / Charts
+        -->
+
+
+    </main>
+
+</div>
+
+
+<style>
+
+    :root {
+
+        --hems-black: #030305;
+        --hems-black-2: #070811;
+        --hems-black-3: #0b0c18;
+
+        --hems-indigo: #312e81;
+        --hems-indigo-2: #4338ca;
+
+        --hems-indigo-light: #6366f1;
+        --hems-blue: #1d4ed8;
+        --hems-cyan: #38bdf8;
+
+        --hems-white: #f8fafc;
+        --hems-muted: #a5b4fc;
+
+        --hems-border:
+            rgba(129,140,248,.20);
+
+        --hems-glow:
+            rgba(79,70,229,.45);
+    }
+
+
+    /* =====================================================
+       MAIN BACKGROUND
+       ===================================================== */
+
+    .hems-dashboard {
+
+        position: relative;
+
+        min-height: 100vh;
+
+        overflow: hidden;
+
+        isolation: isolate;
+
+        background:
+
+            radial-gradient(
+                circle at 82% 8%,
+                rgba(67,56,202,.23),
+                transparent 26%
+            ),
+
+            radial-gradient(
+                circle at 15% 90%,
+                rgba(29,78,216,.16),
+                transparent 25%
+            ),
+
+            linear-gradient(
+                135deg,
+                #030305 0%,
+                #070811 42%,
+                #11102b 72%,
+                #1e1b4b 100%
+            );
+
+        color:
+            var(--hems-white);
+    }
+
+
+    /* =====================================================
+       GRID
+       ===================================================== */
+
+    .dashboard-grid {
+
+        position: absolute;
+
+        inset: 0;
+
+        z-index: -3;
+
+        pointer-events: none;
+
+        background:
+
+            linear-gradient(
+                rgba(255,255,255,.025) 1px,
+                transparent 1px
+            ),
+
+            linear-gradient(
+                90deg,
+                rgba(255,255,255,.025) 1px,
+                transparent 1px
+            );
+
+        background-size:
+            42px 42px;
+
+        mask-image:
+            linear-gradient(
+                to bottom,
+                black,
+                transparent 90%
+            );
+
+        animation:
+            dashboardGridMove
+            22s linear infinite;
+    }
+
+
+    /* =====================================================
+       VIGNETTE
+       ===================================================== */
+
+    .hems-dashboard::before {
+
+        content: "";
+
+        position: absolute;
+
+        inset: 0;
+
+        z-index: -2;
+
+        pointer-events: none;
+
+        background:
+
+            radial-gradient(
+                circle at center,
+                transparent 0%,
+                rgba(2,2,8,.15) 48%,
+                rgba(2,2,8,.62) 100%
+            );
+    }
+
+
+    /* =====================================================
+       AMBIENT ORBS
+       ===================================================== */
+
+    .dashboard-orb {
+
+        position: absolute;
+
+        border-radius: 50%;
+
+        pointer-events: none;
+
+        filter:
+            blur(8px);
+
+        mix-blend-mode:
+            screen;
+
+        z-index: -1;
+    }
+
+
+    .orb-one {
+
+        width: 360px;
+        height: 360px;
+
+        top: -120px;
+        right: -80px;
+
+        background:
+
+            radial-gradient(
+                circle,
+                rgba(99,102,241,.34),
+                transparent 68%
+            );
+
+        animation:
+            orbOne
+            11s ease-in-out infinite;
+    }
+
+
+    .orb-two {
+
+        width: 420px;
+        height: 420px;
+
+        bottom: -170px;
+        left: -150px;
+
+        background:
+
+            radial-gradient(
+                circle,
+                rgba(37,99,235,.22),
+                transparent 68%
+            );
+
+        animation:
+            orbTwo
+            14s ease-in-out infinite;
+    }
+
+
+    .orb-three {
+
+        width: 240px;
+        height: 240px;
+
+        top: 42%;
+        left: 48%;
+
+        background:
+
+            radial-gradient(
+                circle,
+                rgba(129,140,248,.12),
+                transparent 66%
+            );
+
+        animation:
+            orbThree
+            6s ease-in-out infinite;
+    }
+
+
+    /* =====================================================
+       SCAN
+       ===================================================== */
+
+    .dashboard-scan {
+
+        position: absolute;
+
+        top: 0;
+        left: -35%;
+
+        width: 35%;
+        height: 100%;
+
+        z-index: -1;
+
+        transform:
+            skewX(-22deg);
+
+        pointer-events: none;
+
+        background:
+
+            linear-gradient(
+                90deg,
+                transparent,
+                rgba(255,255,255,.055),
+                transparent
+            );
+
+        animation:
+            dashboardScan
+            8s ease-in-out infinite;
+    }
+
+
+    /* =====================================================
+       CONTENT
+       ===================================================== */
+
+    .dashboard-content {
+
+        position: relative;
+
+        z-index: 2;
+
+        width: min(
+            1400px,
+            calc(100% - 40px)
+        );
+
+        margin:
+            0 auto;
+
+        padding:
+            32px 0 60px;
+    }
+
+
+    /* =====================================================
+       HERO
+       ===================================================== */
+
+    .dashboard-hero {
+
+        position: relative;
+
+        overflow: hidden;
+
+        min-height:
+            230px;
+
+        display:
+            flex;
+
+        align-items:
+            center;
+
+        justify-content:
+            space-between;
+
+        gap:
+            30px;
+
+        padding:
+            40px 46px;
+
+        border:
+            1px solid rgba(129,140,248,.20);
+
+        border-radius:
+            28px;
+
+        background:
+
+            radial-gradient(
+                circle at 85% 10%,
+                rgba(129,140,248,.25),
+                transparent 28%
+            ),
+
+            linear-gradient(
+                135deg,
+                rgba(3,3,5,.94),
+                rgba(10,10,20,.92) 48%,
+                rgba(23,20,73,.90) 100%
+            );
+
+        box-shadow:
+
+            0 24px 80px rgba(0,0,0,.48),
+
+            0 0 0 1px
+            rgba(255,255,255,.025)
+            inset,
+
+            0 0 60px
+            rgba(67,56,202,.10);
+
+        backdrop-filter:
+            blur(22px);
+
+        -webkit-backdrop-filter:
+            blur(22px);
+
+        animation:
+            heroReveal
+            .8s cubic-bezier(.2,.75,.2,1)
+            both;
+    }
+
+
+    .dashboard-hero::before {
+
+        content: "";
+
+        position: absolute;
+
+        inset: 0;
+
+        pointer-events: none;
+
+        border-radius: inherit;
+
+        background:
+
+            linear-gradient(
+                120deg,
+                rgba(255,255,255,.05),
+                transparent 30%,
+                transparent 70%,
+                rgba(99,102,241,.10)
+            );
+    }
+
+
+    /* =====================================================
+       HERO GLOW
+       ===================================================== */
+
+    .hero-glow {
+
+        position: absolute;
+
+        width: 420px;
+        height: 280px;
+
+        top: -140px;
+        right: 8%;
+
+        background:
+
+            radial-gradient(
+                circle,
+                rgba(99,102,241,.28),
+                transparent 65%
+            );
+
+        filter:
+            blur(12px);
+
+        animation:
+            heroGlow
+            7s ease-in-out infinite;
+    }
+
+
+    /* =====================================================
+       HERO TEXT
+       ===================================================== */
+
+    .hero-content {
+
+        position: relative;
+
+        z-index: 3;
+    }
+
+
+    .hero-kicker {
+
+        display: block;
+
+        margin-bottom:
+            10px;
+
+        color:
+            #a5b4fc;
+
+        font-family:
+            "Space Grotesk",
+            sans-serif;
+
+        font-size:
+            .72rem;
+
+        font-weight:
+            800;
+
+        letter-spacing:
+            .28em;
+
+        text-transform:
+            uppercase;
+
+        animation:
+            textReveal
+            .7s .15s ease both;
+    }
+
+
+    .dashboard-hero h1 {
+
+        margin:
+            0;
+
+        font-family:
+            "Unbounded",
+            "Space Grotesk",
+            sans-serif;
+
+        font-size:
+            clamp(
+                1.8rem,
+                4vw,
+                3rem
+            );
+
+        font-weight:
+            500;
+
+        line-height:
+            1.3;
+
+        color:
+            #f8fafc;
+
+        letter-spacing:
+            -.04em;
+
+        text-shadow:
+
+            0 0 18px
+            rgba(129,140,248,.12),
+
+            0 0 40px
+            rgba(79,70,229,.08);
+
+        animation:
+            textReveal
+            .7s .25s ease both;
+    }
+
+
+    .hero-accent {
+
+        display: block;
+
+        margin-top:
+            5px;
+
+        font-family:
+            "Space Grotesk",
+            sans-serif;
+
+        font-size:
+            .42em;
+
+        font-weight:
+            500;
+
+        letter-spacing:
+            .32em;
+
+        color:
+            #818cf8;
+
+        text-transform:
+            uppercase;
+
+        text-shadow:
+
+            0 0 18px
+            rgba(99,102,241,.30);
+    }
+
+
+    .dashboard-hero p {
+
+        margin:
+            14px 0 0;
+
+        max-width:
+            650px;
+
+        color:
+            rgba(226,232,240,.68);
+
+        font-family:
+            "Space Grotesk",
+            "Segoe UI",
+            sans-serif;
+
+        font-size:
+            .98rem;
+
+        line-height:
+            1.8;
+
+        animation:
+            textReveal
+            .7s .35s ease both;
+    }
+
+
+    /* =====================================================
+       HERO BADGE
+       ===================================================== */
+
+    .hero-badge {
+
+        position: relative;
+
+        flex:
+            0 0 100px;
+
+        width:
+            100px;
+
+        height:
+            100px;
+
+        display:
+            grid;
+
+        place-items:
+            center;
+
+        border-radius:
+            28px;
+
+        background:
+
+            linear-gradient(
+                145deg,
+                rgba(99,102,241,.92),
+                rgba(30,64,175,.72)
+            );
+
+        border:
+            1px solid
+            rgba(255,255,255,.15);
+
+        box-shadow:
+
+            0 18px 42px
+            rgba(79,70,229,.34),
+
+            0 0 36px
+            rgba(99,102,241,.22)
+            inset,
+
+            0 0 50px
+            rgba(99,102,241,.16);
+
+        animation:
+            badgeFloat
+            4s ease-in-out infinite;
+    }
+
+
+    .hero-badge::before {
+
+        content: "";
+
+        position: absolute;
+
+        inset: 9px;
+
+        border-radius:
+            22px;
+
+        border:
+            1px solid
+            rgba(255,255,255,.10);
+    }
+
+
+    .hero-badge-core {
+
+        width:
+            24px;
+
+        height:
+            24px;
+
+        border-radius:
+            50%;
+
+        background:
+            #f8fafc;
+
+        box-shadow:
+
+            0 0 14px
+            rgba(255,255,255,.65),
+
+            0 0 34px
+            rgba(129,140,248,.55);
+
+        animation:
+            corePulse
+            2.8s ease-in-out infinite;
+    }
+
+
+    /* =====================================================
+       STAGE
+       ===================================================== */
+
+    .dashboard-stage {
+
+        position: relative;
+
+        min-height:
+            420px;
+
+        margin-top:
+            24px;
+
+        padding:
+            30px;
+
+        overflow:
+            hidden;
+
+        border:
+            1px solid rgba(129,140,248,.15);
+
+        border-radius:
+            24px;
+
+        background:
+
+            radial-gradient(
+                circle at 18% 15%,
+                rgba(67,56,202,.10),
+                transparent 30%
+            ),
+
+            linear-gradient(
+                180deg,
+                rgba(9,10,18,.82),
+                rgba(7,8,15,.94)
+            );
+
+        box-shadow:
+
+            0 18px 60px
+            rgba(0,0,0,.34),
+
+            0 0 0 1px
+            rgba(255,255,255,.018)
+            inset;
+
+        backdrop-filter:
+            blur(18px);
+
+        -webkit-backdrop-filter:
+            blur(18px);
+
+        animation:
+            stageReveal
+            .75s .18s cubic-bezier(.2,.75,.2,1)
+            both;
+    }
+
+
+    .stage-glow {
+
+        position: absolute;
+
+        inset: 0;
+
+        pointer-events: none;
+
+        background:
+
+            radial-gradient(
+                circle at 50% -20%,
+                rgba(99,102,241,.10),
+                transparent 46%
+            );
+    }
+
+
+    /* =====================================================
+       ANIMATIONS
+       ===================================================== */
+
+    @@keyframes dashboardGridMove {
+
+        from {
+            transform:
+                translate3d(0,0,0);
+        }
+
+        to {
+            transform:
+                translate3d(42px,42px,0);
+        }
+    }
+
+
+    @@keyframes orbOne {
+
+        0%, 100% {
+            transform:
+                translate3d(0,0,0)
+                scale(1);
+
+            opacity:
+                .55;
+        }
+
+        50% {
+            transform:
+                translate3d(-45px,30px,0)
+                scale(1.10);
+
+            opacity:
+                .90;
+        }
+    }
+
+
+    @@keyframes orbTwo {
+
+        0%, 100% {
+            transform:
+                translate3d(0,0,0)
+                scale(1);
+        }
+
+        50% {
+            transform:
+                translate3d(45px,-35px,0)
+                scale(1.08);
+        }
+    }
+
+
+    @@keyframes orbThree {
+
+        0%, 100% {
+            transform:
+                scale(.92);
+
+            opacity:
+                .30;
+        }
+
+        50% {
+            transform:
+                scale(1.18);
+
+            opacity:
+                .70;
+        }
+    }
+
+
+    @@keyframes dashboardScan {
+
+        0%, 18% {
+            left:
+                -35%;
+
+            opacity:
+                0;
+        }
+
+        35% {
+            opacity:
+                1;
+        }
+
+        58%, 100% {
+            left:
+                115%;
+
+            opacity:
+                0;
+        }
+    }
+
+
+    @@keyframes heroReveal {
+
+        from {
+            opacity:
+                0;
+
+            transform:
+                translateY(28px)
+                scale(.985);
+
+            filter:
+                blur(8px);
+        }
+
+        to {
+            opacity:
+                1;
+
+            transform:
+                translateY(0)
+                scale(1);
+
+            filter:
+                blur(0);
+        }
+    }
+
+
+    @@keyframes stageReveal {
+
+        from {
+            opacity:
+                0;
+
+            transform:
+                translateY(18px);
+        }
+
+        to {
+            opacity:
+                1;
+
+            transform:
+                translateY(0);
+        }
+    }
+
+
+    @@keyframes textReveal {
+
+        from {
+            opacity:
+                0;
+
+            transform:
+                translateY(10px);
+        }
+
+        to {
+            opacity:
+                1;
+
+            transform:
+                translateY(0);
+        }
+    }
+
+
+    @@keyframes heroGlow {
+
+        0%, 100% {
+
+            transform:
+                translate3d(0,0,0)
+                scale(1);
+
+            opacity:
+                .65;
+        }
+
+        50% {
+
+            transform:
+                translate3d(-40px,24px,0)
+                scale(1.12);
+
+            opacity:
+                .95;
+        }
+    }
+
+
+    @@keyframes badgeFloat {
+
+        0%, 100% {
+
+            transform:
+                translateY(0)
+                rotate(0deg);
+        }
+
+        50% {
+
+            transform:
+                translateY(-8px)
+                rotate(2deg);
+        }
+    }
+
+
+    @@keyframes corePulse {
+
+        0%, 100% {
+
+            transform:
+                scale(.88);
+
+            box-shadow:
+
+                0 0 10px
+                rgba(255,255,255,.55),
+
+                0 0 28px
+                rgba(129,140,248,.40);
+        }
+
+        50% {
+
+            transform:
+                scale(1.12);
+
+            box-shadow:
+
+                0 0 18px
+                rgba(255,255,255,.80),
+
+                0 0 42px
+                rgba(129,140,248,.65);
+        }
+    }
+
+
+    /* =====================================================
+       RESPONSIVE
+       ===================================================== */
+
+    @@media (max-width: 900px) {
+
+        .dashboard-content {
+
+            width:
+                min(
+                    100% - 24px,
+                    1400px
+                );
+
+            padding-top:
+                18px;
+        }
+
+        .dashboard-hero {
+
+            padding:
+                30px 24px;
+
+            min-height:
+                200px;
+        }
+
+        .hero-badge {
+
+            width:
+                78px;
+
+            height:
+                78px;
+
+            flex-basis:
+                78px;
+
+            border-radius:
+                22px;
+        }
+
+        .hero-badge-core {
+
+            width:
+                20px;
+
+            height:
+                20px;
+        }
+    }
+
+
+    @@media (max-width: 640px) {
+
+        .dashboard-hero {
+
+            flex-direction:
+                column;
+
+            align-items:
+                flex-start;
+        }
+
+        .hero-badge {
+
+            position:
+                absolute;
+
+            top:
+                20px;
+
+            right:
+                20px;
+        }
+
+        .dashboard-stage {
+
+            padding:
+                20px;
+        }
+    }
+
+
+    @@media (prefers-reduced-motion: reduce) {
+
+        *,
+        *::before,
+        *::after {
+
+            animation-duration:
+                .01ms !important;
+
+            animation-iteration-count:
+                1 !important;
+
+            scroll-behavior:
+                auto !important;
+        }
+    }
+
+</style>

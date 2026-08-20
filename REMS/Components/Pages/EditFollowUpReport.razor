@@ -10,217 +10,509 @@
 
 @attribute [Authorize(Roles = "Manager,Admin,FUser")]
 
-<div class="container py-4" dir="rtl">
+<div class="update-page" dir="rtl">
+
+    <!-- Ambient background -->
+    <div class="update-orb orb-one"></div>
+    <div class="update-orb orb-two"></div>
+    <div class="update-orb orb-three"></div>
+
+    <div class="update-grid"></div>
+    <div class="update-scan"></div>
+
 
     @if (report == null)
     {
-        <div class="text-center">
-            <div class="spinner-border"></div>
+        <div class="loading-state">
+
+            <div class="loader-ring">
+                <div class="loader-core"></div>
+            </div>
+
+            <strong>جاري تحميل المهمة...</strong>
+
+            <span>HEMS TASK ENGINE</span>
+
         </div>
     }
     else
     {
-        <div class="card shadow">
+        <main class="update-content">
 
-            <div class="card-header">
-                <h3>
-                    <i class="fas fa-edit"></i>
-                    تحديث المهمة
-                </h3>
-            </div>
+            <!-- =====================================================
+                 HEADER
+                 ===================================================== -->
 
-            <div class="card-body">
+            <section class="update-header">
 
-                <div class="row">
+                <div class="header-glow"></div>
+                <div class="header-scan"></div>
 
-                    <div class="col-md-8">
+                <div class="header-left">
 
-                        <h4>
-                            @report.Content
-                        </h4>
-
-                        <p>
-                            @report.TaskDetails
-                        </p>
-
-                        <hr />
-
-                        <div class="row">
-
-                            <div class="col-md-4">
-                                <strong>
-                                    إجمالي البنود
-                                </strong>
-
-                                <div class="stat">
-                                    @report.TotalItems
-                                </div>
-                            </div>
-
-
-                            <div class="col-md-4">
-                                <strong>
-                                    المنجز
-                                </strong>
-
-                                <div class="stat">
-                                    @report.CompletedItems
-                                </div>
-                            </div>
-
-
-                            <div class="col-md-4">
-                                <strong>
-                                    المتبقي
-                                </strong>
-
-                                <div class="stat">
-                                    @report.RemainingItems
-                                </div>
-                            </div>
-
-                        </div>
-
-
-                        <div class="progress mt-4"
-                             style="height:25px">
-
-                            <div class="progress-bar"
-                                 style="width:@($"{report.ProgressPercentage}%")">
-
-                                @report.ProgressPercentage%
-
-                            </div>
-
-                        </div>
-
-
-                        <hr />
-
-                        <EditForm Model="updateVm"
-                                  OnValidSubmit="SaveUpdate">
-
-                            <DataAnnotationsValidator />
-
-
-                            <div class="mb-3">
-
-                                <label class="form-label">
-                                    عدد الأمور المنجزة الآن
-                                </label>
-
-                                <InputNumber class="form-control"
-                                             @bind-Value="updateVm.CompletedItems" />
-
-                            </div>
-
-
-                            <div class="mb-3">
-
-                                <label class="form-label">
-                                    ما تم إنجازه
-                                </label>
-
-                                <InputTextArea class="form-control"
-                                               rows="5"
-                                               @bind-Value="updateVm.CompletedDetails"
-                                               placeholder="اكتب فقط ما تم إنجازه..." />
-
-                            </div>
-
-
-                            <div class="mb-3">
-
-                                <label class="form-label">
-                                    ملاحظات
-                                </label>
-
-                                <InputTextArea class="form-control"
-                                               rows="3"
-                                               @bind-Value="updateVm.Notes" />
-
-                            </div>
-
-
-                            <button class="btn btn-success"
-                                    type="submit">
-
-                                حفظ التحديث
-
-                            </button>
-
-                            <button type="button"
-                                    class="btn btn-secondary ms-2"
-                                    @onclick="@(() => Navigation.NavigateTo("/followupreport"))">
-
-                                رجوع
-
-                            </button>
-
-                        </EditForm>
-
+                    <div class="header-icon">
+                        ✏️
                     </div>
 
-                    <div class="col-md-4">
+                    <div>
 
-                        <div class="card">
+                        <span class="header-kicker">
+                            HEX STUDIO • HEMS
+                        </span>
 
-                            <div class="card-header">
-                                سجل التحديثات
-                            </div>
+                        <h1>
+                            تحديث المهمة
+                        </h1>
 
-                            <div class="card-body">
-
-                                @if (updates.Count == 0)
-                                {
-                                    <p>
-                                        لا توجد تحديثات.
-                                    </p>
-                                }
-                                else
-                                {
-                                    @foreach (var item in updates)
-                                    {
-                                        <div class="update-card">
-
-                                            <strong>
-                                                @item.Status
-                                            </strong>
-
-                                            <div>
-                                                @item.CompletedItems /
-                                                @report.TotalItems
-                                            </div>
-
-                                            <div>
-                                                @item.ProgressPercentage%
-                                            </div>
-
-                                            <p>
-                                                @item.CompletedDetails
-                                            </p>
-
-                                            <small>
-                                                @item.UpdatedBy
-                                                -
-                                                @item.DateTime.ToString("yyyy-MM-dd HH:mm")
-                                            </small>
-
-                                        </div>
-                                    }
-                                }
-
-                            </div>
-
-                        </div>
+                        <p>
+                            متابعة تقدم المهمة وإضافة آخر التحديثات
+                        </p>
 
                     </div>
 
                 </div>
 
-            </div>
+                <div class="header-status">
 
-        </div>
+                    <span class="status-live-dot"></span>
+
+                    LIVE
+
+                </div>
+
+            </section>
+
+
+            <!-- =====================================================
+                 MAIN GRID
+                 ===================================================== -->
+
+            <section class="update-layout">
+
+                <!-- =================================================
+                     LEFT / MAIN
+                     ================================================= -->
+
+                <div class="main-column">
+
+                    <!-- Task card -->
+                    <section class="task-card">
+
+                        <div class="card-top-line"></div>
+
+                        <div class="task-heading">
+
+                            <div class="task-heading-icon">
+                                📋
+                            </div>
+
+                            <div>
+
+                                <span class="task-label">
+                                    المهمة الحالية
+                                </span>
+
+                                <h2>
+                                    @report.Content
+                                </h2>
+
+                                <p>
+                                    @report.TaskDetails
+                                </p>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- =========================
+                             Statistics
+                             ========================= -->
+
+                        <div class="stats-grid">
+
+                            <div class="stat-card total-stat">
+
+                                <div class="stat-icon">
+                                    📦
+                                </div>
+
+                                <div class="stat-content">
+
+                                    <span>
+                                        إجمالي البنود
+                                    </span>
+
+                                    <strong>
+                                        @report.TotalItems
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="stat-card completed-stat">
+
+                                <div class="stat-icon">
+                                    ✅
+                                </div>
+
+                                <div class="stat-content">
+
+                                    <span>
+                                        المنجز
+                                    </span>
+
+                                    <strong>
+                                        @report.CompletedItems
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="stat-card remaining-stat">
+
+                                <div class="stat-icon">
+                                    ⏳
+                                </div>
+
+                                <div class="stat-content">
+
+                                    <span>
+                                        المتبقي
+                                    </span>
+
+                                    <strong>
+                                        @report.RemainingItems
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- =========================
+                             Progress
+                             ========================= -->
+
+                        <div class="progress-section">
+
+                            <div class="progress-heading">
+
+                                <div>
+                                    <span>
+                                        نسبة الإنجاز
+                                    </span>
+
+                                    <small>
+                                        التقدم الحالي للمهمة
+                                    </small>
+                                </div>
+
+                                <strong>
+                                    @report.ProgressPercentage%
+                                </strong>
+
+                            </div>
+
+
+                            <div class="premium-progress">
+
+                                <div class="premium-progress-bar"
+                                     style="width:@($"{report.ProgressPercentage}%")">
+
+                                    <div class="progress-shine"></div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- =========================
+                             Update Form
+                             ========================= -->
+
+                        <div class="form-section">
+
+                            <div class="section-heading">
+
+                                <div class="section-heading-icon">
+                                    ⚡
+                                </div>
+
+                                <div>
+
+                                    <strong>
+                                        إضافة تحديث
+                                    </strong>
+
+                                    <span>
+                                        سجل ما تم إنجازه في هذه المرحلة
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+
+                            <EditForm Model="updateVm"
+                                      OnValidSubmit="SaveUpdate">
+
+                                <DataAnnotationsValidator />
+
+
+                                <!-- Completed -->
+                                <div class="field-group">
+
+                                    <label class="form-label">
+
+                                        <span class="label-icon">
+                                            ✅
+                                        </span>
+
+                                        عدد الأمور المنجزة الآن
+
+                                    </label>
+
+                                    <div class="input-wrapper">
+
+                                        <InputNumber class="premium-input"
+                                                     @bind-Value="updateVm.CompletedItems" />
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- Details -->
+                                <div class="field-group">
+
+                                    <label class="form-label">
+
+                                        <span class="label-icon">
+                                            📝
+                                        </span>
+
+                                        ما تم إنجازه
+
+                                    </label>
+
+                                    <div class="textarea-wrapper">
+
+                                        <InputTextArea class="premium-input premium-textarea"
+                                                       rows="5"
+                                                       @bind-Value="updateVm.CompletedDetails"
+                                                       placeholder="اكتب فقط ما تم إنجازه..." />
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- Notes -->
+                                <div class="field-group">
+
+                                    <label class="form-label">
+
+                                        <span class="label-icon">
+                                            💡
+                                        </span>
+
+                                        ملاحظات
+
+                                    </label>
+
+                                    <div class="textarea-wrapper">
+
+                                        <InputTextArea class="premium-input premium-textarea notes-input"
+                                                       rows="3"
+                                                       @bind-Value="updateVm.Notes"
+                                                       placeholder="أضف ملاحظات إضافية..." />
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- Actions -->
+                                <div class="form-actions">
+
+                                    <button class="save-btn"
+                                            type="submit">
+
+                                        <span class="save-icon">
+                                            💾
+                                        </span>
+
+                                        <span>
+                                            حفظ التحديث
+                                        </span>
+
+                                        <span class="save-arrow">
+                                            ←
+                                        </span>
+
+                                        <span class="button-shine"></span>
+
+                                    </button>
+
+
+                                    <button type="button"
+                                            class="back-btn"
+                                            @onclick="@(() => Navigation.NavigateTo("/followupreport"))">
+
+                                        <span>
+                                            ←
+                                        </span>
+
+                                        رجوع
+
+                                    </button>
+
+                                </div>
+
+                            </EditForm>
+
+                        </div>
+
+                    </section>
+
+                </div>
+
+
+                <!-- =================================================
+                     RIGHT / HISTORY
+                     ================================================= -->
+
+                <aside class="history-column">
+
+                    <section class="history-card">
+
+                        <div class="card-top-line"></div>
+
+                        <div class="history-header">
+
+                            <div class="history-title-icon">
+                                🕘
+                            </div>
+
+                            <div>
+
+                                <strong>
+                                    سجل التحديثات
+                                </strong>
+
+                                <span>
+                                    آخر التغييرات على المهمة
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        @if (updates.Count == 0)
+                        {
+                            <div class="empty-history">
+
+                                <div class="empty-history-icon">
+                                    📭
+                                </div>
+
+                                <strong>
+                                    لا توجد تحديثات
+                                </strong>
+
+                                <span>
+                                    لم يتم تسجيل أي تحديث لهذه المهمة بعد.
+                                </span>
+
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="timeline">
+
+                                @foreach (var item in updates)
+                                {
+                                    <div class="timeline-item">
+
+                                        <div class="timeline-dot"></div>
+
+                                        <div class="timeline-line"></div>
+
+                                        <div class="update-card">
+
+                                            <div class="update-card-header">
+
+                                                <strong>
+                                                    @item.Status
+                                                </strong>
+
+                                                <span class="timeline-date">
+                                                    @item.DateTime.ToString("yyyy-MM-dd HH:mm")
+                                                </span>
+
+                                            </div>
+
+
+                                            <div class="history-metrics">
+
+                                                <span class="history-metric completed-metric">
+                                                    <b>@item.CompletedItems</b>
+                                                    /
+                                                    @report.TotalItems
+                                                </span>
+
+                                                <span class="history-metric progress-metric">
+                                                    @item.ProgressPercentage%
+                                                </span>
+
+                                            </div>
+
+
+                                            @if (!string.IsNullOrWhiteSpace(item.CompletedDetails))
+                                            {
+                                                <p class="update-description">
+                                                    @item.CompletedDetails
+                                                </p>
+                                            }
+
+
+                                            <div class="updated-by">
+
+                                                <span class="mini-avatar">
+                                                    👤
+                                                </span>
+
+                                                <span>
+                                                    @item.UpdatedBy
+                                                </span>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+                                }
+
+                            </div>
+                        }
+
+                    </section>
+
+                </aside>
+
+            </section>
+
+        </main>
     }
 
 </div>
@@ -338,3 +630,1219 @@
             = string.Empty;
     }
 }
+
+
+<style>
+
+    /* =========================================================
+           HEMS UPDATE PAGE
+           ========================================================= */
+
+    .update-page {
+        position: relative;
+        min-height: 100vh;
+        padding: clamp(14px,2.5vw,30px);
+        overflow: hidden;
+        isolation: isolate;
+        background: radial-gradient( circle at 82% 8%, rgba(67,56,202,.23), transparent 26% ), radial-gradient( circle at 15% 90%, rgba(29,78,216,.16), transparent 25% ), linear-gradient( 135deg, #030305 0%, #070811 42%, #11102b 72%, #1e1b4b 100% );
+        color: #f8fafc;
+    }
+
+
+        .update-page::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: -2;
+            pointer-events: none;
+            background: radial-gradient( circle at center, transparent 0%, rgba(2,2,8,.18) 48%, rgba(2,2,8,.60) 100% );
+        }
+
+
+    /* =========================================================
+           GRID
+           ========================================================= */
+
+    .update-grid {
+        position: absolute;
+        inset: 0;
+        z-index: -3;
+        pointer-events: none;
+        background: linear-gradient( rgba(255,255,255,.025) 1px, transparent 1px ), linear-gradient( 90deg, rgba(255,255,255,.025) 1px, transparent 1px );
+        background-size: 42px 42px;
+        mask-image: linear-gradient( to bottom, black, transparent 92% );
+        animation: gridMove 22s linear infinite;
+    }
+
+
+    /* =========================================================
+           AMBIENT
+           ========================================================= */
+
+    .update-orb {
+        position: absolute;
+        border-radius: 999px;
+        pointer-events: none;
+        filter: blur(8px);
+        mix-blend-mode: screen;
+        z-index: -1;
+    }
+
+
+    .orb-one {
+        width: 350px;
+        height: 350px;
+        top: -120px;
+        right: -80px;
+        background: radial-gradient( circle, rgba(99,102,241,.35), transparent 68% );
+        animation: orbOne 11s ease-in-out infinite;
+    }
+
+
+    .orb-two {
+        width: 400px;
+        height: 400px;
+        bottom: -160px;
+        left: -140px;
+        background: radial-gradient( circle, rgba(37,99,235,.24), transparent 68% );
+        animation: orbTwo 14s ease-in-out infinite;
+    }
+
+
+    .orb-three {
+        width: 220px;
+        height: 220px;
+        top: 44%;
+        left: 48%;
+        background: radial-gradient( circle, rgba(129,140,248,.12), transparent 66% );
+        animation: orbThree 6s ease-in-out infinite;
+    }
+
+
+    .update-scan {
+        position: absolute;
+        top: 0;
+        left: -35%;
+        width: 35%;
+        height: 100%;
+        z-index: -1;
+        transform: skewX(-22deg);
+        background: linear-gradient( 90deg, transparent, rgba(255,255,255,.055), transparent );
+        animation: scan 8s ease-in-out infinite;
+    }
+
+
+    /* =========================================================
+           CONTENT
+           ========================================================= */
+
+    .update-content {
+        position: relative;
+        width: min( 1450px, 100% );
+        margin: 0 auto;
+        z-index: 2;
+    }
+
+
+    /* =========================================================
+           HEADER
+           ========================================================= */
+
+    .update-header {
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        min-height: 145px;
+        margin-bottom: 20px;
+        padding: 28px clamp(20px,4vw,40px);
+        border: 1px solid rgba(129,140,248,.20);
+        border-radius: 26px;
+        background: radial-gradient( circle at 85% 10%, rgba(129,140,248,.28), transparent 28% ), linear-gradient( 135deg, #020204 0%, #0a0a14 48%, #171449 100% );
+        box-shadow: 0 24px 70px rgba(0,0,0,.48), 0 0 0 1px rgba(255,255,255,.025) inset, 0 0 50px rgba(67,56,202,.10);
+        backdrop-filter: blur(22px);
+        -webkit-backdrop-filter: blur(22px);
+        animation: cardReveal .75s cubic-bezier(.2,.75,.2,1) both;
+    }
+
+
+    .header-left {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        gap: 17px;
+    }
+
+
+    .header-icon {
+        width: 62px;
+        height: 62px;
+        flex: 0 0 62px;
+        display: grid;
+        place-items: center;
+        border-radius: 18px;
+        font-size: 1.6rem;
+        background: linear-gradient( 145deg, rgba(99,102,241,.95), rgba(30,64,175,.76) );
+        border: 1px solid rgba(255,255,255,.16);
+        box-shadow: 0 10px 30px rgba(79,70,229,.34), 0 0 28px rgba(99,102,241,.22) inset;
+        animation: iconPulse 3.5s ease-in-out infinite;
+    }
+
+
+    .header-kicker {
+        display: block;
+        margin-bottom: 5px;
+        color: #a5b4fc;
+        font-family: "Space Grotesk", sans-serif;
+        font-size: .67rem;
+        font-weight: 800;
+        letter-spacing: .23em;
+        text-transform: uppercase;
+    }
+
+
+    .update-header h1 {
+        margin: 0;
+        color: #f8fafc;
+        font-family: "Unbounded", "Space Grotesk", sans-serif;
+        font-size: clamp( 1.3rem, 2.5vw, 2rem );
+        font-weight: 500;
+    }
+
+
+    .update-header p {
+        margin: 6px 0 0;
+        color: rgba(226,232,240,.68);
+        font-size: .84rem;
+    }
+
+
+    .header-status {
+        position: relative;
+        z-index: 3;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 14px;
+        border-radius: 999px;
+        color: #c7d2fe;
+        background: rgba(49,46,129,.18);
+        border: 1px solid rgba(129,140,248,.20);
+        font-family: "JetBrains Mono", monospace;
+        font-size: .68rem;
+        letter-spacing: .08em;
+    }
+
+
+    .status-live-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #38bdf8;
+        box-shadow: 0 0 12px rgba(56,189,248,.85);
+        animation: livePulse 1.8s ease-in-out infinite;
+    }
+
+
+    /* =========================================================
+           LAYOUT
+           ========================================================= */
+
+    .update-layout {
+        display: grid;
+        grid-template-columns: minmax(0,2fr) minmax(330px,1fr);
+        gap: 20px;
+        align-items: start;
+    }
+
+
+    /* =========================================================
+           CARDS
+           ========================================================= */
+
+    .task-card,
+    .history-card {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(129,140,248,.18);
+        border-radius: 24px;
+        background: rgba(8,9,18,.84);
+        box-shadow: 0 24px 70px rgba(0,0,0,.44), 0 0 0 1px rgba(255,255,255,.02) inset;
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        animation: cardReveal .8s .10s cubic-bezier(.2,.75,.2,1) both;
+    }
+
+
+    .card-top-line {
+        position: absolute;
+        top: 0;
+        left: 4%;
+        width: 92%;
+        height: 1px;
+        background: linear-gradient( 90deg, transparent, rgba(129,140,248,.48), rgba(56,189,248,.40), transparent );
+    }
+
+
+    /* =========================================================
+           TASK HEADING
+           ========================================================= */
+
+    .task-heading {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 28px 28px 22px;
+        border-bottom: 1px solid rgba(129,140,248,.09);
+    }
+
+
+    .task-heading-icon {
+        width: 50px;
+        height: 50px;
+        flex: 0 0 50px;
+        display: grid;
+        place-items: center;
+        border-radius: 15px;
+        background: linear-gradient( 145deg, rgba(99,102,241,.82), rgba(30,64,175,.62) );
+        box-shadow: 0 9px 24px rgba(79,70,229,.25);
+    }
+
+
+    .task-label {
+        display: block;
+        color: #818cf8;
+        font-size: .67rem;
+        font-weight: 800;
+        margin-bottom: 4px;
+    }
+
+
+    .task-heading h2 {
+        margin: 0;
+        color: #f8fafc;
+        font-family: "Space Grotesk", "Segoe UI", sans-serif;
+        font-size: 1.08rem;
+        font-weight: 800;
+    }
+
+
+    .task-heading p {
+        margin: 5px 0 0;
+        color: rgba(203,213,225,.52);
+        font-size: .72rem;
+    }
+
+
+    /* =========================================================
+           STATISTICS
+           ========================================================= */
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat( 3, minmax(0,1fr) );
+        gap: 14px;
+        padding: 22px 28px;
+    }
+
+
+    .stat-card {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-height: 82px;
+        padding: 14px;
+        border: 1px solid rgba(129,140,248,.14);
+        border-radius: 16px;
+        background: linear-gradient( 135deg, rgba(30,41,59,.42), rgba(49,46,129,.11) );
+        transition: .28s ease;
+    }
+
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(129,140,248,.28);
+            box-shadow: 0 14px 30px rgba(0,0,0,.20);
+        }
+
+
+    .stat-icon {
+        width: 42px;
+        height: 42px;
+        flex: 0 0 42px;
+        display: grid;
+        place-items: center;
+        border-radius: 12px;
+        background: rgba(99,102,241,.11);
+        border: 1px solid rgba(129,140,248,.13);
+        font-size: 1rem;
+    }
+
+
+    .stat-content span {
+        display: block;
+        color: rgba(203,213,225,.48);
+        font-size: .65rem;
+    }
+
+
+    .stat-content strong {
+        display: block;
+        margin-top: 4px;
+        color: #f8fafc;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 1.1rem;
+    }
+
+
+    .completed-stat .stat-icon {
+        background: rgba(34,197,94,.09);
+        border-color: rgba(74,222,128,.14);
+    }
+
+
+    .completed-stat .stat-content strong {
+        color: #86efac;
+    }
+
+
+    .remaining-stat .stat-icon {
+        background: rgba(245,158,11,.09);
+        border-color: rgba(245,158,11,.14);
+    }
+
+
+    .remaining-stat .stat-content strong {
+        color: #fde68a;
+    }
+
+
+    /* =========================================================
+           PROGRESS
+           ========================================================= */
+
+    .progress-section {
+        padding: 6px 28px 24px;
+    }
+
+
+    .progress-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 9px;
+    }
+
+
+        .progress-heading span {
+            display: block;
+            color: #e2e8f0;
+            font-size: .78rem;
+            font-weight: 800;
+        }
+
+
+        .progress-heading small {
+            display: block;
+            margin-top: 3px;
+            color: rgba(165,180,252,.42);
+            font-size: .64rem;
+        }
+
+
+        .progress-heading strong {
+            color: #818cf8;
+            font-family: "JetBrains Mono", monospace;
+            font-size: .82rem;
+        }
+
+
+    .premium-progress {
+        position: relative;
+        width: 100%;
+        height: 11px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: rgba(30,41,59,.88);
+        border: 1px solid rgba(129,140,248,.10);
+        box-shadow: inset 0 2px 5px rgba(0,0,0,.24);
+    }
+
+
+    .premium-progress-bar {
+        position: relative;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient( 90deg, #312e81, #4338ca, #1d4ed8, #38bdf8 );
+        box-shadow: 0 0 18px rgba(99,102,241,.38);
+        transition: width .8s ease;
+    }
+
+
+    .progress-shine {
+        position: absolute;
+        top: 0;
+        left: -40%;
+        width: 35%;
+        height: 100%;
+        background: linear-gradient( 90deg, transparent, rgba(255,255,255,.45), transparent );
+        animation: progressShine 3.4s ease-in-out infinite;
+    }
+
+
+    /* =========================================================
+           FORM
+           ========================================================= */
+
+    .form-section {
+        padding: 25px 28px 28px;
+        border-top: 1px solid rgba(129,140,248,.09);
+        background: linear-gradient( 180deg, rgba(7,8,15,.45), rgba(5,5,10,.72) );
+    }
+
+
+    .section-heading {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        margin-bottom: 20px;
+    }
+
+
+    .section-heading-icon {
+        width: 40px;
+        height: 40px;
+        display: grid;
+        place-items: center;
+        border-radius: 12px;
+        background: linear-gradient( 145deg, rgba(99,102,241,.72), rgba(30,64,175,.55) );
+        box-shadow: 0 8px 20px rgba(79,70,229,.20);
+    }
+
+
+    .section-heading strong {
+        display: block;
+        color: #f8fafc;
+        font-size: .86rem;
+    }
+
+
+    .section-heading span:last-child {
+        display: block;
+        margin-top: 3px;
+        color: rgba(165,180,252,.48);
+        font-size: .65rem;
+    }
+
+
+    .field-group {
+        margin-bottom: 18px;
+        animation: fieldReveal .55s cubic-bezier(.2,.7,.2,1) both;
+    }
+
+
+    .form-label {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        margin-bottom: 8px;
+        color: #e2e8f0;
+        font-size: .76rem;
+        font-weight: 800;
+    }
+
+
+    .label-icon {
+        font-size: .90rem;
+    }
+
+
+    .premium-input {
+        width: 100%;
+        min-height: 48px;
+        padding: 10px 13px;
+        color: #f8fafc !important;
+        background: rgba(15,17,29,.90) !important;
+        border: 1px solid rgba(129,140,248,.20) !important;
+        border-radius: 14px !important;
+        box-shadow: 0 4px 14px rgba(0,0,0,.18) inset, 0 4px 18px rgba(0,0,0,.10);
+        font-family: "Space Grotesk", "Segoe UI", sans-serif;
+        transition: .25s ease;
+    }
+
+
+        .premium-input::placeholder {
+            color: rgba(148,163,184,.42) !important;
+        }
+
+
+        .premium-input:hover {
+            border-color: rgba(129,140,248,.38) !important;
+            transform: translateY(-1px);
+        }
+
+
+        .premium-input:focus {
+            border-color: rgba(99,102,241,.95) !important;
+            background: rgba(17,19,34,.98) !important;
+            box-shadow: 0 0 0 3px rgba(99,102,241,.13), 0 0 30px rgba(79,70,229,.12), 0 8px 24px rgba(0,0,0,.20) !important;
+            transform: translateY(-2px);
+            outline: none;
+        }
+
+
+    .premium-textarea {
+        resize: vertical;
+        min-height: 115px;
+        line-height: 1.8;
+    }
+
+
+    .notes-input {
+        min-height: 88px;
+    }
+
+
+    /* =========================================================
+           ACTIONS
+           ========================================================= */
+
+    .form-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 24px;
+        padding-top: 22px;
+        border-top: 1px solid rgba(129,140,248,.09);
+    }
+
+
+    .save-btn {
+        position: relative;
+        overflow: hidden;
+        min-width: 190px;
+        min-height: 50px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
+        padding: 11px 20px;
+        border: 1px solid rgba(165,180,252,.24);
+        border-radius: 14px;
+        color: white;
+        background: linear-gradient( 120deg, #111827 0%, #312e81 45%, #4338ca 100% );
+        box-shadow: 0 12px 30px rgba(49,46,129,.34);
+        font-size: .80rem;
+        font-weight: 800;
+        cursor: pointer;
+        transition: .25s ease;
+    }
+
+
+        .save-btn:hover {
+            transform: translateY(-3px);
+            filter: brightness(1.08);
+            box-shadow: 0 18px 38px rgba(49,46,129,.46), 0 0 30px rgba(99,102,241,.18);
+        }
+
+
+    .save-arrow {
+        transition: transform .25s ease;
+    }
+
+
+    .save-btn:hover .save-arrow {
+        transform: translateX(-3px);
+    }
+
+
+    .button-shine {
+        position: absolute;
+        top: -30%;
+        left: -60%;
+        width: 48%;
+        height: 160%;
+        transform: rotate(18deg);
+        background: linear-gradient( 90deg, transparent, rgba(255,255,255,.24), transparent );
+        animation: buttonShine 4.5s ease-in-out infinite;
+    }
+
+
+    .back-btn {
+        min-width: 100px;
+        min-height: 50px;
+        padding: 11px 18px;
+        border: 1px solid rgba(148,163,184,.16);
+        border-radius: 14px;
+        color: #cbd5e1;
+        background: rgba(30,41,59,.48);
+        font-size: .80rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: .25s ease;
+    }
+
+
+        .back-btn:hover {
+            color: white;
+            transform: translateY(-2px);
+            border-color: rgba(129,140,248,.30);
+            background: rgba(49,46,129,.24);
+        }
+
+
+    /* =========================================================
+           HISTORY
+           ========================================================= */
+
+    .history-header {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 24px;
+        border-bottom: 1px solid rgba(129,140,248,.09);
+    }
+
+
+    .history-title-icon {
+        width: 42px;
+        height: 42px;
+        display: grid;
+        place-items: center;
+        border-radius: 12px;
+        background: rgba(99,102,241,.11);
+        border: 1px solid rgba(129,140,248,.13);
+    }
+
+
+    .history-header strong {
+        display: block;
+        color: #f8fafc;
+        font-size: .88rem;
+    }
+
+
+    .history-header span {
+        display: block;
+        margin-top: 3px;
+        color: rgba(165,180,252,.48);
+        font-size: .65rem;
+    }
+
+
+    /* =========================================================
+           EMPTY HISTORY
+           ========================================================= */
+
+    .empty-history {
+        min-height: 330px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 25px;
+        text-align: center;
+    }
+
+
+    .empty-history-icon {
+        width: 68px;
+        height: 68px;
+        display: grid;
+        place-items: center;
+        border-radius: 18px;
+        background: rgba(99,102,241,.10);
+        border: 1px solid rgba(129,140,248,.13);
+        font-size: 1.65rem;
+    }
+
+
+    .empty-history strong {
+        margin-top: 15px;
+        color: #f8fafc;
+        font-size: .82rem;
+    }
+
+
+    .empty-history span {
+        margin-top: 5px;
+        color: rgba(203,213,225,.45);
+        font-size: .65rem;
+        line-height: 1.7;
+    }
+
+
+    /* =========================================================
+           TIMELINE
+           ========================================================= */
+
+    .timeline {
+        padding: 20px 18px 24px;
+    }
+
+
+    .timeline-item {
+        position: relative;
+        padding-right: 24px;
+        padding-bottom: 20px;
+    }
+
+
+        .timeline-item:last-child {
+            padding-bottom: 0;
+        }
+
+
+    .timeline-dot {
+        position: absolute;
+        right: 0;
+        top: 10px;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: #6366f1;
+        box-shadow: 0 0 0 4px rgba(99,102,241,.10), 0 0 14px rgba(99,102,241,.65);
+        z-index: 2;
+    }
+
+
+    .timeline-line {
+        position: absolute;
+        top: 19px;
+        bottom: 0;
+        right: 4px;
+        width: 1px;
+        background: linear-gradient( 180deg, rgba(99,102,241,.36), rgba(129,140,248,.06) );
+    }
+
+
+    .timeline-item:last-child .timeline-line {
+        display: none;
+    }
+
+
+    .update-card {
+        padding: 14px;
+        border: 1px solid rgba(129,140,248,.13);
+        border-radius: 15px;
+        background: linear-gradient( 135deg, rgba(30,41,59,.42), rgba(49,46,129,.10) );
+        box-shadow: 0 10px 26px rgba(0,0,0,.14);
+        transition: .25s ease;
+    }
+
+
+        .update-card:hover {
+            transform: translateX(-3px);
+            border-color: rgba(129,140,248,.25);
+            box-shadow: 0 14px 30px rgba(0,0,0,.20), 0 0 18px rgba(67,56,202,.08);
+        }
+
+
+    .update-card-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+
+        .update-card-header strong {
+            color: #c7d2fe;
+            font-size: .75rem;
+        }
+
+
+    .timeline-date {
+        color: rgba(165,180,252,.38);
+        font-family: "JetBrains Mono", monospace;
+        font-size: .57rem;
+    }
+
+
+    .history-metrics {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        margin-top: 10px;
+    }
+
+
+    .history-metric {
+        padding: 5px 8px;
+        border-radius: 8px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: .63rem;
+    }
+
+
+    .completed-metric {
+        color: #86efac;
+        background: rgba(34,197,94,.08);
+        border: 1px solid rgba(74,222,128,.12);
+    }
+
+
+    .progress-metric {
+        color: #a5b4fc;
+        background: rgba(99,102,241,.10);
+        border: 1px solid rgba(129,140,248,.13);
+    }
+
+
+    .update-description {
+        margin: 11px 0;
+        padding-top: 10px;
+        border-top: 1px solid rgba(129,140,248,.08);
+        color: rgba(226,232,240,.66);
+        font-size: .69rem;
+        line-height: 1.75;
+    }
+
+
+    .updated-by {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        color: rgba(165,180,252,.52);
+        font-size: .62rem;
+    }
+
+
+    .mini-avatar {
+        width: 24px;
+        height: 24px;
+        display: grid;
+        place-items: center;
+        border-radius: 7px;
+        background: rgba(99,102,241,.10);
+        font-size: .65rem;
+    }
+
+
+    /* =========================================================
+           LOADING
+           ========================================================= */
+
+    .loading-state {
+        min-height: 60vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        color: #e2e8f0;
+    }
+
+
+    .loader-ring {
+        position: relative;
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        border: 2px solid rgba(129,140,248,.09);
+        border-top-color: #6366f1;
+        border-right-color: #4338ca;
+        box-shadow: 0 0 30px rgba(99,102,241,.14);
+        animation: spinLoader 1s linear infinite;
+    }
+
+
+    .loader-core {
+        position: absolute;
+        inset: 22px;
+        border-radius: 50%;
+        background: linear-gradient( 145deg, #6366f1, #1d4ed8 );
+        box-shadow: 0 0 22px rgba(99,102,241,.52);
+        animation: corePulse 1.5s ease-in-out infinite;
+    }
+
+
+    .loading-state strong {
+        font-size: .90rem;
+    }
+
+
+    .loading-state span {
+        color: rgba(165,180,252,.42);
+        font-family: "JetBrains Mono", monospace;
+        font-size: .60rem;
+        letter-spacing: .15em;
+    }
+
+
+    /* =========================================================
+           ANIMATIONS
+           ========================================================= */
+
+    @@keyframes gridMove {
+
+        from {
+            transform: translate3d(0,0,0);
+        }
+
+        to {
+            transform: translate3d(42px,42px,0);
+        }
+    }
+
+
+    @@keyframes orbOne {
+
+        0%, 100% {
+            transform: translate3d(0,0,0) scale(1);
+            opacity: .55;
+        }
+
+        50% {
+            transform: translate3d(-40px,28px,0) scale(1.10);
+            opacity: .90;
+        }
+    }
+
+
+    @@keyframes orbTwo {
+
+        0%, 100% {
+            transform: translate3d(0,0,0) scale(1);
+        }
+
+        50% {
+            transform: translate3d(45px,-32px,0) scale(1.08);
+        }
+    }
+
+
+    @@keyframes orbThree {
+
+        0%, 100% {
+            transform: scale(.92);
+            opacity: .30;
+        }
+
+        50% {
+            transform: scale(1.18);
+            opacity: .70;
+        }
+    }
+
+
+    @@keyframes scan {
+
+        0%, 18% {
+            left: -35%;
+            opacity: 0;
+        }
+
+        35% {
+            opacity: 1;
+        }
+
+        58%, 100% {
+            left: 115%;
+            opacity: 0;
+        }
+    }
+
+
+    @@keyframes cardReveal {
+
+        from {
+            opacity: 0;
+            transform: translateY(24px) scale(.985);
+            filter: blur(7px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            filter: blur(0);
+        }
+    }
+
+
+    @@keyframes fieldReveal {
+
+        from {
+            opacity: 0;
+            transform: translateY(12px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+
+    @@keyframes iconPulse {
+
+        0%, 100% {
+            box-shadow: 0 10px 30px rgba(79,70,229,.34), 0 0 28px rgba(99,102,241,.22) inset;
+        }
+
+        50% {
+            box-shadow: 0 14px 38px rgba(79,70,229,.48), 0 0 42px rgba(129,140,248,.30) inset;
+        }
+    }
+
+
+    @@keyframes livePulse {
+
+        0%, 100% {
+            opacity: .55;
+            transform: scale(.85);
+        }
+
+        50% {
+            opacity: 1;
+            transform: scale(1.15);
+        }
+    }
+
+
+    @@keyframes progressShine {
+
+        0%, 20% {
+            left: -40%;
+            opacity: 0;
+        }
+
+        35% {
+            opacity: 1;
+        }
+
+        55%, 100% {
+            left: 120%;
+            opacity: 0;
+        }
+    }
+
+
+    @@keyframes buttonShine {
+
+        0%, 20% {
+            left: -60%;
+            opacity: 0;
+        }
+
+        32% {
+            opacity: 1;
+        }
+
+        52%, 100% {
+            left: 125%;
+            opacity: 0;
+        }
+    }
+
+
+    @@keyframes spinLoader {
+
+        from {
+            transform: rotate(0deg);
+        }
+
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+
+    @@keyframes corePulse {
+
+        0%, 100% {
+            transform: scale(.82);
+            opacity: .65;
+        }
+
+        50% {
+            transform: scale(1.08);
+            opacity: 1;
+        }
+    }
+
+
+    /* =========================================================
+           RESPONSIVE
+           ========================================================= */
+
+    @@media (max-width: 1050px) {
+
+        .update-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .history-column {
+            order: 2;
+        }
+    }
+
+
+    @@media (max-width: 700px) {
+
+        .update-page {
+            padding: 10px;
+        }
+
+        .update-header {
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 24px 18px;
+        }
+
+        .header-status {
+            position: absolute;
+            top: 18px;
+            left: 18px;
+        }
+
+        .header-icon {
+            width: 52px;
+            height: 52px;
+            flex-basis: 52px;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .task-heading {
+            padding: 22px 18px 18px;
+        }
+
+        .stats-grid {
+            padding: 18px;
+        }
+
+        .progress-section {
+            padding: 4px 18px 20px;
+        }
+
+        .form-section {
+            padding: 20px 18px 22px;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+
+        .save-btn,
+        .back-btn {
+            width: 100%;
+        }
+    }
+
+
+    @@media (prefers-reduced-motion: reduce) {
+
+        *,
+        *::before,
+        *::after {
+            animation-duration: .01ms !important;
+            animation-iteration-count: 1 !important;
+            scroll-behavior: auto !important;
+        }
+    }
+
+</style>

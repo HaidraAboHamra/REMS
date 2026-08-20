@@ -1,32 +1,46 @@
 ﻿@page "/AddFollowUpReport"
 
 @using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.EntityFrameworkCore
+@using REMS.Data
 @using REMS.Interfaces
 @using REMS.Enititys
-@using Microsoft.AspNetCore.Components.Forms
 
-@inject IFollowUpReportService ReportService
+@inject IReportService ReportService
 @inject IHttpContextAccessor HttpContextAccessor
 @inject IWebHostEnvironment env
 @inject UserService UserRepo
+@inject AppDbContext Db
 
 @attribute [Authorize(Roles = "Manager,Admin,FUser")]
 
 <div class="page-wrapper" dir="rtl">
 
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+    <div class="ambient ambient-three"></div>
+
     <div class="card form-card">
 
         <div class="card-header">
-
-            <h3>
-                <i class="fas fa-tasks"></i>
-                إضافة مهمة جديدة
-            </h3>
-
+            <div class="header-glow"></div>
+            <div class="header-content">
+                <div class="header-icon">
+                    <i class="fas fa-layer-group"></i>
+                </div>
+                <div>
+                    <span class="header-kicker">TASK MANAGEMENT</span>
+                    <h3>إضافة مهمة جديدة</h3>
+                    <p>أنشئ المهمة وحدد تفاصيلها ومسؤوليتها بسهولة</p>
+                </div>
+            </div>
+            <div class="header-scan"></div>
         </div>
 
-
         <div class="card-body">
+            <div class="body-grid-glow"></div>
 
             <EditForm Model="vm"
                       OnValidSubmit="HandleValidSubmit">
@@ -35,9 +49,7 @@
 
                 <ValidationSummary />
 
-
                 <div class="row g-3">
-
 
                     <!-- ================================================= -->
                     <!-- اسم المهمة -->
@@ -58,7 +70,6 @@
 
                     </div>
 
-
                     <!-- ================================================= -->
                     <!-- تفاصيل المهمة -->
                     <!-- ================================================= -->
@@ -78,7 +89,6 @@
                         <ValidationMessage For="@(() => vm.TaskDetails)" />
 
                     </div>
-
 
                     <!-- ================================================= -->
                     <!-- نوع المهمة -->
@@ -121,7 +131,6 @@
 
                     </div>
 
-
                     <!-- ================================================= -->
                     <!-- العميل / المشروع -->
                     <!-- ================================================= -->
@@ -138,7 +147,6 @@
 
                     </div>
 
-
                     <!-- ================================================= -->
                     <!-- الموظف المسؤول -->
                     <!-- ================================================= -->
@@ -147,28 +155,49 @@
 
                         <label class="form-label">
                             الموظف المسؤول
+                            <span class="required">*</span>
                         </label>
 
-                        <div class="form-control readonly-field">
+                        @if (User.IsFollowUpAdmin)
+                        {
+                            <select class="form-select"
+                                    @bind="SelectedEmployeeId">
 
-                            @if (User != null &&
-                                 !string.IsNullOrWhiteSpace(User.FullName))
-                            {
+                                <option value="">
+                                    -- اختر موظف قسم المتابعة --
+                                </option>
+
+                                @foreach (var employee in FollowUpEmployees)
+                                {
+                                    <option value="@employee.Id">
+                                        @employee.FullName
+                                    </option>
+                                }
+
+                            </select>
+                        }
+                        else
+                        {
+                            <div class="form-control readonly-field">
+
                                 <i class="fas fa-user me-2"></i>
 
-                                @User.FullName
-                            }
-                            else
-                            {
-                                <span class="text-muted">
-                                    جارٍ تحميل بيانات الموظف...
-                                </span>
-                            }
+                                @if (!string.IsNullOrWhiteSpace(
+                                    User.FullName))
+                                {
+                                    @User.FullName
+                                }
+                                else
+                                {
+                                    <span class="text-muted">
+                                        جارٍ تحميل بيانات الموظف...
+                                    </span>
+                                }
 
-                        </div>
+                            </div>
+                        }
 
                     </div>
-
 
                     <!-- ================================================= -->
                     <!-- الأولوية -->
@@ -203,7 +232,6 @@
 
                     </div>
 
-
                     <!-- ================================================= -->
                     <!-- عدد البنود -->
                     <!-- ================================================= -->
@@ -222,7 +250,6 @@
 
                     </div>
 
-
                     <!-- ================================================= -->
                     <!-- المدة -->
                     <!-- ================================================= -->
@@ -237,7 +264,6 @@
                                      @bind-Value="vm.ExpectedDurationDays" />
 
                     </div>
-
 
                     <!-- ================================================= -->
                     <!-- تاريخ البدء -->
@@ -255,7 +281,6 @@
 
                     </div>
 
-
                     <!-- ================================================= -->
                     <!-- تاريخ التسليم -->
                     <!-- ================================================= -->
@@ -272,7 +297,6 @@
 
                     </div>
 
-
                     <!-- ================================================= -->
                     <!-- المنجز عند الإنشاء -->
                     <!-- ================================================= -->
@@ -287,7 +311,6 @@
                                      @bind-Value="vm.CompletedItems" />
 
                     </div>
-
 
                     <!-- ================================================= -->
                     <!-- تفاصيل المنجز -->
@@ -305,7 +328,6 @@
                                        placeholder="اكتب فقط الأمور التي تم إنجازها..." />
 
                     </div>
-
 
                     <!-- ================================================= -->
                     <!-- رفع ملف -->
@@ -348,9 +370,7 @@
 
                     </div>
 
-
                 </div>
-
 
                 <!-- ===================================================== -->
                 <!-- زر الإنشاء -->
@@ -383,9 +403,7 @@
 
                 </div>
 
-
             </EditForm>
-
 
             @if (!string.IsNullOrEmpty(successMessage))
             {
@@ -397,7 +415,6 @@
 
                 </div>
             }
-
 
             @if (!string.IsNullOrEmpty(errorMessage))
             {
@@ -416,129 +433,682 @@
 
 </div>
 
-
 <style>
+    :root {
+        --ui-black: #05050a;
+        --ui-black-2: #090a12;
+        --ui-indigo: #312e81;
+        --ui-indigo-2: #4338ca;
+        --ui-blue: #1d4ed8;
+        --ui-cyan: #38bdf8;
+        --ui-white: #f8fafc;
+        --ui-muted: #a5b4fc;
+        --ui-border: rgba(129, 140, 248, 0.22);
+        --ui-glow: rgba(79, 70, 229, 0.45);
+    }
 
     .page-wrapper {
-        padding: 20px;
-    }
-
-
-    .form-card {
-        border-radius: 12px;
+        position: relative;
+        min-height: 100%;
+        padding: clamp(14px, 2.5vw, 32px);
         overflow: hidden;
-        border: none;
-        box-shadow: 0 8px 24px rgba(255,140,0,0.12);
+        isolation: isolate;
+        background: radial-gradient(circle at 82% 8%, rgba(67, 56, 202, 0.23), transparent 26%), radial-gradient(circle at 15% 90%, rgba(29, 78, 216, 0.16), transparent 25%), linear-gradient(135deg, #030305 0%, #070811 42%, #11102b 72%, #1e1b4b 100%);
     }
 
-
-    .card-header {
-        background: linear-gradient(135deg, #ff8a00, #ff5e00);
-        color: white;
-        padding: 18px 24px;
-    }
-
-
-        .card-header h3 {
-            margin: 0;
-            font-weight: 700;
+        .page-wrapper::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: -2;
+            pointer-events: none;
+            background: linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+            background-size: 42px 42px;
+            mask-image: linear-gradient(to bottom, black, transparent 92%);
+            animation: gridDrift 22s linear infinite;
         }
 
+        .page-wrapper::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            background: radial-gradient(circle at center, transparent 0%, rgba(2, 2, 8, 0.20) 48%, rgba(2, 2, 8, 0.55) 100%);
+        }
+
+    .ambient {
+        position: absolute;
+        border-radius: 999px;
+        pointer-events: none;
+        filter: blur(8px);
+        opacity: 0.62;
+        z-index: -1;
+        mix-blend-mode: screen;
+    }
+
+    .ambient-one {
+        width: 260px;
+        height: 260px;
+        top: 6%;
+        right: -90px;
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.42), transparent 68%);
+        animation: floatOne 10s ease-in-out infinite;
+    }
+
+    .ambient-two {
+        width: 320px;
+        height: 320px;
+        bottom: -120px;
+        left: -110px;
+        background: radial-gradient(circle, rgba(37, 99, 235, 0.28), transparent 68%);
+        animation: floatTwo 13s ease-in-out infinite;
+    }
+
+    .ambient-three {
+        width: 180px;
+        height: 180px;
+        top: 46%;
+        left: 48%;
+        background: radial-gradient(circle, rgba(129, 140, 248, 0.13), transparent 66%);
+        animation: pulseOrb 5s ease-in-out infinite;
+    }
+
+    .form-card {
+        position: relative;
+        max-width: 1250px;
+        margin: 0 auto;
+        border: 1px solid rgba(129, 140, 248, 0.20);
+        border-radius: 28px;
+        overflow: hidden;
+        background: rgba(8, 9, 18, 0.82);
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255,255,255,0.025) inset, 0 0 55px rgba(67, 56, 202, 0.10);
+        backdrop-filter: blur(22px);
+        -webkit-backdrop-filter: blur(22px);
+        animation: cardReveal 0.75s cubic-bezier(.2,.75,.2,1) both;
+    }
+
+        .form-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            border-radius: inherit;
+            background: linear-gradient(120deg, rgba(255,255,255,0.05), transparent 30%, transparent 70%, rgba(99,102,241,0.10));
+        }
+
+    .card-header {
+        position: relative;
+        overflow: hidden;
+        padding: 28px clamp(20px, 4vw, 42px);
+        color: var(--ui-white);
+        background: radial-gradient(circle at 85% 10%, rgba(129, 140, 248, 0.28), transparent 28%), linear-gradient(135deg, #020204 0%, #0a0a14 48%, #171449 100%);
+        border-bottom: 1px solid rgba(129, 140, 248, 0.16);
+    }
+
+    .header-content {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        gap: 18px;
+    }
+
+    .header-icon {
+        width: 58px;
+        height: 58px;
+        flex: 0 0 58px;
+        display: grid;
+        place-items: center;
+        border-radius: 18px;
+        color: #fff;
+        font-size: 22px;
+        background: linear-gradient(145deg, rgba(99,102,241,0.95), rgba(30,64,175,0.75));
+        border: 1px solid rgba(255,255,255,0.16);
+        box-shadow: 0 10px 30px rgba(79,70,229,0.34), 0 0 28px rgba(99,102,241,0.22) inset;
+        animation: iconPulse 3.5s ease-in-out infinite;
+    }
+
+    .header-kicker {
+        display: block;
+        margin-bottom: 4px;
+        color: #a5b4fc;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+    }
+
+    .card-header h3 {
+        margin: 0;
+        font-size: clamp(1.35rem, 2.2vw, 1.9rem);
+        line-height: 1.2;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+    }
+
+    .card-header p {
+        margin: 5px 0 0;
+        color: rgba(226,232,240,0.72);
+        font-size: 0.9rem;
+    }
+
+    .header-glow {
+        position: absolute;
+        top: -120px;
+        right: 12%;
+        width: 340px;
+        height: 220px;
+        background: radial-gradient(circle, rgba(99,102,241,0.30), transparent 65%);
+        filter: blur(10px);
+        animation: headerGlow 6s ease-in-out infinite;
+    }
+
+    .header-scan {
+        position: absolute;
+        top: 0;
+        left: -35%;
+        width: 35%;
+        height: 100%;
+        transform: skewX(-22deg);
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.09), transparent);
+        animation: scan 6.5s ease-in-out infinite;
+    }
 
     .card-body {
-        background: linear-gradient(180deg, #fff, #fffaf2);
-        padding: 24px;
+        position: relative;
+        padding: clamp(20px, 3vw, 36px);
+        color: #e5e7eb;
+        background: radial-gradient(circle at 12% 20%, rgba(67,56,202,0.10), transparent 28%), linear-gradient(180deg, rgba(9,10,18,0.98), rgba(7,8,15,0.96));
     }
 
+    .body-grid-glow {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: radial-gradient(circle at 50% -20%, rgba(99,102,241,0.12), transparent 45%);
+    }
+
+    .card-body > form,
+    .card-body > .alert,
+    .card-body > div:not(.body-grid-glow) {
+        position: relative;
+        z-index: 2;
+    }
+
+    .card-body .row > [class*="col-"] {
+        animation: fieldReveal 0.58s cubic-bezier(.2,.7,.2,1) both;
+    }
+
+        .card-body .row > [class*="col-"]:nth-child(1) {
+            animation-delay: 0.04s;
+        }
+
+        .card-body .row > [class*="col-"]:nth-child(2) {
+            animation-delay: 0.08s;
+        }
+
+        .card-body .row > [class*="col-"]:nth-child(3) {
+            animation-delay: 0.12s;
+        }
+
+        .card-body .row > [class*="col-"]:nth-child(4) {
+            animation-delay: 0.16s;
+        }
+
+        .card-body .row > [class*="col-"]:nth-child(5) {
+            animation-delay: 0.20s;
+        }
+
+        .card-body .row > [class*="col-"]:nth-child(6) {
+            animation-delay: 0.24s;
+        }
+
+        .card-body .row > [class*="col-"]:nth-child(7) {
+            animation-delay: 0.28s;
+        }
+
+        .card-body .row > [class*="col-"]:nth-child(8) {
+            animation-delay: 0.32s;
+        }
+
+        .card-body .row > [class*="col-"]:nth-child(9) {
+            animation-delay: 0.36s;
+        }
+
+        .card-body .row > [class*="col-"]:nth-child(10) {
+            animation-delay: 0.40s;
+        }
+
+        .card-body .row > [class*="col-"]:nth-child(11) {
+            animation-delay: 0.44s;
+        }
 
     .form-label {
-        font-weight: 600;
-        color: #333;
+        position: relative;
         display: block;
-        margin-bottom: 6px;
+        margin-bottom: 8px;
+        color: #e2e8f0;
+        font-size: 0.90rem;
+        font-weight: 700;
     }
 
+        .form-label::after {
+            content: "";
+            display: block;
+            width: 24px;
+            height: 2px;
+            margin-top: 5px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #6366f1, transparent);
+            opacity: 0.9;
+        }
 
     .required {
-        color: #d9534f;
+        color: #f472b6;
         margin-right: 4px;
+        text-shadow: 0 0 8px rgba(244,114,182,0.45);
     }
-
 
     .form-control,
     .form-select {
-        border-radius: 6px;
+        min-height: 46px;
+        color: #f8fafc !important;
+        background-color: rgba(15, 17, 29, 0.90) !important;
+        border: 1px solid rgba(129, 140, 248, 0.20) !important;
+        border-radius: 14px !important;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.18) inset, 0 4px 18px rgba(0,0,0,0.12);
+        transition: border-color .25s ease, box-shadow .25s ease, transform .25s ease, background-color .25s ease;
     }
 
+        .form-control::placeholder {
+            color: rgba(148, 163, 184, 0.48) !important;
+        }
+
+        .form-select option {
+            color: #0f172a;
+            background: #f8fafc;
+        }
+
+        .form-control:hover,
+        .form-select:hover {
+            border-color: rgba(129, 140, 248, 0.40) !important;
+            transform: translateY(-1px);
+        }
 
         .form-control:focus,
         .form-select:focus {
-            border-color: #ff8a00;
-            box-shadow: 0 0 0 0.2rem rgba(255,138,0,0.15);
+            border-color: rgba(99,102,241,0.95) !important;
+            background-color: rgba(17, 19, 34, 0.98) !important;
+            box-shadow: 0 0 0 3px rgba(99,102,241,0.13), 0 0 30px rgba(79,70,229,0.12), 0 8px 24px rgba(0,0,0,0.20) !important;
+            transform: translateY(-2px);
+            outline: none;
         }
-
 
     .readonly-field {
-        background: #f7f2ee;
-        border: 1px solid #f0d9c2;
-        color: #8a4b00;
-        min-height: 38px;
+        min-height: 46px;
         display: flex;
         align-items: center;
+        color: #e0e7ff !important;
+        background: linear-gradient(135deg, rgba(30,41,59,0.90), rgba(49,46,129,0.24)) !important;
+        border: 1px solid rgba(129,140,248,0.26) !important;
+        border-radius: 14px !important;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.14);
     }
 
-
-    .submit-btn {
-        background: linear-gradient(90deg,#ff8a00,#ff5e00);
-        color: white;
-        border: none;
-        padding: 10px 28px;
-        border-radius: 8px;
-        font-weight: 700;
-        min-width: 180px;
-    }
-
-
-        .submit-btn:hover {
-            opacity: 0.95;
-            color: white;
+        .readonly-field i {
+            color: #818cf8;
         }
 
+    .text-muted {
+        color: rgba(203,213,225,0.52) !important;
+    }
+
+    .validation-message,
+    .text-danger {
+        color: #fca5a5 !important;
+        font-size: 0.82rem;
+        margin-top: 6px;
+    }
+
+    .validation-errors {
+        margin: 0 0 18px;
+        padding: 14px 16px;
+        border: 1px solid rgba(248,113,113,0.25);
+        border-radius: 14px;
+        background: rgba(127,29,29,0.16);
+        color: #fecaca;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+    }
+
+    .file-upload-box {
+        position: relative;
+        overflow: hidden;
+        padding: 18px;
+        border: 1px dashed rgba(129,140,248,0.40);
+        border-radius: 16px;
+        background: linear-gradient(135deg, rgba(30,41,59,0.42), rgba(49,46,129,0.14)), rgba(9,10,18,0.72);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+        transition: border-color .25s ease, transform .25s ease, box-shadow .25s ease;
+    }
+
+        .file-upload-box::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(110deg, transparent 30%, rgba(129,140,248,0.06), transparent 70%);
+            transform: translateX(-100%);
+            animation: uploadShimmer 5s ease-in-out infinite;
+        }
+
+        .file-upload-box:hover {
+            border-color: rgba(129,140,248,0.75);
+            transform: translateY(-2px);
+            box-shadow: 0 18px 34px rgba(0,0,0,0.20), 0 0 30px rgba(67,56,202,0.10);
+        }
+
+        .file-upload-box input[type="file"] {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            color: #cbd5e1;
+        }
+
+            .file-upload-box input[type="file"]::file-selector-button {
+                margin-left: 10px;
+                padding: 9px 14px;
+                border: 1px solid rgba(129,140,248,0.30);
+                border-radius: 10px;
+                color: #eef2ff;
+                background: linear-gradient(135deg, #111827, #312e81);
+                cursor: pointer;
+                transition: .25s ease;
+            }
+
+                .file-upload-box input[type="file"]::file-selector-button:hover {
+                    transform: translateY(-1px);
+                    box-shadow: 0 0 18px rgba(99,102,241,0.22);
+                }
+
+    .file-info {
+        position: relative;
+        z-index: 2;
+        color: #c7d2fe;
+        background: rgba(49,46,129,0.18);
+        border: 1px solid rgba(129,140,248,0.18);
+        border-radius: 12px;
+        padding: 9px 13px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .file-info i {
+            color: #818cf8;
+        }
+
+    .submit-btn {
+        position: relative;
+        overflow: hidden;
+        min-width: 210px;
+        padding: 13px 30px;
+        border: 1px solid rgba(165,180,252,0.24);
+        border-radius: 15px;
+        color: #fff;
+        font-weight: 800;
+        letter-spacing: 0.01em;
+        background: linear-gradient(120deg, #111827 0%, #312e81 45%, #4338ca 100%);
+        box-shadow: 0 12px 30px rgba(49,46,129,0.34), 0 0 0 1px rgba(255,255,255,0.04) inset;
+        transition: transform .25s ease, box-shadow .25s ease, filter .25s ease;
+    }
+
+        .submit-btn::before {
+            content: "";
+            position: absolute;
+            top: -30%;
+            left: -60%;
+            width: 48%;
+            height: 160%;
+            transform: rotate(18deg);
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.26), transparent);
+            animation: buttonShine 4.5s ease-in-out infinite;
+        }
+
+        .submit-btn:hover {
+            color: #fff;
+            transform: translateY(-3px) scale(1.01);
+            filter: brightness(1.08);
+            box-shadow: 0 18px 38px rgba(49,46,129,0.46), 0 0 30px rgba(99,102,241,0.18);
+        }
+
+        .submit-btn:active {
+            transform: translateY(-1px) scale(0.995);
+        }
 
         .submit-btn:disabled {
             opacity: 0.65;
             cursor: not-allowed;
+            transform: none;
+            filter: none;
         }
 
-
-    .file-upload-box {
-        border: 1px dashed #ffb366;
-        background: #fffaf6;
-        border-radius: 8px;
-        padding: 15px;
-    }
-
-
-    .file-info {
-        color: #8a4b00;
-        background: #fff1df;
-        border-radius: 6px;
-        padding: 8px 12px;
-        display: inline-block;
-    }
-
-
-    .text-danger {
-        color: #d9534f;
-    }
-
-
     .alert {
-        border-radius: 8px;
+        border-radius: 15px !important;
+        border: 1px solid transparent !important;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        animation: alertReveal .45s ease both;
     }
 
-</style>
+    .alert-success {
+        color: #bbf7d0 !important;
+        background: rgba(22,101,52,0.16) !important;
+        border-color: rgba(74,222,128,0.22) !important;
+    }
 
+    .alert-danger {
+        color: #fecaca !important;
+        background: rgba(127,29,29,0.16) !important;
+        border-color: rgba(248,113,113,0.22) !important;
+    }
+
+    .spinner-border {
+        width: 1rem;
+        height: 1rem;
+    }
+
+    @@keyframes cardReveal {
+        from {
+            opacity: 0;
+            transform: translateY(24px) scale(0.985);
+            filter: blur(8px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            filter: blur(0);
+        }
+    }
+
+    @@keyframes fieldReveal {
+        from {
+            opacity: 0;
+            transform: translateY(14px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes floatOne {
+        0%, 100% {
+            transform: translate3d(0,0,0) scale(1);
+        }
+
+        50% {
+            transform: translate3d(-30px,26px,0) scale(1.08);
+        }
+    }
+
+    @@keyframes floatTwo {
+        0%, 100% {
+            transform: translate3d(0,0,0) scale(1);
+        }
+
+        50% {
+            transform: translate3d(40px,-28px,0) scale(1.05);
+        }
+    }
+
+    @@keyframes pulseOrb {
+        0%, 100% {
+            opacity: .35;
+            transform: scale(.92);
+        }
+
+        50% {
+            opacity: .70;
+            transform: scale(1.16);
+        }
+    }
+
+    @@keyframes iconPulse {
+        0%, 100% {
+            box-shadow: 0 10px 30px rgba(79,70,229,0.34), 0 0 28px rgba(99,102,241,0.22) inset;
+        }
+
+        50% {
+            box-shadow: 0 14px 36px rgba(79,70,229,0.48), 0 0 42px rgba(129,140,248,0.30) inset;
+        }
+    }
+
+    @@keyframes headerGlow {
+        0%, 100% {
+            transform: translate3d(0,0,0) scale(1);
+            opacity: .68;
+        }
+
+        50% {
+            transform: translate3d(-40px,24px,0) scale(1.12);
+            opacity: .95;
+        }
+    }
+
+    @@keyframes scan {
+        0%, 18% {
+            left: -35%;
+            opacity: 0;
+        }
+
+        35% {
+            opacity: 1;
+        }
+
+        58%, 100% {
+            left: 115%;
+            opacity: 0;
+        }
+    }
+
+    @@keyframes buttonShine {
+        0%, 20% {
+            left: -60%;
+            opacity: 0;
+        }
+
+        32% {
+            opacity: 1;
+        }
+
+        52%, 100% {
+            left: 125%;
+            opacity: 0;
+        }
+    }
+
+    @@keyframes uploadShimmer {
+        0%, 30% {
+            transform: translateX(-100%);
+            opacity: 0;
+        }
+
+        45% {
+            opacity: 1;
+        }
+
+        65%, 100% {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+
+    @@keyframes gridDrift {
+        from {
+            transform: translate3d(0,0,0);
+        }
+
+        to {
+            transform: translate3d(42px,42px,0);
+        }
+    }
+
+    @@keyframes alertReveal {
+        from {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .page-wrapper {
+            padding: 12px;
+        }
+
+        .form-card {
+            border-radius: 20px;
+        }
+
+        .card-header {
+            padding: 22px 18px;
+        }
+
+        .header-icon {
+            width: 50px;
+            height: 50px;
+            flex-basis: 50px;
+            border-radius: 15px;
+        }
+
+        .card-header p {
+            font-size: 0.82rem;
+        }
+
+        .card-body {
+            padding: 18px 14px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            min-width: 0;
+        }
+    }
+
+    @@media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            scroll-behavior: auto !important;
+        }
+    }
+</style>
 
 @code {
 
@@ -548,11 +1118,9 @@
 
     private FollowUpReportVm vm = new();
 
-
     private string? successMessage;
 
     private string? errorMessage;
-
 
     // =========================================================
     // المستخدم الحالي
@@ -560,6 +1128,13 @@
 
     private User User { get; set; } = new();
 
+    // =========================================================
+    // موظفو قسم المتابعة
+    // =========================================================
+
+    private List<User> FollowUpEmployees { get; set; } = new();
+
+    private int? SelectedEmployeeId;
 
     // =========================================================
     // الملف
@@ -571,16 +1146,14 @@
 
     private string? FileError;
 
-
     // =========================================================
     // حالة الحفظ
     // =========================================================
 
     private bool IsSaving = false;
 
-
     // =========================================================
-    // تحميل المستخدم الحالي
+    // تحميل البيانات
     // =========================================================
 
     protected override async Task OnInitializedAsync()
@@ -595,18 +1168,48 @@
                         c => c.Type == "Id")
                     ?.Value;
 
-
             if (!string.IsNullOrEmpty(idClaim) &&
-                int.TryParse(idClaim, out var uid))
+                int.TryParse(
+                    idClaim,
+                    out var uid))
             {
                 var result =
                     await UserRepo.GetById(uid);
 
-
                 if (result.IsSuccess)
                 {
-                    User = result.Value;
+                    User =
+                        result.Value;
                 }
+            }
+
+            vm.StartDate =
+                DateTime.Today;
+
+            // =====================================================
+            // إذا كان مدير قسم المتابعة
+            // تحميل موظفي القسم
+            // =====================================================
+
+            if (User.IsFollowUpAdmin)
+            {
+                FollowUpEmployees =
+                    await Db
+                        .Set<User>()
+                        .AsNoTracking()
+                        .Where(x =>
+                            x.IsFUser)
+                        .OrderBy(x =>
+                            x.FullName)
+                        .ToListAsync();
+
+                // في حال كان المدير نفسه FUser
+                // يمكن استبعاده من القائمة إذا أردت
+                FollowUpEmployees =
+                    FollowUpEmployees
+                        .Where(x =>
+                            x.Id != User.Id)
+                        .ToList();
             }
         }
         catch
@@ -614,11 +1217,7 @@
             errorMessage =
                 "تعذر تحميل بيانات المستخدم الحالي.";
         }
-
-
-        vm.StartDate = DateTime.Today;
     }
-
 
     // =========================================================
     // اختيار الملف
@@ -629,7 +1228,8 @@
     {
         FileError = null;
 
-        var file = e.File;
+        var file =
+            e.File;
 
         if (file == null)
         {
@@ -638,10 +1238,8 @@
             return;
         }
 
-
-        // الحد الأقصى 100 MB
-        const long maxSize = 104_857_600;
-
+        const long maxSize =
+            104_857_600;
 
         if (file.Size > maxSize)
         {
@@ -654,12 +1252,12 @@
             return;
         }
 
+        SelectedFile =
+            file;
 
-        SelectedFile = file;
-
-        FileName = file.Name;
+        FileName =
+            file.Name;
     }
-
 
     // =========================================================
     // حفظ الملف
@@ -676,38 +1274,34 @@
                     Directory.GetCurrentDirectory(),
                     "wwwroot");
 
-
             var uploadsFolder =
                 Path.Combine(
                     webRoot,
                     "Files");
 
-
-            if (!Directory.Exists(uploadsFolder))
+            if (!Directory.Exists(
+                uploadsFolder))
             {
                 Directory.CreateDirectory(
                     uploadsFolder);
             }
 
-
             var extension =
-                Path.GetExtension(file.Name);
-
+                Path.GetExtension(
+                    file.Name);
 
             var safeName =
                 $"{DateTime.Now:yyyy-MM-dd_HH-mm-ss}_{Guid.NewGuid()}{extension}";
-
 
             var physicalPath =
                 Path.Combine(
                     uploadsFolder,
                     safeName);
 
-
             await using var input =
                 file.OpenReadStream(
-                    maxAllowedSize: 104_857_600);
-
+                    maxAllowedSize:
+                        104_857_600);
 
             await using var output =
                 new FileStream(
@@ -718,11 +1312,11 @@
                     81920,
                     useAsync: true);
 
+            await input.CopyToAsync(
+                output);
 
-            await input.CopyToAsync(output);
-
-
-            return $"/Files/{safeName}";
+            return
+                $"/Files/{safeName}";
         }
         catch (Exception ex)
         {
@@ -732,7 +1326,6 @@
             return null;
         }
     }
-
 
     // =========================================================
     // إنشاء المهمة
@@ -744,10 +1337,9 @@
 
         successMessage = null;
 
-
-        // -----------------------------------------------------
+        // =====================================================
         // التحقق من البنود
-        // -----------------------------------------------------
+        // =====================================================
 
         if (vm.TotalItems <= 0)
         {
@@ -756,7 +1348,6 @@
 
             return;
         }
-
 
         if (vm.CompletedItems < 0 ||
             vm.CompletedItems > vm.TotalItems)
@@ -767,34 +1358,73 @@
             return;
         }
 
-
-        // -----------------------------------------------------
-        // التأكد من وجود الموظف
-        // -----------------------------------------------------
+        // =====================================================
+        // التحقق من المستخدم الحالي
+        // =====================================================
 
         if (User == null ||
-            string.IsNullOrWhiteSpace(User.FullName))
+            string.IsNullOrWhiteSpace(
+                User.FullName))
         {
             errorMessage =
-                "تعذر تحديد الموظف الحالي.";
+                "تعذر تحديد المستخدم الحالي.";
 
             return;
         }
 
+        // =====================================================
+        // الموظف المسؤول
+        // =====================================================
+
+        User? assignedEmployee = null;
+
+        if (User.IsFollowUpAdmin)
+        {
+            // المدير يجب أن يختار موظفاً
+            if (!SelectedEmployeeId.HasValue)
+            {
+                errorMessage =
+                    "يرجى اختيار الموظف المسؤول عن المهمة.";
+
+                return;
+            }
+
+            assignedEmployee =
+                await Db
+                    .Set<User>()
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(
+                        x =>
+                            x.Id ==
+                            SelectedEmployeeId.Value &&
+                            x.IsFUser);
+
+            if (assignedEmployee == null)
+            {
+                errorMessage =
+                    "الموظف المحدد غير موجود أو ليس من قسم المتابعة.";
+
+                return;
+            }
+        }
+        else
+        {
+            // الموظف العادي تسند المهمة لنفسه
+            assignedEmployee =
+                User;
+        }
 
         IsSaving = true;
 
-
         try
         {
-            // -------------------------------------------------
+            // =================================================
             // حالة المهمة
-            // -------------------------------------------------
+            // =================================================
 
             bool done =
-                vm.CompletedItems ==
+                vm.CompletedItems >=
                 vm.TotalItems;
-
 
             string status =
                 done
@@ -803,13 +1433,11 @@
                         ? "قيد التنفيذ"
                         : "لم تبدأ";
 
-
-            // -------------------------------------------------
-            // حفظ الملف إن وجد
-            // -------------------------------------------------
+            // =================================================
+            // حفظ الملف
+            // =================================================
 
             string? filePath = null;
-
 
             if (SelectedFile != null)
             {
@@ -817,8 +1445,8 @@
                     await SaveBrowserFileAsync(
                         SelectedFile);
 
-
-                if (string.IsNullOrEmpty(filePath))
+                if (string.IsNullOrEmpty(
+                        filePath))
                 {
                     errorMessage =
                         "حدث خطأ أثناء حفظ الملف.";
@@ -827,79 +1455,68 @@
                 }
             }
 
+            // =================================================
+            // إنشاء المهمة
+            // =================================================
 
-            // -------------------------------------------------
-            // إنشاء التقرير
-            // -------------------------------------------------
+            var report = new FollowUpReport
+            {
+                // =========================================
+                // بيانات المهمة
+                // =========================================
+                Content = vm.Content,
+                TaskDetails = vm.TaskDetails,
+                TaskType = vm.TaskType,
+                ClientOrProject = vm.ClientOrProject,
+                Priority = vm.Priority,
 
-            var report =
-                new FollowUpReport
-                {
-                    Content =
-                        vm.Content,
+                // =========================================
+                // المنشئ
+                // الشخص الذي قام بإنشاء المهمة
+                // =========================================
+                FullName = User.FullName,
 
-                    TaskDetails =
-                        vm.TaskDetails,
+                // =========================================
+                // الموظف المسؤول عن تنفيذ المهمة
+                // =========================================
+                AssignedEmployeeId = assignedEmployee.Id,
+                AssignedEmployee = assignedEmployee.FullName,
 
-                    TaskType =
-                        vm.TaskType,
+                // =========================================
+                // البنود والتقدم
+                // =========================================
+                TotalItems = vm.TotalItems,
+                CompletedItems = vm.CompletedItems,
+                CompletedDetails = vm.CompletedDetails,
 
-                    ClientOrProject =
-                        vm.ClientOrProject,
+                ExpectedDurationDays = vm.ExpectedDurationDays,
 
-                    // =========================================
-                    // الموظف يؤخذ تلقائياً من المستخدم الحالي
-                    // =========================================
+                StartDate = vm.StartDate,
+                DueDate = vm.DueDate,
 
-                    AssignedEmployee =
-                        User.FullName,
+                // =========================================
+                // الحالة
+                // =========================================
+                IsDone = done,
+                IsDoneOrNot = status,
 
-                    FullName =
-                        User.FullName,
+                // =========================================
+                // معلومات الإنشاء والتحديث
+                // =========================================
+                DateTime = DateTime.Now,
+                LastUpdatedDate = DateTime.Now,
 
-                    Priority =
-                        vm.Priority,
+                // مهم:
+                // آخر شخص قام بالتحديث عند الإنشاء
+                LastUpdatedBy = User.FullName
+            };
 
-                    TotalItems =
-                        vm.TotalItems,
+            // =================================================
+            // ربط الملف
+            // =================================================
 
-                    CompletedItems =
-                        vm.CompletedItems,
-
-                    CompletedDetails =
-                        vm.CompletedDetails,
-
-                    ExpectedDurationDays =
-                        vm.ExpectedDurationDays,
-
-                    StartDate =
-                        vm.StartDate,
-
-                    DueDate =
-                        vm.DueDate,
-
-                    IsDone =
-                        done,
-
-                    IsDoneOrNot =
-                        status,
-
-                    DateTime =
-                        DateTime.Now,
-
-                    LastUpdatedDate =
-                        DateTime.Now,
-
-                    LastUpdatedBy =
-                        User.FullName
-                };
-
-
-            // -------------------------------------------------
-            // ربط الملف بالتقرير
-            // -------------------------------------------------
-
-            if (!string.IsNullOrEmpty(filePath))
+            if (!string.IsNullOrEmpty(
+                    filePath))
             {
                 report.Path =
                     filePath;
@@ -911,21 +1528,26 @@
                     FileName;
             }
 
+            // =================================================
+            // الحفظ
+            // =================================================
 
-            // -------------------------------------------------
-            // الحفظ في قاعدة البيانات
-            // -------------------------------------------------
+            await ReportService.AddFollowUpReport(
+                report);
 
-            await ReportService.AddReport(report);
+            // =================================================
+            // إرسال البريد
+            // =================================================
 
+            await ReportService.SendTaskAssignmentEmail(
+                report);
 
             successMessage =
-                "تم إنشاء المهمة بنجاح.";
+                $"تم إنشاء المهمة وإسنادها إلى {assignedEmployee.FullName} وإرسال تفاصيلها بالبريد بنجاح.";
 
-
-            // -------------------------------------------------
-            // إعادة ضبط النموذج
-            // -------------------------------------------------
+            // =================================================
+            // Reset
+            // =================================================
 
             vm =
                 new FollowUpReportVm
@@ -934,18 +1556,22 @@
                         DateTime.Today
                 };
 
-
             SelectedFile = null;
 
             FileName = null;
 
             FileError = null;
+
+            if (User.IsFollowUpAdmin)
+            {
+                SelectedEmployeeId =
+                    null;
+            }
         }
         catch (Exception ex)
         {
             errorMessage =
-                "حدث خطأ أثناء إنشاء المهمة.";
-
+                "حدث خطأ أثناء إنشاء المهمة وإرسال البريد.";
 
             Console.Error.WriteLine(
                 $"Add FollowUp Report Error: {ex}");
@@ -956,7 +1582,6 @@
         }
     }
 
-
     // =========================================================
     // ViewModel
     // =========================================================
@@ -964,54 +1589,47 @@
     private class FollowUpReportVm
     {
         [Required(
-            ErrorMessage = "اسم المهمة مطلوب")]
+            ErrorMessage =
+                "اسم المهمة مطلوب")]
         public string Content { get; set; }
             = string.Empty;
 
-
         [Required(
-            ErrorMessage = "تفاصيل المهمة مطلوبة")]
+            ErrorMessage =
+                "تفاصيل المهمة مطلوبة")]
         public string TaskDetails { get; set; }
             = string.Empty;
-
 
         public string TaskType { get; set; }
             = "تسويق";
 
-
         public string ClientOrProject { get; set; }
             = string.Empty;
-
 
         public string Priority { get; set; }
             = "متوسطة";
 
-
         [Range(
             1,
             int.MaxValue,
-            ErrorMessage = "يجب أن يكون العدد أكبر من صفر")]
+            ErrorMessage =
+                "يجب أن يكون العدد أكبر من صفر")]
         public int TotalItems { get; set; }
-
 
         [Range(
             0,
             int.MaxValue,
-            ErrorMessage = "أدخل رقماً صحيحاً")]
+            ErrorMessage =
+                "أدخل رقماً صحيحاً")]
         public int CompletedItems { get; set; }
-
 
         public string CompletedDetails { get; set; }
             = string.Empty;
 
-
         public decimal? ExpectedDurationDays { get; set; }
-
 
         public DateTime? StartDate { get; set; }
 
-
         public DateTime? DueDate { get; set; }
     }
-
 }

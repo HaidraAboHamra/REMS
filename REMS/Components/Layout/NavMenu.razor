@@ -1,183 +1,1096 @@
 ﻿<div class="top-row ps-3 navbar navbar-dark custom-navbar">
     <div class="container-fluid">
-        <a class="navbar-brand fw-bold" href="">BEMS</a>
+        <a class="navbar-brand premium-brand" href="">
+
+            <div class="brand-logo-wrapper">
+                <img src="images/hex-studio-logo.png"
+                     alt="Hex Studio"
+                     class="brand-logo" />
+            </div>
+
+            <div class="brand-info">
+                <span class="brand-name">HEMS</span>
+                <span class="brand-company">HEX STUDIO</span>
+            </div>
+
+        </a>
     </div>
 </div>
 
 <input type="checkbox" title="Navigation menu" class="navbar-toggler" />
 
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+
     <nav class="flex-column">
+
+        <!-- =========================
+             الحساب
+             ========================= -->
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/user">
-                <span class="bi bi-person-circle-nav-menu" aria-hidden="true"></span> الحساب
+            <NavLink class="nav-link premium-link" href="/user">
+
+                <div class="nav-emoji-box user-emoji">
+                    <span>👤</span>
+                </div>
+
+                <div class="nav-text">
+                    <span class="nav-title">الحساب</span>
+                    <span class="nav-subtitle">الملف الشخصي</span>
+                </div>
+
+                <div class="nav-arrow">
+                    <i class="bi bi-chevron-left"></i>
+                </div>
+
             </NavLink>
         </div>
 
+
         <AuthorizeView Roles="User,Manager,Admin1">
             <Authorized>
+
+                <!-- =========================
+                     الصفحة الرئيسية
+                     ========================= -->
                 <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="/home" Match="NavLinkMatch.All">
-                        <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> الصفحة الرئيسية
+                    <NavLink class="nav-link premium-link"
+                             href="/home"
+                             Match="NavLinkMatch.All">
+
+                        <div class="nav-emoji-box home-emoji">
+                            <span>🏠</span>
+                        </div>
+
+                        <div class="nav-text">
+                            <span class="nav-title">الصفحة الرئيسية</span>
+                            <span class="nav-subtitle">لوحة التحكم</span>
+                        </div>
+
+                        <div class="nav-arrow">
+                            <i class="bi bi-chevron-left"></i>
+                        </div>
+
                     </NavLink>
                 </div>
 
+
+                <!-- =========================
+                     جدولة المهام
+                     ========================= -->
                 <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="/Tasks">
-                        <span class="bi bi-calendar-check-fill-nav-menu" aria-hidden="true"></span> جدولة المهام
+                    <NavLink class="nav-link premium-link" href="/Tasks">
+
+                        <div class="nav-emoji-box tasks-emoji">
+                            <span>📅</span>
+                        </div>
+
+                        <div class="nav-text">
+                            <span class="nav-title">جدولة المهام</span>
+                            <span class="nav-subtitle">إدارة وجدولة الأعمال</span>
+                        </div>
+
+                        <div class="nav-arrow">
+                            <i class="bi bi-chevron-left"></i>
+                        </div>
+
                     </NavLink>
                 </div>
+
             </Authorized>
         </AuthorizeView>
+
 
         <AuthorizeView Roles="Manager,Admin1">
             <Authorized>
+
+                <!-- =========================
+                     مهام اليوم
+                     ========================= -->
                 <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="/Task/listing">
-                        <span class="bi bi-list-task-nav-menu" aria-hidden="true"></span> مهام اليوم
+                    <NavLink class="nav-link premium-link" href="/Task/listing">
+
+                        <div class="nav-emoji-box today-emoji">
+                            <span>✅</span>
+                        </div>
+
+                        <div class="nav-text">
+                            <span class="nav-title">مهام اليوم</span>
+                            <span class="nav-subtitle">المهام الحالية</span>
+                        </div>
+
+                        <div class="nav-arrow">
+                            <i class="bi bi-chevron-left"></i>
+                        </div>
+
                     </NavLink>
                 </div>
+
             </Authorized>
         </AuthorizeView>
+
 
         <AuthorizeView Roles="Manager,Admin,Admin1">
             <Authorized>
+
+                <!-- =========================
+                     تسجيل حساب جديد
+                     ========================= -->
                 <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="/register">
-                        <span class="bi bi-person-plus-fill-nav-menu" aria-hidden="true"></span> تسجيل حساب جديد
+                    <NavLink class="nav-link premium-link" href="/register">
+
+                        <div class="nav-emoji-box register-emoji">
+                            <span>👨‍💼</span>
+                        </div>
+
+                        <div class="nav-text">
+                            <span class="nav-title">تسجيل حساب جديد</span>
+                            <span class="nav-subtitle">إضافة مستخدم</span>
+                        </div>
+
+                        <div class="nav-arrow">
+                            <i class="bi bi-chevron-left"></i>
+                        </div>
+
                     </NavLink>
                 </div>
+
             </Authorized>
         </AuthorizeView>
+
 
         <AuthorizeView Roles="Manager,Admin">
             <Authorized>
+
+                <!-- =========================
+                     التقارير
+                     ========================= -->
                 <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="/followupreport">
-                        <span class="bi bi-file-earmark-text-fill-nav-menu" aria-hidden="true"></span> التقارير
+                    <NavLink class="nav-link premium-link" href="/followupreport">
+
+                        <div class="nav-emoji-box reports-emoji">
+                            <span>📊</span>
+                        </div>
+
+                        <div class="nav-text">
+                            <span class="nav-title">التقارير</span>
+                            <span class="nav-subtitle">التقارير والمتابعة</span>
+                        </div>
+
+                        <div class="nav-arrow">
+                            <i class="bi bi-chevron-left"></i>
+                        </div>
+
                     </NavLink>
                 </div>
+
             </Authorized>
         </AuthorizeView>
+
 
         <AuthorizeView Roles="Manager,Admin,FUser">
             <Authorized>
+
+                <!-- =========================
+                     المنسقين
+                     ========================= -->
                 <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="/users-and-reports">
-                        <span class="bi bi-people-fill-nav-menu" aria-hidden="true"></span> المنسقين
+                    <NavLink class="nav-link premium-link" href="/users-and-reports">
+
+                        <div class="nav-emoji-box coordinators-emoji">
+                            <span>👥</span>
+                        </div>
+
+                        <div class="nav-text">
+                            <span class="nav-title">المنسقين</span>
+                            <span class="nav-subtitle">الموظفون والمنسقون</span>
+                        </div>
+
+                        <div class="nav-arrow">
+                            <i class="bi bi-chevron-left"></i>
+                        </div>
+
                     </NavLink>
                 </div>
 
+
+                <!-- =========================
+                     إضافة تقرير
+                     ========================= -->
                 <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="/addfollowupreport">
-                        <span class="bi bi-journal-plus-nav-menu" aria-hidden="true"></span> اضافة تقرير قسم المتابعة
+                    <NavLink class="nav-link premium-link" href="/addfollowupreport">
+
+                        <div class="nav-emoji-box add-report-emoji">
+                            <span>📝</span>
+                        </div>
+
+                        <div class="nav-text">
+                            <span class="nav-title">إضافة تقرير</span>
+                            <span class="nav-subtitle">إنشاء تقرير جديد</span>
+                        </div>
+
+                        <div class="nav-arrow">
+                            <i class="bi bi-chevron-left"></i>
+                        </div>
+
                     </NavLink>
                 </div>
+
             </Authorized>
         </AuthorizeView>
+
 
         <AuthorizeView Roles="Manager">
             <Authorized>
+
+                <!-- =========================
+                     الإعدادات
+                     ========================= -->
                 <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="/setting" >
-                        <span class="bi bi-gear-fill-nav-menu" aria-hidden="true"></span> الاعدادات
+                    <NavLink class="nav-link premium-link" href="/setting">
+
+                        <div class="nav-emoji-box settings-emoji">
+                            <span>⚙️</span>
+                        </div>
+
+                        <div class="nav-text">
+                            <span class="nav-title">الإعدادات</span>
+                            <span class="nav-subtitle">إعدادات النظام</span>
+                        </div>
+
+                        <div class="nav-arrow">
+                            <i class="bi bi-chevron-left"></i>
+                        </div>
+
                     </NavLink>
                 </div>
+
             </Authorized>
         </AuthorizeView>
 
+
+        <!-- =========================
+             تسجيل الخروج
+             ========================= -->
         <AuthorizeView>
             <Authorized>
-                <NavLink style="position: absolute; bottom: 5px; left: 5px;" href="/logout">
-                    <button class="logout-btn">تسجيل خروج</button>
-                </NavLink>
+
+                <div class="logout-area">
+
+                    <div class="logout-divider"></div>
+
+                    <NavLink href="/logout" class="logout-link">
+
+                        <button class="logout-btn">
+
+                            <div class="logout-emoji-box">
+                                <span>🚪</span>
+                            </div>
+
+                            <span class="logout-text">
+                                تسجيل خروج
+                            </span>
+
+                            <div class="logout-shine"></div>
+
+                        </button>
+
+                    </NavLink>
+
+                </div>
+
             </Authorized>
         </AuthorizeView>
+
     </nav>
+
 </div>
+  
+
 
 <style>
+
+    /* =========================================================
+           DESIGN TOKENS
+           ========================================================= */
+
+    :root {
+        --hex-black: #030305;
+        --hex-black-2: #070811;
+        --hex-black-3: #0b0c18;
+        --hex-indigo: #312e81;
+        --hex-indigo-2: #4338ca;
+        --hex-blue: #1d4ed8;
+        --hex-cyan: #38bdf8;
+        --hex-purple: #6366f1;
+        --hex-white: #f8fafc;
+        --hex-muted: #a5b4fc;
+        --hex-border: rgba(129,140,248,.20);
+        --hex-glow: rgba(79,70,229,.42);
+    }
+
+
+    /* =========================================================
+           NAVBAR
+           ========================================================= */
+
     .custom-navbar {
-        background: linear-gradient(90deg, #ff7b00, #ff9a42, #ffb347); /* برتقالي عصري */
-        color: white;
-        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.25);
-        font-size: 1.3rem;
-        font-weight: 700;
+        position: relative;
+        min-height: 76px;
+        overflow: hidden;
+        background: radial-gradient( circle at 85% 0%, rgba(99,102,241,.28), transparent 28% ), linear-gradient( 135deg, #030305 0%, #070811 42%, #11102b 72%, #1e1b4b 100% );
+        border-bottom: 1px solid rgba(129,140,248,.16);
+        box-shadow: 0 12px 40px rgba(0,0,0,.48), 0 0 45px rgba(67,56,202,.12);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        z-index: 20;
+    }
+
+
+        .custom-navbar::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: linear-gradient( 115deg, transparent 20%, rgba(255,255,255,.045) 50%, transparent 80% );
+            animation: navbarSweep 8s ease-in-out infinite;
+        }
+
+
+    /* =========================================================
+           BRAND
+           ========================================================= */
+
+    .premium-brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        position: relative;
+        z-index: 2;
+        text-decoration: none;
+        color: white !important;
+    }
+
+
+    .brand-logo-wrapper {
+        width: 46px;
+        height: 46px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+        border-radius: 14px;
+        background: linear-gradient( 145deg, rgba(99,102,241,.92), rgba(30,64,175,.80) );
+        border: 1px solid rgba(255,255,255,.16);
+        box-shadow: 0 10px 30px rgba(79,70,229,.34), 0 0 30px rgba(99,102,241,.22) inset;
+        animation: brandPulse 4s ease-in-out infinite;
+    }
+
+
+    .brand-logo {
+        width: 34px;
+        height: 34px;
+        object-fit: contain;
+        display: block;
+        filter: drop-shadow( 0 0 10px rgba(255,255,255,.25) );
+    }
+
+
+    .brand-info {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 1px;
+    }
+
+
+    .brand-name {
+        font-family: "Unbounded", "Space Grotesk", sans-serif;
+        font-size: 1.20rem;
+        font-weight: 600;
+        letter-spacing: .12em;
+        line-height: 1;
+    }
+
+
+    .brand-company {
+        font-family: "Space Grotesk", sans-serif;
+        font-size: .56rem;
+        font-weight: 600;
+        letter-spacing: .30em;
+        color: rgba(165,180,252,.62);
         text-transform: uppercase;
     }
 
-    .navbar-brand {
-        font-size: 2rem;
-        letter-spacing: 3px;
-        text-transform: uppercase;
-        color: white !important;
-        font-weight: 900;
-    }
+
+    /* =========================================================
+           SIDEBAR
+           ========================================================= */
 
     .nav-scrollable {
-        background: linear-gradient(180deg, #fff3e0 0%, #ffc966 100%); /* تدرج برتقالي فاتح */
-        padding-top: 15px;
+        position: relative;
+        overflow-x: hidden;
+        background: radial-gradient( circle at 85% 5%, rgba(67,56,202,.22), transparent 28% ), radial-gradient( circle at 12% 90%, rgba(29,78,216,.14), transparent 26% ), linear-gradient( 135deg, #030305 0%, #070811 42%, #11102b 72%, #1e1b4b 100% );
+        border-right: 1px solid rgba(129,140,248,.14);
+        box-shadow: inset -10px 0 40px rgba(0,0,0,.18), 8px 0 30px rgba(0,0,0,.15);
+        backdrop-filter: blur(22px);
+        -webkit-backdrop-filter: blur(22px);
+        isolation: isolate;
     }
 
-    .nav-link {
-        color: #ff6600; /* برتقالي واضح */
-        font-weight: 800;
-        font-size: 1.1rem;
-        transition: all 0.3s ease;
-        border-radius: 10px;
-        padding: 10px 15px;
-        text-transform: uppercase;
-    }
 
-        .nav-link:hover {
-            color: #ff4500 !important; /* برتقالي داكن عند المرور */
-            transform: translateX(5px);
+        .nav-scrollable::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: -2;
+            background: linear-gradient( rgba(255,255,255,.022) 1px, transparent 1px ), linear-gradient( 90deg, rgba(255,255,255,.022) 1px, transparent 1px );
+            background-size: 42px 42px;
+            mask-image: linear-gradient( to bottom, black, transparent 94% );
+            animation: gridDrift 22s linear infinite;
         }
+
+
+        .nav-scrollable::after {
+            content: "";
+            position: absolute;
+            width: 260px;
+            height: 260px;
+            right: -120px;
+            top: 28%;
+            border-radius: 50%;
+            background: radial-gradient( circle, rgba(99,102,241,.17), transparent 68% );
+            filter: blur(18px);
+            pointer-events: none;
+            animation: sidebarOrb 10s ease-in-out infinite;
+        }
+
+
+        .nav-scrollable nav {
+            position: relative;
+            z-index: 2;
+            padding-top: 14px;
+            padding-bottom: 100px;
+        }
+
+
+    /* =========================================================
+           NAV ITEMS
+           ========================================================= */
 
     .nav-item {
-        margin-bottom: 8px;
+        margin-bottom: 7px;
+        animation: navReveal .55s cubic-bezier(.2,.75,.2,1) both;
     }
 
-    .bi {
-        margin-right: 8px;
-        font-size: 1.2rem;
-        color: #ff6600;
+
+    .premium-link {
+        position: relative;
+        display: flex;
+        align-items: center;
+        min-height: 64px;
+        padding: 8px 10px;
+        border-radius: 16px;
+        color: #cbd5e1 !important;
+        background: rgba(9,10,18,.38);
+        border: 1px solid transparent;
+        text-decoration: none;
+        transition: .28s ease;
     }
+
+
+        .premium-link:hover {
+            transform: translateX(-4px);
+            color: #fff !important;
+            background: linear-gradient( 135deg, rgba(30,41,59,.75), rgba(49,46,129,.25) );
+            border-color: rgba(129,140,248,.22);
+            box-shadow: 0 12px 30px rgba(0,0,0,.24), 0 0 25px rgba(67,56,202,.12);
+        }
+
+
+        .premium-link.active {
+            color: #fff !important;
+            background: linear-gradient( 135deg, rgba(49,46,129,.88), rgba(29,78,216,.38) );
+            border-color: rgba(129,140,248,.28);
+            box-shadow: 0 12px 34px rgba(0,0,0,.30), 0 0 32px rgba(67,56,202,.18), inset 0 1px 0 rgba(255,255,255,.06);
+        }
+
+
+            .premium-link.active::after {
+                content: "";
+                position: absolute;
+                right: 0;
+                top: 14%;
+                width: 3px;
+                height: 72%;
+                border-radius: 50px;
+                background: linear-gradient( 180deg, #818cf8, #4338ca, #38bdf8 );
+                box-shadow: 0 0 12px rgba(99,102,241,.85), 0 0 26px rgba(56,189,248,.24);
+                animation: activePulse 2.6s ease-in-out infinite;
+            }
+
+
+    /* =========================================================
+           ICON LOGOS
+           ========================================================= */
+
+    .nav-icon-box {
+        position: relative;
+        width: 44px;
+        height: 44px;
+        flex: 0 0 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 2px;
+        margin-right: 12px;
+        border-radius: 13px;
+        background: linear-gradient( 145deg, rgba(49,46,129,.22), rgba(15,23,42,.52) );
+        border: 1px solid rgba(129,140,248,.14);
+        box-shadow: 0 6px 18px rgba(0,0,0,.18), inset 0 1px rgba(255,255,255,.035);
+        transition: .28s ease;
+    }
+
+
+        .nav-icon-box::before {
+            content: "";
+            position: absolute;
+            inset: 3px;
+            border-radius: 10px;
+            border: 1px solid rgba(129,140,248,.07);
+            pointer-events: none;
+        }
+
+
+        .nav-icon-box .bi {
+            position: relative;
+            z-index: 2;
+            font-size: 1.10rem;
+            color: inherit;
+        }
+
+
+    .premium-link:hover .nav-icon-box {
+        transform: scale(1.08) translateY(-1px);
+        border-color: rgba(129,140,248,.32);
+        background: linear-gradient( 145deg, rgba(67,56,202,.40), rgba(30,41,59,.58) );
+        box-shadow: 0 8px 24px rgba(0,0,0,.25), 0 0 18px rgba(99,102,241,.18);
+    }
+
+
+    .premium-link.active .nav-icon-box {
+        color: #fff;
+        background: linear-gradient( 145deg, rgba(99,102,241,.95), rgba(30,64,175,.76) );
+        border-color: rgba(255,255,255,.17);
+        box-shadow: 0 10px 28px rgba(79,70,229,.34), 0 0 25px rgba(99,102,241,.18) inset;
+    }
+
+
+    /* =========================================================
+           ICON COLORS
+           ========================================================= */
+
+    .user-icon {
+        color: #a5b4fc;
+    }
+
+    .home-icon {
+        color: #818cf8;
+    }
+
+    .tasks-icon {
+        color: #60a5fa;
+    }
+
+    .today-icon {
+        color: #38bdf8;
+    }
+
+    .register-icon {
+        color: #c4b5fd;
+    }
+
+    .reports-icon {
+        color: #93c5fd;
+    }
+
+    .users-icon {
+        color: #a5b4fc;
+    }
+
+    .add-report-icon {
+        color: #818cf8;
+    }
+
+    .settings-icon {
+        color: #94a3b8;
+    }
+
+
+    /* =========================================================
+           TEXT
+           ========================================================= */
+
+    .nav-text {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 2px;
+    }
+
+
+    .nav-title {
+        font-family: "Space Grotesk", "Segoe UI", sans-serif;
+        font-size: .94rem;
+        font-weight: 700;
+        line-height: 1.25;
+        color: #e5e7eb;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+
+    .nav-subtitle {
+        font-family: "Space Grotesk", "Segoe UI", sans-serif;
+        font-size: .66rem;
+        font-weight: 400;
+        line-height: 1.2;
+        color: rgba(165,180,252,.48);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+
+    .premium-link:hover .nav-title {
+        color: #ffffff;
+    }
+
+
+    .premium-link:hover .nav-subtitle {
+        color: rgba(199,210,254,.72);
+    }
+
+
+    .premium-link.active .nav-title {
+        color: #ffffff;
+    }
+
+
+    .premium-link.active .nav-subtitle {
+        color: rgba(199,210,254,.80);
+    }
+
+
+    /* =========================================================
+           ARROW
+           ========================================================= */
+
+    .nav-arrow {
+        color: rgba(129,140,248,.28);
+        font-size: .80rem;
+        margin-right: 3px;
+        transition: .25s ease;
+    }
+
+
+    .premium-link:hover .nav-arrow {
+        color: #818cf8;
+        transform: translateX(-3px);
+    }
+
+
+    .premium-link.active .nav-arrow {
+        color: #c7d2fe;
+    }
+
+
+    /* =========================================================
+           LOGOUT
+           ========================================================= */
+
+    .logout-area {
+        position: absolute;
+        bottom: 10px;
+        left: 12px;
+        right: 12px;
+        z-index: 5;
+    }
+
+
+    .logout-divider {
+        height: 1px;
+        margin: 0 5px 12px;
+        background: linear-gradient( 90deg, transparent, rgba(129,140,248,.20), transparent );
+    }
+
+
+    .logout-link {
+        display: block;
+        text-decoration: none;
+    }
+
 
     .logout-btn {
-        background: linear-gradient(90deg, #ff6600, #ff8533); /* زر عصري بالبرتقالي */
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+        min-height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        border: 1px solid rgba(129,140,248,.22);
+        border-radius: 14px;
         color: white;
-        border: none;
-        padding: 10px 16px;
-        border-radius: 10px;
-        cursor: pointer;
-        font-weight: 800;
-        font-size: 1.1rem;
-        transition: background 0.3s ease, transform 0.2s ease;
-        text-transform: uppercase;
+        background: linear-gradient( 120deg, #111827 0%, #312e81 45%, #4338ca 100% );
+        box-shadow: 0 12px 30px rgba(49,46,129,.34), 0 0 0 1px rgba(255,255,255,.04) inset;
+        font-family: "Space Grotesk", "Segoe UI", sans-serif;
+        font-size: .92rem;
+        font-weight: 700;
+        transition: .25s ease;
     }
+
 
         .logout-btn:hover {
-            background: linear-gradient(90deg, #ff8533, #ffa64d);
-            transform: scale(1.05);
+            transform: translateY(-3px);
+            filter: brightness(1.08);
+            box-shadow: 0 18px 38px rgba(49,46,129,.46), 0 0 30px rgba(99,102,241,.18);
         }
 
-    nav {
-        color: #ff6600;
-        font-size: 1.15rem;
-        font-weight: 700;
+
+    .logout-icon-box {
+        width: 30px;
+        height: 30px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 9px;
+        color: #c7d2fe;
+        background: rgba(255,255,255,.08);
     }
 
-    .nav-scrollable nav a {
-        color: #ff6600;
-        font-weight: 700;
-        font-size: 1.1rem;
-        text-transform: uppercase;
+
+    .logout-text {
+        position: relative;
+        z-index: 2;
     }
 
-        .nav-scrollable nav a:hover {
-            color: #ff4500 !important;
+
+    .logout-shine {
+        position: absolute;
+        top: -30%;
+        left: -70%;
+        width: 45%;
+        height: 160%;
+        transform: rotate(18deg);
+        background: linear-gradient( 90deg, transparent, rgba(255,255,255,.20), transparent );
+        animation: logoutShine 5s ease-in-out infinite;
+    }
+
+
+    /* =========================================================
+           ANIMATIONS
+           ========================================================= */
+
+    @@keyframes navbarSweep {
+
+        0%, 30% {
+            transform: translateX(-100%);
+            opacity: 0;
         }
+
+        45% {
+            opacity: 1;
+        }
+
+        65%, 100% {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+
+
+    @@keyframes brandPulse {
+
+        0%, 100% {
+            box-shadow: 0 10px 30px rgba(79,70,229,.34), 0 0 30px rgba(99,102,241,.22) inset;
+        }
+
+        50% {
+            box-shadow: 0 14px 38px rgba(79,70,229,.50), 0 0 40px rgba(129,140,248,.30) inset;
+        }
+    }
+
+
+    @@keyframes activePulse {
+
+        0%, 100% {
+            opacity: .65;
+        }
+
+        50% {
+            opacity: 1;
+        }
+    }
+
+
+    @@keyframes navReveal {
+
+        from {
+            opacity: 0;
+            transform: translateX(18px) translateY(5px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0) translateY(0);
+        }
+    }
+
+
+    @@keyframes gridDrift {
+
+        from {
+            transform: translate3d(0,0,0);
+        }
+
+        to {
+            transform: translate3d(42px,42px,0);
+        }
+    }
+
+
+    @@keyframes sidebarOrb {
+
+        0%, 100% {
+            transform: translate3d(0,0,0) scale(1);
+            opacity: .40;
+        }
+
+        50% {
+            transform: translate3d(-30px,25px,0) scale(1.14);
+            opacity: .75;
+        }
+    }
+
+
+    @@keyframes logoutShine {
+
+        0%, 20% {
+            left: -70%;
+            opacity: 0;
+        }
+
+        34% {
+            opacity: 1;
+        }
+
+        52%, 100% {
+            left: 135%;
+            opacity: 0;
+        }
+    }
+
+
+    /* =========================================================
+           MOBILE
+           ========================================================= */
+
+    @@media (max-width: 768px) {
+
+        .custom-navbar {
+            min-height: 64px;
+        }
+
+        .brand-logo-wrapper {
+            width: 38px;
+            height: 38px;
+            border-radius: 11px;
+        }
+
+        .brand-logo {
+            width: 28px;
+            height: 28px;
+        }
+
+        .brand-name {
+            font-size: 1rem;
+        }
+
+        .brand-company {
+            font-size: .48rem;
+        }
+
+        .premium-link {
+            min-height: 58px;
+        }
+
+        .nav-icon-box {
+            width: 40px;
+            height: 40px;
+            flex-basis: 40px;
+        }
+
+        .nav-title {
+            font-size: .90rem;
+        }
+
+        .nav-subtitle {
+            font-size: .62rem;
+        }
+    }
+
+
+    @@media (prefers-reduced-motion: reduce) {
+
+        *,
+        *::before,
+        *::after {
+            animation-duration: .01ms !important;
+            animation-iteration-count: 1 !important;
+            scroll-behavior: auto !important;
+        }
+    }
+    /* =========================================================
+       EMOJI LOGO SYSTEM
+       ========================================================= */
+
+    .nav-emoji-box {
+        position: relative;
+        width: 46px;
+        height: 46px;
+        flex: 0 0 46px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 2px;
+        margin-right: 12px;
+        border-radius: 14px;
+        font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif;
+        font-size: 1.45rem;
+        line-height: 1;
+        background: linear-gradient( 145deg, rgba(49, 46, 129, 0.28), rgba(15, 23, 42, 0.68) );
+        border: 1px solid rgba(129, 140, 248, 0.16);
+        box-shadow: 0 7px 20px rgba(0, 0, 0, 0.20), inset 0 1px 0 rgba(255,255,255,0.04);
+        transition: transform .3s ease, box-shadow .3s ease, border-color .3s ease, background .3s ease;
+    }
+
+
+        /* glow خلف الـ Emoji */
+
+        .nav-emoji-box::before {
+            content: "";
+            position: absolute;
+            inset: -1px;
+            border-radius: inherit;
+            background: radial-gradient( circle at center, rgba(99,102,241,.20), transparent 65% );
+            opacity: .7;
+            z-index: -1;
+            transition: opacity .3s ease, transform .3s ease;
+        }
+
+
+    /* حركة عند Hover */
+
+    .premium-link:hover .nav-emoji-box {
+        transform: translateY(-2px) scale(1.08);
+        border-color: rgba(129,140,248,.32);
+        background: linear-gradient( 145deg, rgba(67,56,202,.40), rgba(30,41,59,.68) );
+        box-shadow: 0 10px 28px rgba(0,0,0,.28), 0 0 24px rgba(99,102,241,.20);
+    }
+
+        .premium-link:hover .nav-emoji-box::before {
+            opacity: 1;
+            transform: scale(1.18);
+        }
+
+
+    /* العنصر النشط */
+
+    .premium-link.active .nav-emoji-box {
+        transform: scale(1.04);
+        background: linear-gradient( 145deg, rgba(99,102,241,.95), rgba(30,64,175,.78) );
+        border-color: rgba(255,255,255,.18);
+        box-shadow: 0 10px 30px rgba(79,70,229,.38), 0 0 28px rgba(99,102,241,.22), inset 0 0 18px rgba(255,255,255,.05);
+    }
+
+
+    /* =========================================================
+       ألوان خاصة بكل Logo
+       ========================================================= */
+
+    .user-emoji::before {
+        background: radial-gradient( circle, rgba(129,140,248,.30), transparent 68% );
+    }
+
+    .home-emoji::before {
+        background: radial-gradient( circle, rgba(56,189,248,.28), transparent 68% );
+    }
+
+    .tasks-emoji::before {
+        background: radial-gradient( circle, rgba(96,165,250,.30), transparent 68% );
+    }
+
+    .today-emoji::before {
+        background: radial-gradient( circle, rgba(34,197,94,.26), transparent 68% );
+    }
+
+    .register-emoji::before {
+        background: radial-gradient( circle, rgba(196,181,253,.30), transparent 68% );
+    }
+
+    .reports-emoji::before {
+        background: radial-gradient( circle, rgba(56,189,248,.30), transparent 68% );
+    }
+
+    .coordinators-emoji::before {
+        background: radial-gradient( circle, rgba(167,139,250,.30), transparent 68% );
+    }
+
+    .add-report-emoji::before {
+        background: radial-gradient( circle, rgba(129,140,248,.30), transparent 68% );
+    }
+
+    .settings-emoji::before {
+        background: radial-gradient( circle, rgba(148,163,184,.25), transparent 68% );
+    }
+
+
+    /* =========================================================
+       LOGOUT EMOJI
+       ========================================================= */
+
+    .logout-emoji-box {
+        width: 31px;
+        height: 31px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 9px;
+        font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif;
+        font-size: 1rem;
+        background: rgba(255,255,255,.09);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+    }
+
+
+    /* =========================================================
+       MOBILE
+       ========================================================= */
+
+    @@media (max-width: 768px) {
+
+        .nav-emoji-box {
+            width: 40px;
+            height: 40px;
+            flex-basis: 40px;
+            font-size: 1.25rem;
+            border-radius: 12px;
+            margin-right: 10px;
+        }
+    }
 </style>
-
-

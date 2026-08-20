@@ -9,548 +9,826 @@
 @inject IHttpContextAccessor HttpContextAccessor
 @inject NavigationManager NavigationManager
 
-<h3 class="text-center mb-4 text-white bg-orange p-3 rounded">
-    الموظفين والمهام
-</h3>
+<div class="employees-page" dir="rtl">
 
-<div class="row">
+    <!-- Ambient -->
+    <div class="employees-orb orb-one"></div>
+    <div class="employees-orb orb-two"></div>
+    <div class="employees-orb orb-three"></div>
 
-    <!-- ========================================================= -->
-    <!-- قائمة المستخدمين -->
-    <!-- ========================================================= -->
+    <div class="employees-grid"></div>
+    <div class="employees-scan"></div>
 
-    <div class="col-12 col-md-4">
 
-        <div class="card shadow p-3 mb-3 border-orange">
+    <main class="employees-content">
 
-            <div class="mb-2">
+        <!-- =====================================================
+             HEADER
+             ===================================================== -->
 
-                <label class="text-orange">
-                    ابحث عن موظف
-                </label>
+        <section class="employees-header">
 
-                <input class="form-control border-orange"
-                       @bind="UserSearch"
-                       @bind:event="oninput"
-                       placeholder="اكتب اسم الموظف..." />
+            <div class="header-glow"></div>
+            <div class="header-scan"></div>
+
+            <div class="header-left">
+
+                <div class="header-icon">
+                    👥
+                </div>
+
+                <div>
+
+                    <span class="header-kicker">
+                        HEX STUDIO • HEMS
+                    </span>
+
+                    <h1>
+                        الموظفين والمهام
+                    </h1>
+
+                    <p>
+                        إدارة الموظفين ومتابعة تقارير ومهام الفريق
+                    </p>
+
+                </div>
 
             </div>
 
 
-            <div style="max-height:60vh; overflow:auto;">
+            <div class="header-status">
 
-                @if (!IsAdmin)
-                {
-                    <div class="alert alert-warning text-center">
+                <span class="live-dot"></span>
 
-                        أنت مستخدم عادي، ترى فقط تقاريرك الخاصة.
+                LIVE
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             MAIN GRID
+             ===================================================== -->
+
+        <div class="employees-layout">
+
+
+            <!-- =================================================
+                 USERS
+                 ================================================= -->
+
+            <aside class="users-column">
+
+                <section class="users-card">
+
+                    <div class="card-top-line"></div>
+
+
+                    <!-- Header -->
+                    <div class="users-card-header">
+
+                        <div class="users-title-icon">
+                            👤
+                        </div>
+
+                        <div>
+
+                            <strong>
+                                الموظفون
+                            </strong>
+
+                            <span>
+                                اختر موظفًا لعرض تقاريره
+                            </span>
+
+                        </div>
 
                     </div>
-                }
-                else if (Userss == null)
-                {
-                    <div>
-                        جارٍ التحميل...
-                    </div>
-                }
-                else if (Userss.Count == 0)
-                {
-                    <div>
-                        لا يوجد موظفين
-                    </div>
-                }
-                else
-                {
-                    <ul class="list-group">
 
-                        @foreach (var u in FilteredUsers)
+
+                    <!-- Search -->
+                    <div class="users-search">
+
+                        <label>
+                            البحث عن موظف
+                        </label>
+
+                        <div class="search-wrapper">
+
+                            <span class="search-icon">
+                                🔎
+                            </span>
+
+                            <input class="premium-input search-input"
+                                   @bind="UserSearch"
+                                   @bind:event="oninput"
+                                   placeholder="اكتب اسم الموظف..." />
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="users-list-wrapper">
+
+                        @if (!IsAdmin)
                         {
-                            <li class="list-group-item"
-                                style="cursor:pointer;"
-                                @onclick="@(() => SelectUser(u))">
+                            <div class="permission-alert">
 
-                                <div class="d-flex justify-content-between align-items-center">
+                                <span class="permission-alert-icon">
+                                    🔒
+                                </span>
+
+                                <div>
+
+                                    <strong>
+                                        وصول محدود
+                                    </strong>
 
                                     <span>
-                                        @u.FullName
-                                    </span>
-
-                                    <span class="badge bg-orange">
-                                        @GetUserReportsCount(u)
+                                        أنت مستخدم عادي، ترى فقط تقاريرك الخاصة.
                                     </span>
 
                                 </div>
 
-                            </li>
+                            </div>
                         }
-
-                    </ul>
-                }
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <!-- ========================================================= -->
-    <!-- جدول التقارير والفلاتر -->
-    <!-- ========================================================= -->
-
-    <div class="col-12 col-md-8">
-
-        <!-- ===================================================== -->
-        <!-- الفلاتر -->
-        <!-- ===================================================== -->
-
-        <div class="card shadow p-3 mb-3 border-orange">
-
-            <h5 class="text-orange">
-                مرشحات العرض
-            </h5>
-
-            <div class="row g-2 align-items-end">
-
-                <!-- نوع المتجر -->
-                <div class="col-12 col-md-4">
-
-                    <label>
-                        نوع المتجر
-                    </label>
-
-                    <select class="form-select border-orange"
-                            @bind="SelectedStoreType">
-
-                        <option value="">
-                            (الكل)
-                        </option>
-
-                        @foreach (var st in StoreTypes)
+                        else if (Userss == null)
                         {
-                            <option value="@st">
-                                @st
-                            </option>
+                            <div class="users-loading">
+
+                                <div class="small-loader"></div>
+
+                                <span>
+                                    جارٍ التحميل...
+                                </span>
+
+                            </div>
                         }
-
-                    </select>
-
-                </div>
-
-
-                <!-- من تاريخ -->
-                <div class="col-6 col-md-4">
-
-                    <label>
-                        من تاريخ
-                    </label>
-
-                    <InputDate class="form-control border-orange"
-                               @bind-Value="FromDate" />
-
-                </div>
-
-
-                <!-- إلى تاريخ -->
-                <div class="col-6 col-md-4">
-
-                    <label>
-                        إلى تاريخ
-                    </label>
-
-                    <InputDate class="form-control border-orange"
-                               @bind-Value="ToDate" />
-
-                </div>
-
-
-                <!-- الحالة -->
-                <div class="col-6 col-md-4">
-
-                    <label>
-                        الحالة
-                    </label>
-
-                    <select class="form-select border-orange"
-                            @bind="SelectedStatus">
-
-                        <option value="All">
-                            الكل
-                        </option>
-
-                        <option value="Done">
-                            المنتهية
-                        </option>
-
-                        <option value="NotDone">
-                            غير المنتهية
-                        </option>
-
-                    </select>
-
-                </div>
-
-
-                <!-- تطبيق -->
-                <div class="col-6 col-md-4">
-
-                    <button class="btn btn-orange w-100"
-                            @onclick="ApplyFilters">
-
-                        تطبيق
-
-                    </button>
-
-                </div>
-
-
-                <!-- إعادة تعيين -->
-                <div class="col-6 col-md-4">
-
-                    <button class="btn btn-outline-orange w-100"
-                            @onclick="ResetFilters">
-
-                        إعادة تعيين
-
-                    </button>
-
-                </div>
-
-            </div>
-
-
-            <!-- ================================================= -->
-            <!-- تصدير Excel للمدير فقط -->
-            <!-- ================================================= -->
-            @if (IsAdmin)
-            {
-                <div class="mt-3">
-
-                    <button class="btn btn-success"
-                            @onclick="ExportReportsToExcel"
-                            disabled="@(SelectedUser == null || isExporting)"
-                            dir="rtl">
-
-                        @if (isExporting)
+                        else if (Userss.Count == 0)
                         {
-                            <span class="spinner-border spinner-border-sm me-2"
-                                  role="status">
-                            </span>
+                            <div class="empty-users">
 
-                            <span>
-                                جار تحضير التقرير...
-                            </span>
+                                <span>
+                                    👤
+                                </span>
+
+                                <strong>
+                                    لا يوجد موظفين
+                                </strong>
+
+                            </div>
                         }
                         else
                         {
-                            <i class="fa fa-file-excel-o me-1"></i>
+                            <div class="users-list">
 
-                            <span>
-                                تصدير Excel
-                            </span>
-                        }
+                                @foreach (var u in FilteredUsers)
+                                {
+                                    <button type="button"
+                                            class="user-item @(SelectedUser?.Id == u.Id ? "selected" : "")"
+                                            @onclick="@(() => SelectUser(u))">
 
-                    </button>
+                                        <div class="user-avatar">
+                                            <span>👤</span>
+                                        </div>
 
+                                        <div class="user-info">
 
-                    @if (!string.IsNullOrEmpty(excelUrl))
-                    {
-                        <a class="btn btn-link ms-3"
-                           href="@excelUrl"
-                           target="_blank">
+                                            <strong>
+                                                @u.FullName
+                                            </strong>
 
-                            تحميل الملف
-
-                        </a>
-                    }
-
-
-                    @if (!string.IsNullOrEmpty(exportMessage))
-                    {
-                        <span class="text-muted ms-3">
-                            @exportMessage
-                        </span>
-                    }
-
-                </div>
-            }
-
-        </div>
-
-
-        <!-- ===================================================== -->
-        <!-- جدول التقارير -->
-        <!-- ===================================================== -->
-
-        <div class="card shadow p-3 border-orange">
-
-            <h5 class="text-orange">
-
-                تقارير الموظف:
-
-                @if (SelectedUser != null)
-                {
-                    <span class="badge bg-orange text-white">
-                        @SelectedUser.FullName
-                    </span>
-
-                    <small class="text-muted ms-2">
-                        عدد النتائج: @FilteredReports.Count()
-                    </small>
-                }
-                else
-                {
-                    <span class="text-muted">
-                        لم يتم اختيار موظف
-                    </span>
-                }
-
-            </h5>
-
-
-            @if (SelectedUser == null)
-            {
-                <div class="text-muted">
-                    اختر موظفاً من اليسار لعرض تقاريره.
-                </div>
-            }
-            else if (IsLoadingReports)
-            {
-                <div class="text-center p-4">
-
-                    <div class="spinner-border text-orange"
-                         role="status">
-                    </div>
-
-                    <div class="mt-2">
-                        جارٍ تحميل التقارير...
-                    </div>
-
-                </div>
-            }
-            else
-            {
-                <div style="overflow-x:auto;">
-
-                    <table class="table table-hover align-middle"
-                           dir="rtl">
-
-                        <thead>
-
-                            <tr>
-
-                                <th>المهمة</th>
-
-                                <th>النوع</th>
-
-                                <th>العميل / المشروع</th>
-
-                                <th>الموظف</th>
-
-                                <th>الأولوية</th>
-
-                                <th>التقدم</th>
-
-                                <th>المنجز</th>
-
-                                <th>المتبقي</th>
-
-                                <th>الحالة</th>
-
-                                <th>التسليم</th>
-
-                                <th>إجراء</th>
-
-                            </tr>
-
-                        </thead>
-
-
-                        <tbody>
-
-                            @foreach (var r in FilteredReports)
-                            {
-                                <tr>
-
-                                    <!-- المهمة -->
-                                    <td>
-
-                                        <strong>
-                                            @(r.Content ?? "-")
-                                        </strong>
-
-                                        @if (!string.IsNullOrWhiteSpace(r.TaskDetails))
-                                        {
-                                            <div class="small text-muted mt-1">
-                                                @r.TaskDetails
-                                            </div>
-                                        }
-
-                                    </td>
-
-
-                                    <!-- النوع -->
-                                    <td>
-                                        @(r.TaskType ?? "-")
-                                    </td>
-
-
-                                    <!-- العميل / المشروع -->
-                                    <td>
-                                        @(r.ClientOrProject ?? "-")
-                                    </td>
-
-
-                                    <!-- الموظف -->
-                                    <td>
-                                        @(r.AssignedEmployee ?? r.FullName ?? "-")
-                                    </td>
-
-
-                                    <!-- الأولوية -->
-                                    <td>
-
-                                        @if (r.Priority == "عالية")
-                                        {
-                                            <span class="badge bg-danger">
-                                                عالية
-                                            </span>
-                                        }
-                                        else if (r.Priority == "متوسطة")
-                                        {
-                                            <span class="badge bg-warning text-dark">
-                                                متوسطة
-                                            </span>
-                                        }
-                                        else if (r.Priority == "منخفضة")
-                                        {
-                                            <span class="badge bg-success">
-                                                منخفضة
-                                            </span>
-                                        }
-                                        else
-                                        {
                                             <span>
-                                                @(r.Priority ?? "-")
+                                                موظف
                                             </span>
-                                        }
-
-                                    </td>
-
-
-                                    <!-- التقدم -->
-                                    <td style="min-width:160px">
-
-                                        <div class="progress"
-                                             style="height:22px;">
-
-                                            <div class="progress-bar"
-                                                 role="progressbar"
-                                                 style="width:@($"{r.ProgressPercentage}%")">
-
-                                                @r.ProgressPercentage%
-
-                                            </div>
 
                                         </div>
 
-                                    </td>
+                                        <div class="user-count">
 
+                                            <strong>
+                                                @GetUserReportsCount(u)
+                                            </strong>
 
-                                    <!-- المنجز -->
-                                    <td>
-
-                                        @r.CompletedItems
-                                        /
-                                        @r.TotalItems
-
-                                    </td>
-
-
-                                    <!-- المتبقي -->
-                                    <td>
-                                        @r.RemainingItems
-                                    </td>
-
-
-                                    <!-- الحالة -->
-                                    <td>
-
-                                        @if (r.IsDoneOrNot == "مكتملة")
-                                        {
-                                            <span class="badge bg-success">
-                                                مكتملة
+                                            <span>
+                                                تقرير
                                             </span>
-                                        }
-                                        else if (r.IsDoneOrNot == "قيد التنفيذ")
-                                        {
-                                            <span class="badge bg-warning text-dark">
-                                                قيد التنفيذ
-                                            </span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-secondary">
-                                                لم تبدأ
-                                            </span>
-                                        }
 
-                                    </td>
+                                        </div>
 
+                                    </button>
+                                }
 
-                                    <!-- التسليم -->
-                                    <td>
+                            </div>
+                        }
 
-                                        @(r.DueDate?.ToString("yyyy-MM-dd") ?? "-")
+                    </div>
 
-                                    </td>
+                </section>
+
+            </aside>
 
 
-                                    <!-- إجراء -->
-                                    <td>
+            <!-- =================================================
+                 REPORTS
+                 ================================================= -->
 
-                                        @if (CanEditReport(r))
-                                        {
-                                            <button class="btn btn-sm btn-primary"
-                                                    title="تحديث التقرير"
-                                                    @onclick="@(() => EditReport(r.Id))">
-
-                                                تحديث
-
-                                            </button>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">
-                                                -
-                                            </span>
-                                        }
-
-                                    </td>
-
-                                </tr>
-                            }
-
-                        </tbody>
-
-                    </table>
+            <section class="reports-column">
 
 
-                    @if (!FilteredReports.Any())
+                <!-- =================================================
+                     FILTERS
+                     ================================================= -->
+
+                <section class="filters-card">
+
+                    <div class="card-top-line"></div>
+
+
+                    <div class="filters-header">
+
+                        <div class="filters-title">
+
+                            <div class="filters-icon">
+                                🎛️
+                            </div>
+
+                            <div>
+
+                                <strong>
+                                    مرشحات العرض
+                                </strong>
+
+                                <span>
+                                    تحكم بالنتائج المعروضة
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="filters-grid">
+
+
+                 
+
+
+                        <!-- من -->
+                        <div class="filter-field">
+
+                            <label>
+                                من تاريخ
+                            </label>
+
+                            <InputDate class="premium-input"
+                                       @bind-Value="FromDate" />
+
+                        </div>
+
+
+                        <!-- إلى -->
+                        <div class="filter-field">
+
+                            <label>
+                                إلى تاريخ
+                            </label>
+
+                            <InputDate class="premium-input"
+                                       @bind-Value="ToDate" />
+
+                        </div>
+
+
+                        <!-- الحالة -->
+                        <div class="filter-field">
+
+                            <label>
+                                الحالة
+                            </label>
+
+                            <select class="premium-select"
+                                    @bind="SelectedStatus">
+
+                                <option value="All">
+                                    الكل
+                                </option>
+
+                                <option value="Done">
+                                    المنتهية
+                                </option>
+
+                                <option value="NotDone">
+                                    غير المنتهية
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- Apply -->
+                        <div class="filter-action">
+
+                            <button class="premium-primary-btn"
+                                    @onclick="ApplyFilters">
+
+                                <span>
+                                    🔍
+                                </span>
+
+                                تطبيق
+
+                            </button>
+
+                        </div>
+
+
+                        <!-- Reset -->
+                        <div class="filter-action">
+
+                            <button class="premium-secondary-btn"
+                                    @onclick="ResetFilters">
+
+                                <span>
+                                    ↺
+                                </span>
+
+                                إعادة تعيين
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- =================================================
+                         EXCEL
+                         ================================================= -->
+                    @if (IsAdmin)
                     {
-                        <div class="text-muted text-center p-3">
+                        <div class="excel-section">
 
-                            لا توجد نتائج مطابقة للمرشحات.
+                            <div class="excel-info">
+
+                                <div class="excel-icon">
+                                    📊
+                                </div>
+
+                                <div>
+
+                                    <strong>
+                                        تصدير التقارير
+                                    </strong>
+
+                                    <span>
+                                        إنشاء ملف Excel للموظف المحدد
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="excel-actions">
+
+                                <button class="excel-btn"
+                                        @onclick="ExportReportsToExcel"
+                                        disabled="@(SelectedUser == null || isExporting)">
+
+                                    @if (isExporting)
+                                    {
+                                        <span class="small-spinner"></span>
+
+                                        <span>
+                                            جار تحضير التقرير...
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span>
+                                            📗
+                                        </span>
+
+                                        <span>
+                                            تصدير Excel
+                                        </span>
+                                    }
+
+                                </button>
+
+
+                                @if (!string.IsNullOrEmpty(excelUrl))
+                                {
+                                    <a class="excel-download"
+                                       href="@excelUrl"
+                                       target="_blank">
+
+                                        تحميل الملف
+                                        ↓
+
+                                    </a>
+                                }
+
+
+                                @if (!string.IsNullOrEmpty(exportMessage))
+                                {
+                                    <span class="export-message">
+                                        @exportMessage
+                                    </span>
+                                }
+
+                            </div>
 
                         </div>
                     }
 
-                </div>
-            }
+                </section>
+
+
+                <!-- =================================================
+                     REPORTS TABLE
+                     ================================================= -->
+
+                <section class="reports-card">
+
+                    <div class="card-top-line"></div>
+
+
+                    <div class="reports-header-row">
+
+                        <div class="reports-title-block">
+
+                            <div class="reports-title-icon">
+                                📊
+                            </div>
+
+                            <div>
+
+                                <strong>
+                                    تقارير الموظف
+                                </strong>
+
+                                @if (SelectedUser != null)
+                                {
+                                    <span class="selected-user-name">
+                                        @SelectedUser.FullName
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span>
+                                        لم يتم اختيار موظف
+                                    </span>
+                                }
+
+                            </div>
+
+                        </div>
+
+
+                        @if (SelectedUser != null)
+                        {
+                            <div class="results-count">
+
+                                <span>
+                                    النتائج
+                                </span>
+
+                                <strong>
+                                    @FilteredReports.Count()
+                                </strong>
+
+                            </div>
+                        }
+
+                    </div>
+
+
+                    <div class="reports-body">
+
+                        @if (SelectedUser == null)
+                        {
+                            <div class="empty-reports">
+
+                                <div class="empty-reports-icon">
+                                    👈
+                                </div>
+
+                                <strong>
+                                    اختر موظفاً من القائمة
+                                </strong>
+
+                                <span>
+                                    ستظهر تقاريره ومهامه هنا.
+                                </span>
+
+                            </div>
+                        }
+                        else if (IsLoadingReports)
+                        {
+                            <div class="reports-loading">
+
+                                <div class="loader-ring">
+                                    <div class="loader-core"></div>
+                                </div>
+
+                                <strong>
+                                    جارٍ تحميل التقارير...
+                                </strong>
+
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="table-wrapper">
+
+                                <table class="reports-table">
+
+                                    <thead>
+
+                                        <tr>
+
+                                            <th>المهمة</th>
+                                            <th>النوع</th>
+                                            <th>العميل / المشروع</th>
+                                            <th>الموظف</th>
+                                            <th>الأولوية</th>
+                                            <th>التقدم</th>
+                                            <th>المنجز</th>
+                                            <th>المتبقي</th>
+                                            <th>الحالة</th>
+                                            <th>التسليم</th>
+                                            <th>إجراء</th>
+
+                                        </tr>
+
+                                    </thead>
+
+
+                                    <tbody>
+
+                                        @foreach (var r in FilteredReports)
+                                        {
+                                            <tr class="report-row">
+
+                                                <!-- المهمة -->
+                                                <td>
+
+                                                    <div class="task-cell">
+
+                                                        <div class="task-icon">
+                                                            📝
+                                                        </div>
+
+                                                        <div>
+
+                                                            <strong>
+                                                                @(r.Content ?? "-")
+                                                            </strong>
+
+                                                            @if (!string.IsNullOrWhiteSpace(r.TaskDetails))
+                                                            {
+                                                                <span>
+                                                                    @r.TaskDetails
+                                                                </span>
+                                                            }
+
+                                                        </div>
+
+                                                    </div>
+
+                                                </td>
+
+
+                                                <!-- النوع -->
+                                                <td>
+
+                                                    <span class="type-pill">
+                                                        @(r.TaskType ?? "-")
+                                                    </span>
+
+                                                </td>
+
+
+                                                <!-- العميل -->
+                                                <td>
+
+                                                    <div class="project-cell">
+
+                                                        <span class="project-dot"></span>
+
+                                                        @(r.ClientOrProject ?? "-")
+
+                                                    </div>
+
+                                                </td>
+
+
+                                                <!-- الموظف -->
+                                                <td>
+
+                                                    <div class="employee-cell">
+
+                                                        <span class="employee-avatar">
+                                                            👤
+                                                        </span>
+
+                                                        @(r.AssignedEmployee ?? r.FullName ?? "-")
+
+                                                    </div>
+
+                                                </td>
+
+
+                                                <!-- الأولوية -->
+                                                <td>
+
+                                                    @if (r.Priority == "عالية")
+                                                    {
+                                                        <span class="priority-pill priority-high">
+                                                            عالية
+                                                        </span>
+                                                    }
+                                                    else if (r.Priority == "متوسطة")
+                                                    {
+                                                        <span class="priority-pill priority-medium">
+                                                            متوسطة
+                                                        </span>
+                                                    }
+                                                    else if (r.Priority == "منخفضة")
+                                                    {
+                                                        <span class="priority-pill priority-low">
+                                                            منخفضة
+                                                        </span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="type-pill">
+                                                            @(r.Priority ?? "-")
+                                                        </span>
+                                                    }
+
+                                                </td>
+
+
+                                                <!-- التقدم -->
+                                                <td style="min-width:180px">
+
+                                                    <div class="progress-wrapper">
+
+                                                        <div class="progress-meta">
+
+                                                            <span>
+                                                                التقدم
+                                                            </span>
+
+                                                            <strong>
+                                                                @r.ProgressPercentage%
+                                                            </strong>
+
+                                                        </div>
+
+                                                        <div class="premium-progress">
+
+                                                            <div class="premium-progress-bar"
+                                                                 style="width:@($"{r.ProgressPercentage}%")">
+
+                                                                <span class="progress-shine"></span>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                </td>
+
+
+                                                <!-- المنجز -->
+                                                <td>
+
+                                                    <span class="counter completed">
+                                                        @r.CompletedItems
+                                                        /
+                                                        @r.TotalItems
+                                                    </span>
+
+                                                </td>
+
+
+                                                <!-- المتبقي -->
+                                                <td>
+
+                                                    <span class="counter remaining">
+                                                        @r.RemainingItems
+                                                    </span>
+
+                                                </td>
+
+
+                                                <!-- الحالة -->
+                                                <td>
+
+                                                    @if (r.IsDoneOrNot == "مكتملة")
+                                                    {
+                                                        <span class="status-pill status-completed">
+                                                            <span class="status-dot"></span>
+                                                            مكتملة
+                                                        </span>
+                                                    }
+                                                    else if (r.IsDoneOrNot == "قيد التنفيذ")
+                                                    {
+                                                        <span class="status-pill status-progress">
+                                                            <span class="status-dot"></span>
+                                                            قيد التنفيذ
+                                                        </span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="status-pill status-pending">
+                                                            <span class="status-dot"></span>
+                                                            لم تبدأ
+                                                        </span>
+                                                    }
+
+                                                </td>
+
+
+                                                <!-- التسليم -->
+                                                <td>
+
+                                                    <span class="date-cell">
+
+                                                        📅
+
+                                                        @(r.DueDate?.ToString("yyyy-MM-dd") ?? "-")
+
+                                                    </span>
+
+                                                </td>
+
+
+                                                <!-- إجراء -->
+                                                <td>
+
+                                                    @if (CanEditReport(r))
+                                                    {
+                                                        <button class="edit-btn"
+                                                                title="تحديث التقرير"
+                                                                @onclick="@(() => EditReport(r.Id))">
+
+                                                            ✏️
+                                                            تحديث
+
+                                                        </button>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="not-allowed">
+                                                            -
+                                                        </span>
+                                                    }
+
+                                                </td>
+
+                                            </tr>
+                                        }
+
+                                    </tbody>
+
+                                </table>
+
+                                @if (!FilteredReports.Any())
+                                {
+                                    <div class="no-results">
+
+                                        <div>
+                                            🔎
+                                        </div>
+
+                                        لا توجد نتائج مطابقة للمرشحات.
+
+                                    </div>
+                                }
+
+                            </div>
+                        }
+
+                    </div>
+
+                </section>
+
+            </section>
 
         </div>
 
-    </div>
+    </main>
 
 </div>
 
@@ -681,10 +959,6 @@
         BuildStoreTypes();
 
 
-        // =====================================================
-        // إذا كان مستخدمًا عاديًا
-        // =====================================================
-
         if (!IsAdmin)
         {
             Userss =
@@ -700,10 +974,6 @@
         }
     }
 
-
-    // =============================================================
-    // تحميل المستخدمين
-    // =============================================================
 
     private async Task LoadUsersAsync()
     {
@@ -724,48 +994,38 @@
     }
 
 
-    // =============================================================
-    // تحميل تقارير اليوم
-    // =============================================================
-
-    private async Task LoadReportsForDate(
-        DateTime date)
+    private async Task LoadReportsForDate(DateTime date)
     {
         try
         {
             var result =
                 await _service.GetReportsByDate(date);
 
-
             if (IsAdmin)
             {
                 AllReports =
                     result?.ToList()
-                    ?? new();
+                    ?? new List<FollowUpReport>();
             }
             else
             {
                 AllReports =
                     result?
                         .Where(r =>
-                            string.Equals(
-                                r.FullName?.Trim(),
-                                User.FullName?.Trim(),
-                                StringComparison.OrdinalIgnoreCase))
+                            r.AssignedEmployeeId == User.Id)
                         .ToList()
-                    ?? new();
+                    ?? new List<FollowUpReport>();
             }
         }
-        catch
+        catch (Exception ex)
         {
-            AllReports = new();
+            Console.Error.WriteLine(
+                $"Load reports error: {ex}");
+
+            AllReports =
+                new List<FollowUpReport>();
         }
     }
-
-
-    // =============================================================
-    // جلب التقارير ضمن فترة
-    // =============================================================
 
     private async Task<List<FollowUpReport>>
         FetchReportsForDateRange(
@@ -796,10 +1056,6 @@
     }
 
 
-    // =============================================================
-    // بناء أنواع المتاجر
-    // =============================================================
-
     private void BuildStoreTypes()
     {
         StoreTypes =
@@ -815,10 +1071,6 @@
     }
 
 
-    // =============================================================
-    // اختيار المستخدم
-    // =============================================================
-
     private async Task SelectUser(User u)
     {
         SelectedUser = u;
@@ -827,69 +1079,65 @@
     }
 
 
-    // =============================================================
-    // عدد تقارير المستخدم
-    // =============================================================
-
     private int GetUserReportsCount(User u)
     {
-        return
-            AllReports.Count(r =>
-                string.Equals(
-                    r.FullName?.Trim(),
-                    u.FullName?.Trim(),
-                    StringComparison.OrdinalIgnoreCase));
+        return AllReports.Count(r =>
+            r.AssignedEmployeeId == u.Id);
     }
 
-
-    // =============================================================
-    // تطبيق الفلاتر
-    // =============================================================
 
     private async Task ApplyFilters()
     {
-        if (FromDate.HasValue &&
-            ToDate.HasValue)
+        try
         {
             IsLoadingReports = true;
 
+            // ===========================================
+            // في حال وجود فترة
+            // ===========================================
 
-            var reports =
-                await FetchReportsForDateRange(
-                    FromDate.Value,
-                    ToDate.Value);
-
-
-            if (IsAdmin)
+            if (FromDate.HasValue &&
+                ToDate.HasValue)
             {
-                AllReports = reports;
+                var reports =
+                    await FetchReportsForDateRange(
+                        FromDate.Value,
+                        ToDate.Value);
+
+                if (IsAdmin)
+                {
+                    AllReports =
+                        reports;
+                }
+                else
+                {
+                    AllReports =
+                        reports
+                            .Where(r =>
+                                r.AssignedEmployeeId == User.Id)
+                            .ToList();
+                }
             }
             else
             {
-                AllReports =
-                    reports
-                        .Where(r =>
-                            string.Equals(
-                                r.FullName?.Trim(),
-                                User.FullName?.Trim(),
-                                StringComparison.OrdinalIgnoreCase))
-                        .ToList();
-            }
+                // =======================================
+                // اليوم الحالي
+                // =======================================
 
+                await LoadReportsForDate(
+                    DateTime.Now.Date);
+            }
 
             BuildStoreTypes();
 
+            await RefreshFilteredReportsAsync();
+        }
+        finally
+        {
             IsLoadingReports = false;
         }
-
-
-        await RefreshFilteredReportsAsync();
     }
 
-
-    // =============================================================
-    // تحديث التقارير المعروضة
-    // =============================================================
 
     private async Task RefreshFilteredReportsAsync()
     {
@@ -901,58 +1149,61 @@
             return;
         }
 
-
         IsLoadingReports = true;
 
-
-        var userReports =
-            AllReports
-                .Where(r =>
-                    string.Equals(
-                        r.FullName?.Trim(),
-                        SelectedUser.FullName?.Trim(),
-                        StringComparison.OrdinalIgnoreCase));
-
-
-        if (!string.IsNullOrEmpty(
-            SelectedStoreType))
+        try
         {
-            userReports =
+            IEnumerable<FollowUpReport> userReports =
+                AllReports.Where(r =>
+                    r.AssignedEmployeeId == SelectedUser.Id);
+
+
+            // ===========================================
+            // نوع المتجر
+            // ===========================================
+
+            if (!string.IsNullOrWhiteSpace(
+                SelectedStoreType))
+            {
+                userReports =
+                    userReports.Where(r =>
+                        string.Equals(
+                            r.StoreType?.Trim(),
+                            SelectedStoreType.Trim(),
+                            StringComparison.OrdinalIgnoreCase));
+            }
+
+
+            // ===========================================
+            // الحالة
+            // ===========================================
+
+            if (SelectedStatus == "Done")
+            {
+                userReports =
+                    userReports.Where(r =>
+                        r.IsDone);
+            }
+            else if (SelectedStatus == "NotDone")
+            {
+                userReports =
+                    userReports.Where(r =>
+                        !r.IsDone);
+            }
+
+
+            FilteredReports =
                 userReports
-                    .Where(r =>
-                        r.StoreType ==
-                        SelectedStoreType);
+                    .OrderByDescending(
+                        r => r.DateTime)
+                    .ToList();
         }
-
-
-        if (SelectedStatus == "Done")
+        finally
         {
-            userReports =
-                userReports
-                    .Where(r => r.IsDone);
+            IsLoadingReports = false;
         }
-        else if (SelectedStatus == "NotDone")
-        {
-            userReports =
-                userReports
-                    .Where(r => !r.IsDone);
-        }
-
-
-        FilteredReports =
-            userReports
-                .OrderByDescending(
-                    r => r.DateTime)
-                .ToList();
-
-
-        IsLoadingReports = false;
     }
 
-
-    // =============================================================
-    // إعادة تعيين الفلاتر
-    // =============================================================
 
     private void ResetFilters()
     {
@@ -971,27 +1222,13 @@
     }
 
 
-    // =============================================================
-    // صلاحية تعديل التقرير
-    // =============================================================
-
-    private bool CanEditReport(
-        FollowUpReport r)
+    private bool CanEditReport(FollowUpReport r)
     {
         return
             IsAdmin ||
-            string.Equals(
-                r.FullName?.Trim(),
-                CurrentUserName?.Trim(),
-                StringComparison.OrdinalIgnoreCase);
+            r.AssignedEmployeeId == User.Id;
     }
 
-
-    // =============================================================
-    // تعديل التقرير
-    //
-    // ينقل المستخدم إلى نفس صفحة تعديل التقرير الأصلية
-    // =============================================================
 
     private void EditReport(int reportId)
     {
@@ -999,32 +1236,16 @@
             AllReports.FirstOrDefault(
                 r => r.Id == reportId);
 
-
         if (report == null)
-        {
             return;
-        }
-
-
-        // =============================================
-        // حماية إضافية:
-        // الموظف لا يستطيع تعديل تقرير ليس له
-        // =============================================
 
         if (!CanEditReport(report))
-        {
             return;
-        }
-
 
         NavigationManager.NavigateTo(
             $"/followup-report/{reportId}");
     }
 
-
-    // =============================================================
-    // تغيير حالة الإنجاز
-    // =============================================================
 
     private async Task ToggleDone(
         FollowUpReport report,
@@ -1044,30 +1265,20 @@
     }
 
 
-    // =============================================================
-    // تصدير Excel
-    // =============================================================
-
     private async Task ExportReportsToExcel()
     {
         if (SelectedUser == null)
-        {
             return;
-        }
-
 
         var reports =
             FilteredReports.ToList();
 
-
         if (!reports.Any())
-        {
             return;
-        }
-
 
         isExporting = true;
-
+        exportMessage = string.Empty;
+        excelUrl = string.Empty;
 
         try
         {
@@ -1076,9 +1287,16 @@
                     reports,
                     DateTime.Now);
 
-
             exportMessage =
                 $"تم إنشاء ملف Excel للمستخدم {SelectedUser.FullName}";
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine(
+                $"Excel export error: {ex}");
+
+            exportMessage =
+                "حدث خطأ أثناء إنشاء ملف Excel.";
         }
         finally
         {
@@ -1086,10 +1304,6 @@
         }
     }
 
-
-    // =============================================================
-    // مسار الملف
-    // =============================================================
 
     string DisplayPath(string? v)
     {
@@ -1111,105 +1325,1586 @@
 
 }
 
+
 <style>
 
-    /* ========================================================= */
-    /* الألوان */
-    /* ========================================================= */
+    /* =========================================================
+           HEMS USERS & REPORTS
+           ========================================================= */
 
-    .text-orange {
-        color: #ff6600;
+    .employees-page {
+        position: relative;
+        min-height: 100vh;
+        padding: clamp(14px,2.5vw,30px);
+        overflow: hidden;
+        isolation: isolate;
+        background: radial-gradient( circle at 82% 8%, rgba(67,56,202,.23), transparent 26% ), radial-gradient( circle at 15% 90%, rgba(29,78,216,.16), transparent 25% ), linear-gradient( 135deg, #030305 0%, #070811 42%, #11102b 72%, #1e1b4b 100% );
+        color: #f8fafc;
     }
 
 
-    .bg-orange {
-        background-color: #ff6600;
+        .employees-page::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: -2;
+            pointer-events: none;
+            background: radial-gradient( circle at center, transparent 0%, rgba(2,2,8,.18) 48%, rgba(2,2,8,.60) 100% );
+        }
+
+
+    /* =========================================================
+           GRID
+           ========================================================= */
+
+    .employees-grid {
+        position: absolute;
+        inset: 0;
+        z-index: -3;
+        pointer-events: none;
+        background: linear-gradient( rgba(255,255,255,.025) 1px, transparent 1px ), linear-gradient( 90deg, rgba(255,255,255,.025) 1px, transparent 1px );
+        background-size: 42px 42px;
+        mask-image: linear-gradient( to bottom, black, transparent 92% );
+        animation: gridMove 22s linear infinite;
     }
 
 
-    .border-orange {
-        border: 1px solid #ff6600;
+    /* =========================================================
+           AMBIENT
+           ========================================================= */
+
+    .employees-orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(8px);
+        mix-blend-mode: screen;
+        pointer-events: none;
+        z-index: -1;
     }
 
 
-    .btn-orange {
-        background-color: #ff6600;
+    .orb-one {
+        width: 340px;
+        height: 340px;
+        top: -110px;
+        right: -80px;
+        background: radial-gradient( circle, rgba(99,102,241,.34), transparent 68% );
+        animation: orbOne 11s ease-in-out infinite;
+    }
+
+
+    .orb-two {
+        width: 410px;
+        height: 410px;
+        bottom: -160px;
+        left: -140px;
+        background: radial-gradient( circle, rgba(37,99,235,.23), transparent 68% );
+        animation: orbTwo 14s ease-in-out infinite;
+    }
+
+
+    .orb-three {
+        width: 220px;
+        height: 220px;
+        top: 44%;
+        left: 48%;
+        background: radial-gradient( circle, rgba(129,140,248,.12), transparent 66% );
+        animation: orbThree 6s ease-in-out infinite;
+    }
+
+
+    .employees-scan {
+        position: absolute;
+        top: 0;
+        left: -35%;
+        width: 35%;
+        height: 100%;
+        transform: skewX(-22deg);
+        z-index: -1;
+        pointer-events: none;
+        background: linear-gradient( 90deg, transparent, rgba(255,255,255,.055), transparent );
+        animation: scan 8s ease-in-out infinite;
+    }
+
+
+    /* =========================================================
+           CONTENT
+           ========================================================= */
+
+    .employees-content {
+        position: relative;
+        width: min( 1550px, 100% );
+        margin: 0 auto;
+        z-index: 2;
+    }
+
+
+    /* =========================================================
+           HEADER
+           ========================================================= */
+
+    .employees-header {
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 145px;
+        margin-bottom: 20px;
+        padding: 28px clamp(20px,4vw,40px);
+        border: 1px solid rgba(129,140,248,.20);
+        border-radius: 26px;
+        background: radial-gradient( circle at 85% 10%, rgba(129,140,248,.28), transparent 28% ), linear-gradient( 135deg, #020204 0%, #0a0a14 48%, #171449 100% );
+        box-shadow: 0 24px 70px rgba(0,0,0,.48), 0 0 0 1px rgba(255,255,255,.025) inset, 0 0 50px rgba(67,56,202,.10);
+        backdrop-filter: blur(22px);
+        -webkit-backdrop-filter: blur(22px);
+        animation: cardReveal .75s cubic-bezier(.2,.75,.2,1) both;
+    }
+
+
+    .header-left {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        gap: 17px;
+    }
+
+
+    .header-icon {
+        width: 62px;
+        height: 62px;
+        flex: 0 0 62px;
+        display: grid;
+        place-items: center;
+        border-radius: 18px;
+        background: linear-gradient( 145deg, rgba(99,102,241,.95), rgba(30,64,175,.76) );
+        border: 1px solid rgba(255,255,255,.16);
+        box-shadow: 0 10px 30px rgba(79,70,229,.34), 0 0 28px rgba(99,102,241,.22) inset;
+        font-size: 1.55rem;
+        animation: iconPulse 3.5s ease-in-out infinite;
+    }
+
+
+    .header-kicker {
+        display: block;
+        margin-bottom: 5px;
+        color: #a5b4fc;
+        font-family: "Space Grotesk", sans-serif;
+        font-size: .67rem;
+        font-weight: 800;
+        letter-spacing: .23em;
+        text-transform: uppercase;
+    }
+
+
+    .employees-header h1 {
+        margin: 0;
+        font-family: "Unbounded", "Space Grotesk", sans-serif;
+        font-size: clamp( 1.3rem, 2.5vw, 2rem );
+        font-weight: 500;
+    }
+
+
+    .employees-header p {
+        margin: 6px 0 0;
+        color: rgba(226,232,240,.68);
+        font-size: .84rem;
+    }
+
+
+    .header-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 14px;
+        border-radius: 999px;
+        color: #c7d2fe;
+        background: rgba(49,46,129,.18);
+        border: 1px solid rgba(129,140,248,.20);
+        font-family: "JetBrains Mono", monospace;
+        font-size: .67rem;
+        letter-spacing: .08em;
+    }
+
+
+    .live-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #38bdf8;
+        box-shadow: 0 0 12px rgba(56,189,248,.85);
+        animation: livePulse 1.8s ease-in-out infinite;
+    }
+
+
+    /* =========================================================
+           LAYOUT
+           ========================================================= */
+
+    .employees-layout {
+        display: grid;
+        grid-template-columns: minmax(250px,330px) minmax(0,1fr);
+        gap: 20px;
+        align-items: start;
+    }
+
+
+    /* =========================================================
+           CARDS
+           ========================================================= */
+
+    .users-card,
+    .filters-card,
+    .reports-card {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(129,140,248,.18);
+        border-radius: 23px;
+        background: rgba(8,9,18,.84);
+        box-shadow: 0 24px 70px rgba(0,0,0,.42), 0 0 0 1px rgba(255,255,255,.02) inset;
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+    }
+
+
+    .users-card {
+        animation: cardReveal .8s .08s cubic-bezier(.2,.75,.2,1) both;
+    }
+
+
+    .filters-card {
+        margin-bottom: 20px;
+        animation: cardReveal .8s .14s cubic-bezier(.2,.75,.2,1) both;
+    }
+
+
+    .reports-card {
+        animation: cardReveal .8s .20s cubic-bezier(.2,.75,.2,1) both;
+    }
+
+
+    .card-top-line {
+        position: absolute;
+        top: 0;
+        left: 4%;
+        width: 92%;
+        height: 1px;
+        background: linear-gradient( 90deg, transparent, rgba(129,140,248,.48), rgba(56,189,248,.40), transparent );
+    }
+
+
+    /* =========================================================
+           USERS
+           ========================================================= */
+
+    .users-card-header {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 21px;
+        border-bottom: 1px solid rgba(129,140,248,.09);
+    }
+
+
+    .users-title-icon {
+        width: 42px;
+        height: 42px;
+        display: grid;
+        place-items: center;
+        border-radius: 12px;
+        background: rgba(99,102,241,.12);
+        border: 1px solid rgba(129,140,248,.13);
+    }
+
+
+    .users-card-header strong {
+        display: block;
+        font-size: .87rem;
+        color: #f8fafc;
+    }
+
+
+    .users-card-header span {
+        display: block;
+        margin-top: 3px;
+        color: rgba(165,180,252,.48);
+        font-size: .63rem;
+    }
+
+
+    .users-search {
+        padding: 18px 17px 10px;
+    }
+
+
+        .users-search label {
+            display: block;
+            margin-bottom: 7px;
+            color: #cbd5e1;
+            font-size: .70rem;
+            font-weight: 800;
+        }
+
+
+    .search-wrapper {
+        position: relative;
+    }
+
+
+    .search-icon {
+        position: absolute;
+        right: 13px;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 2;
+        font-size: .85rem;
+    }
+
+
+    .search-input {
+        padding-right: 38px !important;
+    }
+
+
+    .users-list-wrapper {
+        max-height: 62vh;
+        overflow: auto;
+        padding: 6px 12px 15px;
+        scrollbar-width: thin;
+    }
+
+
+        .users-list-wrapper::-webkit-scrollbar {
+            width: 6px;
+        }
+
+
+        .users-list-wrapper::-webkit-scrollbar-thumb {
+            background: linear-gradient( 180deg, #312e81, #4338ca );
+            border-radius: 999px;
+        }
+
+
+    .users-list {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+    }
+
+
+    .user-item {
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        padding: 10px;
+        border: 1px solid rgba(129,140,248,.08);
+        border-radius: 14px;
+        color: #cbd5e1;
+        background: rgba(15,17,29,.52);
+        text-align: right;
+        cursor: pointer;
+        transition: .28s ease;
+    }
+
+
+        .user-item:hover {
+            transform: translateX(-3px);
+            border-color: rgba(129,140,248,.23);
+            background: linear-gradient( 135deg, rgba(30,41,59,.70), rgba(49,46,129,.20) );
+            box-shadow: 0 8px 22px rgba(0,0,0,.18);
+        }
+
+
+        .user-item.selected {
+            border-color: rgba(129,140,248,.35);
+            background: linear-gradient( 135deg, rgba(49,46,129,.62), rgba(29,78,216,.22) );
+            box-shadow: 0 12px 28px rgba(49,46,129,.20), 0 0 26px rgba(99,102,241,.08);
+        }
+
+
+            .user-item.selected::after {
+                content: "";
+                position: absolute;
+                right: 0;
+                top: 12%;
+                height: 76%;
+                width: 3px;
+                border-radius: 999px;
+                background: linear-gradient( 180deg, #818cf8, #4338ca, #38bdf8 );
+                box-shadow: 0 0 12px rgba(99,102,241,.70);
+            }
+
+
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        flex: 0 0 40px;
+        display: grid;
+        place-items: center;
+        border-radius: 12px;
+        background: linear-gradient( 145deg, rgba(99,102,241,.30), rgba(30,64,175,.18) );
+        border: 1px solid rgba(129,140,248,.14);
+    }
+
+
+    .user-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+
+        .user-info strong {
+            display: block;
+            color: #f8fafc;
+            font-size: .76rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+
+        .user-info span {
+            display: block;
+            margin-top: 2px;
+            color: rgba(165,180,252,.42);
+            font-size: .60rem;
+        }
+
+
+    .user-count {
+        min-width: 42px;
+        text-align: center;
+    }
+
+
+        .user-count strong {
+            display: block;
+            color: #a5b4fc;
+            font-family: "JetBrains Mono", monospace;
+            font-size: .78rem;
+        }
+
+
+        .user-count span {
+            display: block;
+            color: rgba(165,180,252,.35);
+            font-size: .52rem;
+        }
+
+
+    /* =========================================================
+           ALERT / STATES
+           ========================================================= */
+
+    .permission-alert {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 8px;
+        padding: 13px;
+        border: 1px solid rgba(250,204,21,.14);
+        border-radius: 13px;
+        background: rgba(146,64,14,.10);
+    }
+
+
+    .permission-alert-icon {
+        font-size: 1rem;
+    }
+
+
+    .permission-alert strong {
+        display: block;
+        color: #fde68a;
+        font-size: .70rem;
+    }
+
+
+    .permission-alert span:last-child {
+        display: block;
+        margin-top: 3px;
+        color: rgba(253,230,138,.50);
+        font-size: .58rem;
+        line-height: 1.6;
+    }
+
+
+    .users-loading,
+    .empty-users {
+        min-height: 200px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
+        color: rgba(203,213,225,.45);
+        font-size: .72rem;
+    }
+
+
+        .empty-users span {
+            font-size: 1.6rem;
+        }
+
+
+    .small-loader {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: 2px solid rgba(129,140,248,.10);
+        border-top-color: #6366f1;
+        animation: spin .8s linear infinite;
+    }
+
+
+    /* =========================================================
+           FILTERS
+           ========================================================= */
+
+    .filters-header {
+        padding: 21px;
+        border-bottom: 1px solid rgba(129,140,248,.09);
+    }
+
+
+    .filters-title {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+    }
+
+
+    .filters-icon {
+        width: 42px;
+        height: 42px;
+        display: grid;
+        place-items: center;
+        border-radius: 12px;
+        background: rgba(99,102,241,.11);
+        border: 1px solid rgba(129,140,248,.13);
+    }
+
+
+    .filters-title strong {
+        display: block;
+        color: #f8fafc;
+        font-size: .86rem;
+    }
+
+
+    .filters-title span {
+        display: block;
+        margin-top: 3px;
+        color: rgba(165,180,252,.46);
+        font-size: .62rem;
+    }
+
+
+    .filters-grid {
+        display: grid;
+        grid-template-columns: repeat( 6, minmax(0,1fr) );
+        gap: 12px;
+        padding: 20px;
+    }
+
+
+    .filter-field {
+        min-width: 0;
+    }
+
+
+        .filter-field label {
+            display: block;
+            margin-bottom: 7px;
+            color: #cbd5e1;
+            font-size: .68rem;
+            font-weight: 800;
+        }
+
+
+    .premium-input,
+    .premium-select {
+        width: 100%;
+        min-height: 44px;
+        padding: 8px 11px;
+        color: #f8fafc;
+        background: rgba(15,17,29,.90);
+        border: 1px solid rgba(129,140,248,.18);
+        border-radius: 12px;
+        outline: none;
+        font-family: "Space Grotesk", "Segoe UI", sans-serif;
+        transition: .25s ease;
+    }
+
+
+        .premium-input::placeholder {
+            color: rgba(148,163,184,.42);
+        }
+
+
+        .premium-input:focus,
+        .premium-select:focus {
+            border-color: rgba(99,102,241,.85);
+            box-shadow: 0 0 0 3px rgba(99,102,241,.11), 0 0 24px rgba(79,70,229,.10);
+        }
+
+
+        .premium-select option {
+            color: #0f172a;
+            background: #f8fafc;
+        }
+
+
+    .filter-action {
+        display: flex;
+        align-items: flex-end;
+    }
+
+
+    .premium-primary-btn,
+    .premium-secondary-btn {
+        width: 100%;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        border-radius: 12px;
+        font-size: .70rem;
+        font-weight: 800;
+        cursor: pointer;
+        transition: .25s ease;
+    }
+
+
+    .premium-primary-btn {
         color: white;
-        border: none;
+        border: 1px solid rgba(165,180,252,.20);
+        background: linear-gradient( 120deg, #111827, #312e81, #4338ca );
+        box-shadow: 0 9px 22px rgba(49,46,129,.26);
     }
 
 
-        .btn-orange:hover {
-            background-color: #e65c00;
+        .premium-primary-btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.08);
+            box-shadow: 0 14px 28px rgba(49,46,129,.36);
+        }
+
+
+    .premium-secondary-btn {
+        color: #c7d2fe;
+        border: 1px solid rgba(129,140,248,.18);
+        background: rgba(30,41,59,.40);
+    }
+
+
+        .premium-secondary-btn:hover {
             color: white;
+            transform: translateY(-2px);
+            border-color: rgba(129,140,248,.30);
+            background: rgba(49,46,129,.22);
         }
 
 
-    .btn-outline-orange {
-        border: 1px solid #ff6600;
-        color: #ff6600;
-        background-color: white;
+    /* =========================================================
+           EXCEL
+           ========================================================= */
+
+    .excel-section {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        margin: 0 20px 20px;
+        padding: 14px;
+        border: 1px solid rgba(74,222,128,.12);
+        border-radius: 15px;
+        background: linear-gradient( 135deg, rgba(22,101,52,.10), rgba(49,46,129,.07) );
     }
 
 
-        .btn-outline-orange:hover {
-            background-color: #ff6600;
-            color: white;
+    .excel-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+
+    .excel-icon {
+        width: 38px;
+        height: 38px;
+        display: grid;
+        place-items: center;
+        border-radius: 10px;
+        background: rgba(34,197,94,.08);
+        border: 1px solid rgba(74,222,128,.14);
+    }
+
+
+    .excel-info strong {
+        display: block;
+        color: #bbf7d0;
+        font-size: .72rem;
+    }
+
+
+    .excel-info span {
+        display: block;
+        margin-top: 2px;
+        color: rgba(187,247,208,.48);
+        font-size: .58rem;
+    }
+
+
+    .excel-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+
+    .excel-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        min-height: 40px;
+        padding: 8px 13px;
+        border: 1px solid rgba(74,222,128,.18);
+        border-radius: 10px;
+        color: #dcfce7;
+        background: rgba(22,101,52,.16);
+        font-size: .65rem;
+        font-weight: 800;
+        cursor: pointer;
+        transition: .25s ease;
+    }
+
+
+        .excel-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 9px 22px rgba(34,197,94,.10);
         }
 
 
-    .badge.bg-orange {
-        background-color: #ff6600;
-    }
-
-
-    /* ========================================================= */
-    /* المستخدم */
-    /* ========================================================= */
-
-    .list-group-item {
-        transition: all 0.2s ease;
-    }
-
-
-        .list-group-item:hover {
-            background-color: #fff5ef;
-            border-color: #ff6600;
+        .excel-btn:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+            transform: none;
         }
 
 
-    /* ========================================================= */
-    /* الجدول */
-    /* ========================================================= */
+    .excel-download {
+        color: #a5b4fc;
+        text-decoration: none;
+        font-size: .63rem;
+        font-weight: 700;
+    }
 
-    .table th {
+
+        .excel-download:hover {
+            color: #c7d2fe;
+        }
+
+
+    .export-message {
+        color: rgba(187,247,208,.50);
+        font-size: .58rem;
+    }
+
+
+    .small-spinner {
+        width: 13px;
+        height: 13px;
+        border-radius: 50%;
+        border: 2px solid rgba(255,255,255,.15);
+        border-top-color: #86efac;
+        animation: spin .7s linear infinite;
+    }
+
+
+    /* =========================================================
+           REPORT HEADER
+           ========================================================= */
+
+    .reports-header-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        padding: 21px;
+        border-bottom: 1px solid rgba(129,140,248,.09);
+    }
+
+
+    .reports-title-block {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+    }
+
+
+    .reports-title-icon {
+        width: 42px;
+        height: 42px;
+        display: grid;
+        place-items: center;
+        border-radius: 12px;
+        background: rgba(99,102,241,.11);
+        border: 1px solid rgba(129,140,248,.13);
+    }
+
+
+    .reports-title-block strong {
+        display: block;
+        color: #f8fafc;
+        font-size: .85rem;
+    }
+
+
+    .reports-title-block > div > span {
+        display: block;
+        margin-top: 3px;
+        color: rgba(165,180,252,.45);
+        font-size: .63rem;
+    }
+
+
+    .selected-user-name {
+        color: #c7d2fe !important;
+    }
+
+
+    .results-count {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        padding: 7px 10px;
+        border: 1px solid rgba(129,140,248,.14);
+        border-radius: 10px;
+        background: rgba(49,46,129,.10);
+        font-size: .60rem;
+    }
+
+
+        .results-count span {
+            color: rgba(165,180,252,.45);
+        }
+
+
+        .results-count strong {
+            color: #a5b4fc;
+            font-family: "JetBrains Mono", monospace;
+        }
+
+
+    /* =========================================================
+           TABLE
+           ========================================================= */
+
+    .reports-body {
+        padding: 12px;
+    }
+
+
+    .table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        scrollbar-width: thin;
+    }
+
+
+        .table-wrapper::-webkit-scrollbar {
+            height: 8px;
+        }
+
+
+        .table-wrapper::-webkit-scrollbar-thumb {
+            background: linear-gradient( 90deg, #312e81, #4338ca, #1d4ed8 );
+            border-radius: 999px;
+        }
+
+
+    .reports-table {
+        width: 100%;
+        min-width: 1250px;
+        border-collapse: separate;
+        border-spacing: 0 7px;
+        font-family: "Space Grotesk", "Segoe UI", sans-serif;
+        color: #e5e7eb;
+    }
+
+
+        .reports-table thead th {
+            padding: 13px 12px;
+            color: #a5b4fc;
+            font-size: .68rem;
+            font-weight: 800;
+            white-space: nowrap;
+            text-align: right;
+            border-bottom: 1px solid rgba(129,140,248,.08);
+        }
+
+
+    .report-row td {
+        padding: 13px 12px;
+        background: rgba(15,17,29,.72);
+        border-top: 1px solid rgba(129,140,248,.06);
+        border-bottom: 1px solid rgba(129,140,248,.06);
+        vertical-align: middle;
+        transition: .25s ease;
+    }
+
+
+        .report-row td:first-child {
+            border-radius: 0 13px 13px 0;
+        }
+
+
+        .report-row td:last-child {
+            border-radius: 13px 0 0 13px;
+        }
+
+
+    .report-row:hover td {
+        background: linear-gradient( 135deg, rgba(30,41,59,.82), rgba(49,46,129,.20) );
+        border-color: rgba(129,140,248,.12);
+        box-shadow: 0 7px 22px rgba(0,0,0,.14);
+    }
+
+
+    /* =========================================================
+           TABLE CELLS
+           ========================================================= */
+
+    .task-cell {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        min-width: 220px;
+    }
+
+
+    .task-icon {
+        width: 36px;
+        height: 36px;
+        flex: 0 0 36px;
+        display: grid;
+        place-items: center;
+        border-radius: 10px;
+        background: rgba(99,102,241,.10);
+        border: 1px solid rgba(129,140,248,.12);
+        font-size: .88rem;
+    }
+
+
+    .task-cell strong {
+        display: block;
+        color: #f8fafc;
+        font-size: .75rem;
+    }
+
+
+    .task-cell span {
+        display: block;
+        max-width: 220px;
+        margin-top: 3px;
+        color: rgba(203,213,225,.44);
+        font-size: .61rem;
         white-space: nowrap;
-        vertical-align: middle;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
 
-    .table td {
-        vertical-align: middle;
+    .type-pill,
+    .priority-pill,
+    .counter {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 9px;
+        border-radius: 999px;
+        font-size: .62rem;
+        font-weight: 750;
+        white-space: nowrap;
     }
 
 
-    /* ========================================================= */
-    /* الحقول */
-    /* ========================================================= */
-
-    .form-control:focus,
-    .form-select:focus {
-        border-color: #ff6600;
-        box-shadow: 0 0 0 0.2rem rgba(255, 102, 0, 0.15);
+    .type-pill {
+        color: #c7d2fe;
+        background: rgba(99,102,241,.10);
+        border: 1px solid rgba(129,140,248,.12);
     }
 
 
-    /* ========================================================= */
-    /* زر التعديل */
-    /* ========================================================= */
+    .project-cell {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        white-space: nowrap;
+        color: #cbd5e1;
+        font-size: .68rem;
+    }
 
-    .btn-orange .fa {
-        font-size: 12px;
+
+    .project-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #6366f1;
+        box-shadow: 0 0 9px rgba(99,102,241,.65);
+    }
+
+
+    .employee-cell {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        white-space: nowrap;
+        font-size: .67rem;
+    }
+
+
+    .employee-avatar {
+        width: 28px;
+        height: 28px;
+        display: grid;
+        place-items: center;
+        border-radius: 8px;
+        background: rgba(99,102,241,.10);
+        border: 1px solid rgba(129,140,248,.12);
+    }
+
+
+    .priority-high {
+        color: #fecaca;
+        background: rgba(127,29,29,.16);
+        border: 1px solid rgba(248,113,113,.16);
+    }
+
+
+    .priority-medium {
+        color: #fde68a;
+        background: rgba(146,64,14,.15);
+        border: 1px solid rgba(250,204,21,.15);
+    }
+
+
+    .priority-low {
+        color: #bbf7d0;
+        background: rgba(22,101,52,.15);
+        border: 1px solid rgba(74,222,128,.15);
+    }
+
+
+    /* =========================================================
+           PROGRESS
+           ========================================================= */
+
+    .progress-wrapper {
+        min-width: 160px;
+    }
+
+
+    .progress-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 5px;
+        color: rgba(203,213,225,.42);
+        font-size: .58rem;
+    }
+
+
+        .progress-meta strong {
+            color: #a5b4fc;
+            font-family: "JetBrains Mono", monospace;
+            font-size: .62rem;
+        }
+
+
+    .premium-progress {
+        position: relative;
+        width: 100%;
+        height: 8px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: rgba(30,41,59,.90);
+        border: 1px solid rgba(129,140,248,.08);
+    }
+
+
+    .premium-progress-bar {
+        position: relative;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient( 90deg, #312e81, #4338ca, #1d4ed8, #38bdf8 );
+        box-shadow: 0 0 16px rgba(99,102,241,.34);
+    }
+
+
+    .progress-shine {
+        position: absolute;
+        top: 0;
+        left: -40%;
+        width: 35%;
+        height: 100%;
+        background: linear-gradient( 90deg, transparent, rgba(255,255,255,.42), transparent );
+        animation: progressShine 3.4s ease-in-out infinite;
+    }
+
+
+    .completed {
+        color: #86efac;
+        background: rgba(22,101,52,.13);
+        border: 1px solid rgba(74,222,128,.13);
+        font-family: "JetBrains Mono", monospace;
+    }
+
+
+    .remaining {
+        color: #fca5a5;
+        background: rgba(127,29,29,.12);
+        border: 1px solid rgba(248,113,113,.14);
+        font-family: "JetBrains Mono", monospace;
+    }
+
+
+    /* =========================================================
+           STATUS
+           ========================================================= */
+
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 9px;
+        border-radius: 999px;
+        font-size: .61rem;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+
+    .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+    }
+
+
+    .status-completed {
+        color: #bbf7d0;
+        background: rgba(22,101,52,.16);
+        border: 1px solid rgba(74,222,128,.16);
+    }
+
+
+        .status-completed .status-dot {
+            background: #4ade80;
+            box-shadow: 0 0 9px rgba(74,222,128,.70);
+        }
+
+
+    .status-progress {
+        color: #fde68a;
+        background: rgba(146,64,14,.15);
+        border: 1px solid rgba(250,204,21,.15);
+    }
+
+
+        .status-progress .status-dot {
+            background: #facc15;
+            box-shadow: 0 0 9px rgba(250,204,21,.70);
+            animation: livePulse 1.8s ease-in-out infinite;
+        }
+
+
+    .status-pending {
+        color: #cbd5e1;
+        background: rgba(71,85,105,.15);
+        border: 1px solid rgba(148,163,184,.13);
+    }
+
+
+        .status-pending .status-dot {
+            background: #94a3b8;
+        }
+
+
+    .date-cell {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        color: #cbd5e1;
+        font-family: "JetBrains Mono", monospace;
+        font-size: .60rem;
+        white-space: nowrap;
+    }
+
+
+    /* =========================================================
+           EDIT
+           ========================================================= */
+
+    .edit-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 7px 10px;
+        border: 1px solid rgba(129,140,248,.20);
+        border-radius: 10px;
+        color: #c7d2fe;
+        background: linear-gradient( 135deg, rgba(49,46,129,.30), rgba(29,78,216,.16) );
+        font-size: .62rem;
+        font-weight: 800;
+        cursor: pointer;
+        transition: .25s ease;
+    }
+
+
+        .edit-btn:hover {
+            color: #fff;
+            transform: translateY(-2px);
+            border-color: rgba(129,140,248,.38);
+            box-shadow: 0 8px 20px rgba(67,56,202,.18);
+        }
+
+
+    .not-allowed {
+        color: rgba(148,163,184,.30);
+    }
+
+
+    /* =========================================================
+           EMPTY / LOADING
+           ========================================================= */
+
+    .empty-reports {
+        min-height: 350px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        text-align: center;
+    }
+
+
+    .empty-reports-icon {
+        width: 70px;
+        height: 70px;
+        display: grid;
+        place-items: center;
+        border-radius: 20px;
+        background: rgba(99,102,241,.10);
+        border: 1px solid rgba(129,140,248,.13);
+        font-size: 1.55rem;
+    }
+
+
+    .empty-reports strong {
+        margin-top: 7px;
+        color: #f8fafc;
+        font-size: .83rem;
+    }
+
+
+    .empty-reports span {
+        color: rgba(203,213,225,.44);
+        font-size: .64rem;
+    }
+
+
+    .reports-loading {
+        min-height: 350px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+    }
+
+
+    .loader-ring {
+        position: relative;
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        border: 2px solid rgba(129,140,248,.08);
+        border-top-color: #6366f1;
+        border-right-color: #4338ca;
+        animation: spin 1s linear infinite;
+    }
+
+
+    .loader-core {
+        position: absolute;
+        inset: 18px;
+        border-radius: 50%;
+        background: linear-gradient( 145deg, #6366f1, #1d4ed8 );
+        box-shadow: 0 0 18px rgba(99,102,241,.45);
+    }
+
+
+    .reports-loading strong {
+        color: #cbd5e1;
+        font-size: .74rem;
+    }
+
+
+    .no-results {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 140px;
+        color: rgba(203,213,225,.45);
+        font-size: .70rem;
+    }
+
+
+    /* =========================================================
+           ANIMATIONS
+           ========================================================= */
+
+    @@keyframes gridMove {
+
+        from {
+            transform: translate3d(0,0,0);
+        }
+
+        to {
+            transform: translate3d(42px,42px,0);
+        }
+    }
+
+
+    @@keyframes orbOne {
+
+        0%, 100% {
+            transform: translate3d(0,0,0) scale(1);
+            opacity: .55;
+        }
+
+        50% {
+            transform: translate3d(-40px,28px,0) scale(1.10);
+            opacity: .90;
+        }
+    }
+
+
+    @@keyframes orbTwo {
+
+        0%, 100% {
+            transform: translate3d(0,0,0) scale(1);
+        }
+
+        50% {
+            transform: translate3d(45px,-32px,0) scale(1.08);
+        }
+    }
+
+
+    @@keyframes orbThree {
+
+        0%, 100% {
+            transform: scale(.92);
+            opacity: .30;
+        }
+
+        50% {
+            transform: scale(1.18);
+            opacity: .70;
+        }
+    }
+
+
+    @@keyframes scan {
+
+        0%, 18% {
+            left: -35%;
+            opacity: 0;
+        }
+
+        35% {
+            opacity: 1;
+        }
+
+        58%, 100% {
+            left: 115%;
+            opacity: 0;
+        }
+    }
+
+
+    @@keyframes cardReveal {
+
+        from {
+            opacity: 0;
+            transform: translateY(24px) scale(.985);
+            filter: blur(7px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            filter: blur(0);
+        }
+    }
+
+
+    @@keyframes iconPulse {
+
+        0%, 100% {
+            box-shadow: 0 10px 30px rgba(79,70,229,.34), 0 0 28px rgba(99,102,241,.22) inset;
+        }
+
+        50% {
+            box-shadow: 0 14px 38px rgba(79,70,229,.48), 0 0 42px rgba(129,140,248,.30) inset;
+        }
+    }
+
+
+    @@keyframes livePulse {
+
+        0%, 100% {
+            opacity: .55;
+            transform: scale(.85);
+        }
+
+        50% {
+            opacity: 1;
+            transform: scale(1.15);
+        }
+    }
+
+
+    @@keyframes progressShine {
+
+        0%, 20% {
+            left: -40%;
+            opacity: 0;
+        }
+
+        35% {
+            opacity: 1;
+        }
+
+        55%, 100% {
+            left: 120%;
+            opacity: 0;
+        }
+    }
+
+
+    @@keyframes spin {
+
+        from {
+            transform: rotate(0deg);
+        }
+
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+
+    /* =========================================================
+           RESPONSIVE
+           ========================================================= */
+
+    @@media (max-width: 1200px) {
+
+        .employees-layout {
+            grid-template-columns: 250px minmax(0,1fr);
+        }
+
+        .filters-grid {
+            grid-template-columns: repeat( 3, minmax(0,1fr) );
+        }
+
+        .excel-section {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
+
+
+    @@media (max-width: 850px) {
+
+        .employees-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .users-list-wrapper {
+            max-height: 340px;
+        }
+
+        .filters-grid {
+            grid-template-columns: repeat( 2, minmax(0,1fr) );
+        }
+    }
+
+
+    @@media (max-width: 600px) {
+
+        .employees-page {
+            padding: 10px;
+        }
+
+        .employees-header {
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 24px 18px;
+        }
+
+        .header-status {
+            position: absolute;
+            top: 18px;
+            left: 18px;
+        }
+
+        .header-icon {
+            width: 52px;
+            height: 52px;
+            flex-basis: 52px;
+        }
+
+        .filters-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .reports-header-row {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .excel-actions {
+            width: 100%;
+        }
+
+        .excel-btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+
+    @@media (prefers-reduced-motion: reduce) {
+
+        *,
+        *::before,
+        *::after {
+            animation-duration: .01ms !important;
+            animation-iteration-count: 1 !important;
+            scroll-behavior: auto !important;
+        }
     }
 
 </style>

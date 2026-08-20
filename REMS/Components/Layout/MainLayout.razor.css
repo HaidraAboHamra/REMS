@@ -2,95 +2,377 @@
     position: relative;
     display: flex;
     flex-direction: column;
+    min-height: 100vh;
+    background: radial-gradient( circle at 82% 8%, rgba(67, 56, 202, 0.12), transparent 26% ), radial-gradient( circle at 15% 90%, rgba(29, 78, 216, 0.10), transparent 25% ), linear-gradient( 135deg, #030305 0%, #070811 42%, #11102b 72%, #1e1b4b 100% );
+    color: #f8fafc;
+    overflow: hidden;
 }
 
 main {
     flex: 1;
+    min-width: 0;
+    position: relative;
+    background: radial-gradient( circle at 80% 0%, rgba(67, 56, 202, 0.08), transparent 28% ), linear-gradient( 180deg, rgba(7, 8, 17, 0.88), rgba(3, 3, 5, 0.96) );
 }
+
+/* =========================================
+   SIDEBAR
+   ========================================= */
 
 .sidebar {
-    background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%);
+    position: relative;
+    background: radial-gradient( circle at 85% 5%, rgba(67, 56, 202, 0.23), transparent 28% ), radial-gradient( circle at 10% 90%, rgba(29, 78, 216, 0.14), transparent 26% ), linear-gradient( 135deg, #030305 0%, #070811 42%, #11102b 72%, #1e1b4b 100% );
+    border-right: 1px solid rgba(129, 140, 248, 0.14);
+    box-shadow: 10px 0 40px rgba(0, 0, 0, 0.20), inset -8px 0 35px rgba(0, 0, 0, 0.12);
+    isolation: isolate;
+    overflow: hidden;
 }
+
+    /* Sidebar Grid */
+    .sidebar::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -2;
+        pointer-events: none;
+        background: linear-gradient( rgba(255, 255, 255, 0.022) 1px, transparent 1px ), linear-gradient( 90deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px );
+        background-size: 42px 42px;
+        mask-image: linear-gradient( to bottom, black, transparent 95% );
+        animation: layoutGridDrift 22s linear infinite;
+    }
+
+    /* Sidebar ambient glow */
+    .sidebar::after {
+        content: "";
+        position: absolute;
+        width: 260px;
+        height: 260px;
+        right: -120px;
+        top: 25%;
+        border-radius: 50%;
+        background: radial-gradient( circle, rgba(99, 102, 241, 0.16), transparent 68% );
+        filter: blur(20px);
+        z-index: -1;
+        pointer-events: none;
+        animation: layoutOrbFloat 10s ease-in-out infinite;
+    }
+
+
+/* =========================================
+   TOP ROW
+   ========================================= */
 
 .top-row {
-    background-color: #f7f7f7;
-    border-bottom: 1px solid #d6d5d5;
-    justify-content: flex-end;
-    height: 3.5rem;
+    position: relative;
+    height: 3.8rem;
     display: flex;
     align-items: center;
+    justify-content: flex-end;
+    background: radial-gradient( circle at 85% 0%, rgba(99, 102, 241, 0.18), transparent 28% ), linear-gradient( 135deg, #030305 0%, #070811 42%, #11102b 72%, #1e1b4b 100% );
+    border-bottom: 1px solid rgba(129, 140, 248, 0.15);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.28), 0 0 30px rgba(67, 56, 202, 0.08);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    z-index: 10;
+    overflow: hidden;
 }
 
-    .top-row ::deep a, .top-row ::deep .btn-link {
+
+    /* Top row shine */
+    .top-row::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -35%;
+        width: 35%;
+        height: 100%;
+        transform: skewX(-22deg);
+        background: linear-gradient( 90deg, transparent, rgba(255, 255, 255, 0.055), transparent );
+        pointer-events: none;
+        animation: topRowScan 8s ease-in-out infinite;
+    }
+
+
+    /* Top row glow */
+    .top-row::after {
+        content: "";
+        position: absolute;
+        top: -100px;
+        right: 12%;
+        width: 300px;
+        height: 180px;
+        background: radial-gradient( circle, rgba(99, 102, 241, 0.20), transparent 68% );
+        filter: blur(12px);
+        pointer-events: none;
+        animation: topRowGlow 7s ease-in-out infinite;
+    }
+
+
+    /* =========================================
+   TOP ROW LINKS
+   ========================================= */
+
+    .top-row ::deep a,
+    .top-row ::deep .btn-link {
+        position: relative;
+        z-index: 3;
         white-space: nowrap;
         margin-left: 1.5rem;
+        color: #cbd5e1;
+        font-family: "Space Grotesk", "Segoe UI", sans-serif;
+        font-size: 0.92rem;
+        font-weight: 600;
         text-decoration: none;
+        transition: color 0.25s ease, transform 0.25s ease, text-shadow 0.25s ease;
     }
 
-    .top-row ::deep a:hover, .top-row ::deep .btn-link:hover {
-        text-decoration: underline;
-    }
 
-    .top-row ::deep a:first-child {
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
+        .top-row ::deep a:hover,
+        .top-row ::deep .btn-link:hover {
+            color: #f8fafc;
+            text-decoration: none;
+            transform: translateY(-1px);
+            text-shadow: 0 0 12px rgba(129, 140, 248, 0.32);
+        }
 
-@media (max-width: 640.98px) {
-    .top-row {
-        justify-content: space-between;
-    }
 
-    .top-row ::deep a, .top-row ::deep .btn-link {
-        margin-left: 0;
-    }
+        .top-row ::deep a:first-child {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+
+/* =========================================
+   ARTICLE / CONTENT
+   ========================================= */
+
+article {
+    position: relative;
+    min-height: calc(100vh - 3.8rem);
+    background: radial-gradient( circle at 80% 10%, rgba(67, 56, 202, 0.08), transparent 30% );
+    color: #e5e7eb;
 }
 
-@media (min-width: 641px) {
+
+    /* =========================================
+   GLOBAL CONTENT GLOW
+   ========================================= */
+
+    article::before {
+        content: "";
+        position: absolute;
+        width: 360px;
+        height: 360px;
+        top: -150px;
+        right: -100px;
+        border-radius: 50%;
+        background: radial-gradient( circle, rgba(99, 102, 241, 0.10), transparent 68% );
+        filter: blur(20px);
+        pointer-events: none;
+        animation: articleGlow 8s ease-in-out infinite;
+    }
+
+
+/* =========================================
+   MOBILE
+   ========================================= */
+
+@media (max-width: 640.98px) {
+
     .page {
-        flex-direction: row;
+        flex-direction: column;
+        min-height: 100vh;
     }
 
     .sidebar {
-        width: 250px;
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid rgba(129, 140, 248, 0.14);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.20);
+    }
+
+    .top-row {
+        justify-content: space-between;
+        height: 3.8rem;
+    }
+
+        .top-row ::deep a,
+        .top-row ::deep .btn-link {
+            margin-left: 0;
+            font-size: 0.86rem;
+        }
+
+    article {
+        min-height: calc(100vh - 3.8rem);
+    }
+}
+
+
+/* =========================================
+   DESKTOP
+   ========================================= */
+
+@media (min-width: 641px) {
+
+    .page {
+        flex-direction: row;
+        min-height: 100vh;
+    }
+
+    .sidebar {
+        width: 270px;
+        min-width: 270px;
         height: 100vh;
         position: sticky;
         top: 0;
+        flex-shrink: 0;
     }
 
     .top-row {
         position: sticky;
         top: 0;
-        z-index: 1;
+        z-index: 15;
     }
 
-    .top-row.auth ::deep a:first-child {
-        flex: 1;
-        text-align: right;
-        width: 0;
-    }
+        .top-row.auth ::deep a:first-child {
+            flex: 1;
+            text-align: right;
+            width: 0;
+        }
 
-    .top-row, article {
+    .top-row,
+    article {
         padding-left: 2rem !important;
         padding-right: 1.5rem !important;
     }
 }
 
+
+/* =========================================
+   BLazor ERROR UI
+   ========================================= */
+
 #blazor-error-ui {
-    background: lightyellow;
+    background: linear-gradient( 135deg, rgba(15, 23, 42, 0.96), rgba(49, 46, 129, 0.96) );
+    color: #f8fafc;
     bottom: 0;
-    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
-    display: none;
     left: 0;
-    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+    display: none;
     position: fixed;
     width: 100%;
+    padding: 0.75rem 1.25rem 0.8rem;
+    border-top: 1px solid rgba(129, 140, 248, 0.24);
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.35), 0 0 30px rgba(67, 56, 202, 0.14);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
     z-index: 1000;
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
 }
+
 
     #blazor-error-ui .dismiss {
         cursor: pointer;
         position: absolute;
         right: 0.75rem;
         top: 0.5rem;
+        color: #c7d2fe;
+        transition: color 0.2s ease, transform 0.2s ease;
     }
+
+
+        #blazor-error-ui .dismiss:hover {
+            color: #ffffff;
+            transform: scale(1.1);
+        }
+
+
+/* =========================================
+   ANIMATIONS
+   ========================================= */
+
+@keyframes layoutGridDrift {
+
+    from {
+        transform: translate3d(0, 0, 0);
+    }
+
+    to {
+        transform: translate3d(42px, 42px, 0);
+    }
+}
+
+
+@keyframes layoutOrbFloat {
+
+    0%, 100% {
+        transform: translate3d(0, 0, 0) scale(1);
+        opacity: 0.4;
+    }
+
+    50% {
+        transform: translate3d(-28px, 25px, 0) scale(1.14);
+        opacity: 0.75;
+    }
+}
+
+
+@keyframes topRowScan {
+
+    0%, 18% {
+        left: -35%;
+        opacity: 0;
+    }
+
+    35% {
+        opacity: 1;
+    }
+
+    58%, 100% {
+        left: 115%;
+        opacity: 0;
+    }
+}
+
+
+@keyframes topRowGlow {
+
+    0%, 100% {
+        transform: translate3d(0, 0, 0) scale(1);
+        opacity: 0.55;
+    }
+
+    50% {
+        transform: translate3d(-35px, 20px, 0) scale(1.12);
+        opacity: 0.9;
+    }
+}
+
+
+@keyframes articleGlow {
+
+    0%, 100% {
+        transform: translate3d(0, 0, 0) scale(1);
+        opacity: 0.4;
+    }
+
+    50% {
+        transform: translate3d(-25px, 25px, 0) scale(1.12);
+        opacity: 0.7;
+    }
+}
+
+
+/* =========================================
+   REDUCE MOTION
+   ========================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+    }
+}

@@ -27,12 +27,18 @@ namespace REMS.Enititys
         [DisplayName("اسم العميل / المشروع")]
         public string? ClientOrProject { get; set; }
 
+        // =========================================
+        // الموظف المسؤول
+        // =========================================
+
+        [DisplayName("رقم الموظف المسؤول")]
+        public int? AssignedEmployeeId { get; set; }
+
         [DisplayName("الموظف المسؤول")]
         public string? AssignedEmployee { get; set; }
 
         [DisplayName("الأولوية")]
         public string? Priority { get; set; }
-
 
         // =========================================
         // متابعة الإنجاز
@@ -62,7 +68,6 @@ namespace REMS.Enititys
         [DataType(DataType.Date)]
         public DateTime? CompletedDate { get; set; }
 
-
         // =========================================
         // الحالة
         // =========================================
@@ -71,7 +76,6 @@ namespace REMS.Enititys
         public string? IsDoneOrNot { get; set; }
 
         public bool IsDone { get; set; }
-
 
         // =========================================
         // المستخدم والتواريخ
@@ -89,14 +93,12 @@ namespace REMS.Enititys
         [DisplayName("آخر من قام بالتحديث")]
         public string? LastUpdatedBy { get; set; }
 
-
         // =========================================
         // ملف / مرفق
         // =========================================
 
         [DisplayName("المرفق")]
         public string? Path { get; set; }
-
 
         // =========================================
         // حقول قديمة
@@ -129,9 +131,8 @@ namespace REMS.Enititys
 
         public int? ProductsCount { get; set; }
 
-
         // =========================================
-        // قيمة محسوبة
+        // قيم محسوبة
         // =========================================
 
         [NotMapped]

@@ -56,15 +56,15 @@ public class Test
         using (var scope = _serviceProvider.CreateScope())
         {
             var reportService = scope.ServiceProvider.GetRequiredService<IReportService>();
-            await reportService.SendDailyReports(Email,date);
+            await reportService.SendWeeklyTaskReports(Email,date);
         }
     }
     public async Task SendTryFollowUpReport(string Email, DateTime date)
     {
         using (var scope = _serviceProvider.CreateScope())
         {
-            var reportService = scope.ServiceProvider.GetRequiredService<IFollowUpReportService>();
-            await reportService.SendDailyReports(Email, date);
+            var reportService = scope.ServiceProvider.GetRequiredService<IReportService>();
+            await reportService.SendDailyTaskReports(Email, date);
         }
     }
 
