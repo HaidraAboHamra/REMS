@@ -1,66 +1,340 @@
 ﻿@page "/followup-report/{id:int}"
-@inject IFollowUpReportService _service
+
+@using REMS.Enititys
+@using REMS.Interfaces
+
+@inject IFollowUpReportService Service
 @inject NavigationManager Navigation
+@inject UserService UserRepo
+@inject IHttpContextAccessor HttpContextAccessor
 
-<PageTitle>تعديل التقرير</PageTitle>
+@attribute [Authorize(Roles = "Manager,Admin,FUser")]
 
-<h3>تعديل تقرير المتابعة</h3>
+<div class="container py-4" dir="rtl">
 
-<EditForm Model="report" OnValidSubmit="HandleValidSubmit">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
-   
-    <div class="form-group">
-        <label for="Content">المحتوى</label>
-        <InputTextArea id="Content" class="form-control" @bind-Value="report.Content" />
-    </div>
+    @if (report == null)
+    {
+        <div class="text-center">
+            <div class="spinner-border"></div>
+        </div>
+    }
+    else
+    {
+        <div class="card shadow">
 
-    <div class="form-group">
-        <label for="IsDone">الحالة</label>
-        <InputCheckbox id="IsDone" @bind-Value="report.IsDone" />
-    </div>
+            <div class="card-header">
+                <h3>
+                    <i class="fas fa-edit"></i>
+                    تحديث المهمة
+                </h3>
+            </div>
 
-    <div class="form-group">
-        <label for="IsDone">الملف</label>
-        <InputFile id="IsDone" OnChange="HandleFileSelected" />
-    </div>
+            <div class="card-body">
 
-    <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
-</EditForm>
+                <div class="row">
+
+                    <div class="col-md-8">
+
+                        <h4>
+                            @report.Content
+                        </h4>
+
+                        <p>
+                            @report.TaskDetails
+                        </p>
+
+                        <hr />
+
+                        <div class="row">
+
+                            <div class="col-md-4">
+                                <strong>
+                                    إجمالي البنود
+                                </strong>
+
+                                <div class="stat">
+                                    @report.TotalItems
+                                </div>
+                            </div>
+
+
+                            <div class="col-md-4">
+                                <strong>
+                                    المنجز
+                                </strong>
+
+                                <div class="stat">
+                                    @report.CompletedItems
+                                </div>
+                            </div>
+
+
+                            <div class="col-md-4">
+                                <strong>
+                                    المتبقي
+                                </strong>
+
+                                <div class="stat">
+                                    @report.RemainingItems
+                                </div>
+                            </div>
+
+                        </div>
+
+
+                        <div class="progress mt-4"
+                             style="height:25px">
+
+                            <div class="progress-bar"
+                                 style="width:@($"{report.ProgressPercentage}%")">
+
+                                @report.ProgressPercentage%
+
+                            </div>
+
+                        </div>
+
+
+                        <hr />
+
+                        <EditForm Model="updateVm"
+                                  OnValidSubmit="SaveUpdate">
+
+                            <DataAnnotationsValidator />
+
+
+                            <div class="mb-3">
+
+                                <label class="form-label">
+                                    عدد الأمور المنجزة الآن
+                                </label>
+
+                                <InputNumber class="form-control"
+                                             @bind-Value="updateVm.CompletedItems" />
+
+                            </div>
+
+
+                            <div class="mb-3">
+
+                                <label class="form-label">
+                                    ما تم إنجازه
+                                </label>
+
+                                <InputTextArea class="form-control"
+                                               rows="5"
+                                               @bind-Value="updateVm.CompletedDetails"
+                                               placeholder="اكتب فقط ما تم إنجازه..." />
+
+                            </div>
+
+
+                            <div class="mb-3">
+
+                                <label class="form-label">
+                                    ملاحظات
+                                </label>
+
+                                <InputTextArea class="form-control"
+                                               rows="3"
+                                               @bind-Value="updateVm.Notes" />
+
+                            </div>
+
+
+                            <button class="btn btn-success"
+                                    type="submit">
+
+                                حفظ التحديث
+
+                            </button>
+
+                            <button type="button"
+                                    class="btn btn-secondary ms-2"
+                                    @onclick="@(() => Navigation.NavigateTo("/followupreport"))">
+
+                                رجوع
+
+                            </button>
+
+                        </EditForm>
+
+                    </div>
+
+                    <div class="col-md-4">
+
+                        <div class="card">
+
+                            <div class="card-header">
+                                سجل التحديثات
+                            </div>
+
+                            <div class="card-body">
+
+                                @if (updates.Count == 0)
+                                {
+                                    <p>
+                                        لا توجد تحديثات.
+                                    </p>
+                                }
+                                else
+                                {
+                                    @foreach (var item in updates)
+                                    {
+                                        <div class="update-card">
+
+                                            <strong>
+                                                @item.Status
+                                            </strong>
+
+                                            <div>
+                                                @item.CompletedItems /
+                                                @report.TotalItems
+                                            </div>
+
+                                            <div>
+                                                @item.ProgressPercentage%
+                                            </div>
+
+                                            <p>
+                                                @item.CompletedDetails
+                                            </p>
+
+                                            <small>
+                                                @item.UpdatedBy
+                                                -
+                                                @item.DateTime.ToString("yyyy-MM-dd HH:mm")
+                                            </small>
+
+                                        </div>
+                                    }
+                                }
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    }
+
+</div>
+
 
 @code {
 
-    [Parameter] public int Id { get; set; }
-    private FollowUpReport report = new FollowUpReport();
+    [Parameter]
+    public int Id { get; set; }
+
+
+    private FollowUpReport? report;
+
+    private List<FollowUpReportUpdate>
+        updates = new();
+
+
+    private User User { get; set; } = new();
+
+
+    private UpdateVm updateVm = new();
+
 
     protected override async Task OnInitializedAsync()
     {
-        report = await _service.Get(Id); 
+        report = await Service.Get(Id);
+
+        if (report != null)
+        {
+            updateVm.CompletedItems =
+                report.CompletedItems;
+
+            updateVm.CompletedDetails =
+                report.CompletedDetails ?? "";
+        }
+
+        updates =
+            await Service.GetUpdates(Id);
+
+
+        try
+        {
+            var idClaim =
+                HttpContextAccessor.HttpContext?
+                .User?.Claims?
+                .FirstOrDefault(
+                    c => c.Type == "Id"
+                )?.Value;
+
+            if (!string.IsNullOrEmpty(idClaim) &&
+                int.TryParse(idClaim, out var uid))
+            {
+                var result =
+                    await UserRepo.GetById(uid);
+
+                if (result.IsSuccess)
+                    User = result.Value;
+            }
+        }
+        catch
+        {
+        }
     }
 
-    private async Task HandleValidSubmit()
+
+    private async Task SaveUpdate()
     {
-        if (file is not null)
+        if (report == null)
+            return;
+
+
+        if (updateVm.CompletedItems < 0 ||
+            updateVm.CompletedItems > report.TotalItems)
         {
-            var fileName = $"{DateTime.Now.ToString("hh-mm-ss_dd-MM-yyyy")}_{file.Name}";
-            var path = $"{AppDomain.CurrentDomain.BaseDirectory}wwwroot\\Files\\{Path.GetFileName(fileName)}";
-            using var Stream = file.OpenReadStream(maxAllowedSize: 104857600);
-            using var fileStream = new FileStream(path, FileMode.Create);
-            await Stream.CopyToAsync(fileStream);
-            Console.WriteLine($"file:{file.Name} Uploaded successfully");
-            await _service.Update(report,path); 
-            Navigation.NavigateTo("/followupreport");
             return;
         }
-        await _service.Update(report);
-        Navigation.NavigateTo("/followupreport");
+
+
+        report.CompletedItems =
+            updateVm.CompletedItems;
+
+        report.CompletedDetails =
+            updateVm.CompletedDetails;
+
+        report.LastUpdatedBy =
+            User?.FullName ?? "";
+
+
+        await Service.Update(report);
+
+
+        updates =
+            await Service.GetUpdates(Id);
+
+
+        updateVm =
+            new UpdateVm
+            {
+                CompletedItems =
+                    report.CompletedItems,
+
+                CompletedDetails = ""
+            };
     }
 
 
-    private IBrowserFile? file { get; set; }
-    async void HandleFileSelected(InputFileChangeEventArgs e)
+    private class UpdateVm
     {
-        file = e.File;
-    }
+        public int CompletedItems { get; set; }
 
+        public string CompletedDetails { get; set; }
+            = string.Empty;
+
+        public string Notes { get; set; }
+            = string.Empty;
+    }
 }

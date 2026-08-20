@@ -31,145 +31,149 @@
     else
     {
         <div style="overflow-x:auto">
-            <table class="styled-table">
+            <table class="table table-hover" dir="rtl">
+
                 <thead>
+
                     <tr>
-                        <th>الاسم</th>
-                        <th>المنطقة</th>
-                        <th>المحافظة</th>
-                        <th>المنسق</th>
-                        <th>تاريخ العمل</th>
-                        <th>اسم المتجر</th>
-                        <th>نوع المتجر</th>
-                        <th>العنوان</th>
-                        <th>الهاتف</th>
-                        <th>عدد المنتجات</th>
-                        <th>إنجاز كافة المهام</th>
-                        <th>المحتوى</th>
-                        @* <th>الحقول المخصّصة</th> *@
-                        <th>توقيع العقد</th>
+
+                        <th>المهمة</th>
+
+                        <th>النوع</th>
+
+                        <th>العميل / المشروع</th>
+
+                        <th>الموظف</th>
+
+                        <th>الأولوية</th>
+
+                        <th>التقدم</th>
+
+                        <th>المنجز</th>
+
+                        <th>المتبقي</th>
+
                         <th>الحالة</th>
-                        <th>التاريخ</th>
-                        @* <th>إجراءات</th> *@
+
+                        <th>التسليم</th>
+
+                        <th>إجراء</th>
+
                     </tr>
+
                 </thead>
+
+
                 <tbody>
+
                     @foreach (var item in Reports)
                     {
                         <tr>
-                            <td>@item.FullName</td>
-                            <td>@(string.IsNullOrEmpty(item.Region) ? "-" : item.Region)</td>
-                            <td>@(string.IsNullOrEmpty(item.Governorate) ? "-" : item.Governorate)</td>
-                            <td>@(string.IsNullOrEmpty(item.Coordinator) ? "-" : item.Coordinator)</td>
-                            <td>@(item.WorkDate.HasValue? item.WorkDate.Value.ToString("yyyy-MM-dd") : "-")</td>
-                            <td>@(string.IsNullOrEmpty(item.StoreName) ? "-" : item.StoreName)</td>
-                            <td>@(string.IsNullOrEmpty(item.StoreType) ? "-" : item.StoreType)</td>
-                            <td style="max-width:200px; white-space:normal;">@(string.IsNullOrEmpty(item.Address) ? "-" : item.Address)</td>
-                            <td>@(string.IsNullOrEmpty(item.Phone) ? "-" : item.Phone)</td>
-                            <td>@(item.ProductsCount.HasValue? item.ProductsCount.Value.ToString() : "-")</td>
-                            <td>@(item.AllTasksDone ? "نعم" : "لا")</td>
-                            <td style="white-space: pre-wrap; max-width:260px;">@item.Content</td>
 
-                            <!-- custom fields column -->
-                           @*  <td>
-                                @{
-                                    var customFields = GetCustomFields(item);
-                                    if (customFields == null || customFields.Count == 0)
-                                    {
-                                        <div class="small" style="color: #777">لا توجد حقول مخصّصة</div>
-                                        ;
-                                    }
-                                    else
-                                    {
-                                        foreach (var f in customFields)
-                                        {
-                                            <div class="mb-2">
-                                                <strong>@f.Name:</strong>
-                                                @if (IsImageFile(f.Value))
-                                                {
-                                                    <div class="thumb-wrapper">
-                                                        <img src="@DisplayPath(f.Value)" alt="@f.Name" class="thumb" />
-                                                        <div class="small mt-1"><a target="_blank" href="@DisplayPath(f.Value)">عرض الصورة بحجم كامل</a></div>
-                                                    </div>
-                                                }
-                                                else if (!string.IsNullOrEmpty(f.Value))
-                                                {
-                                                    <div class="small mt-1">
-                                                        <a target="_blank" href="@DisplayPath(f.Value)">تحميل / فتح الملف</a>
-                                                    </div>
-                                                }
-                                                else
-                                                {
-                                                    <span class="small" style="color:#666">لا يوجد قيمة</span>
-                                                }
-                                            </div>
-                                        }
-                                    }
-                                }
-                            </td> *@
-
-                            <!-- Contract file (from new entity field) -->
-                            @* <td>
-                                @if (!string.IsNullOrEmpty(item.ContractFilePath))
-                                {
-                                    if (IsImageFile(item.ContractFilePath))
-                                    {
-                                        <div>
-                                            <img src="@DisplayPath(item.ContractFilePath)" alt="contract" class="thumb" />
-                                            <div class="small mt-1"><a target="_blank" href="@DisplayPath(item.ContractFilePath)">عرض الصورة بحجم كامل</a></div>
-                                            @if (!string.IsNullOrEmpty(item.ContractFileName))
-                                            {
-                                                <div class="small mt-1">@item.ContractFileName</div>
-                                            }
-                                        </div>
-                                    }
-                                    else
-                                    {
-                                        <div>
-                                            <a target="_blank" href="@DisplayPath(item.ContractFilePath)">تحميل / فتح توقيع العقد</a>
-                                            @if (!string.IsNullOrEmpty(item.ContractFileName))
-                                            {
-                                                <div class="small mt-1">@item.ContractFileName</div>
-                                            }
-                                        </div>
-                                    }
-                                }
-                                else
-                                {
-                                    <span class="small" style="color:#777">لا يوجد توقيع</span>
-                                }
-                            </td> *@
-
-                            <!-- Path (legacy or primary file) -->
                             <td>
-                                @if (string.IsNullOrEmpty(item.Path))
-                                {
-                                    <span class="small" style="color:#777">لا يوجد ملف</span>
-                                }
-                                else if (IsImageFile(item.Path))
-                                {
-                                    <div>
-                                        <img src="@DisplayPath(item.Path)" alt="file" class="thumb" />
-                                        <div class="small mt-1"><a target="_blank" href="@DisplayPath(item.Path)">عرض الصورة بحجم كامل</a></div>
-                                    </div>
-                                }
-                                else
-                                {
-                                    <a target="_blank" href="@DisplayPath(item.Path)">تحميل الملف</a>
-                                }
+                                <strong>
+                                    @item.Content
+                                </strong>
+
+                                <div class="small text-muted">
+                                    @item.TaskDetails
+                                </div>
                             </td>
 
-                            <td>@item.IsDoneOrNot</td>
-                            <td>@item.DateTime.ToString("yyyy-MM-dd HH:mm")</td>
-@* 
+
                             <td>
-                                <MudButton Variant="Variant.Outlined" Color="MudBlazor.Color.Primary" OnClick="() => EditReport(item.Id)">
-                                    تعديل
-                                </MudButton>
-                            </td> *@
+                                @item.TaskType
+                            </td>
+
+
+                            <td>
+                                @item.ClientOrProject
+                            </td>
+
+
+                            <td>
+                                @item.AssignedEmployee
+                            </td>
+
+
+                            <td>
+                                @item.Priority
+                            </td>
+
+
+                            <td style="min-width:160px">
+
+                                <div class="progress">
+
+                                    <div class="progress-bar"
+                                         style="width:@($"{item.ProgressPercentage}%")">
+
+                                        @item.ProgressPercentage%
+
+                                    </div>
+
+                                </div>
+
+                            </td>
+
+
+                            <td>
+                                @item.CompletedItems
+                                /
+                                @item.TotalItems
+                            </td>
+
+
+                            <td>
+                                @item.RemainingItems
+                            </td>
+
+
+                            <td>
+
+                                @if (item.IsDoneOrNot == "مكتملة")
+                                {
+                                    <span class="badge bg-success">
+                                        مكتملة
+                                    </span>
+                                }
+                                else if (item.IsDoneOrNot == "قيد التنفيذ")
+                                {
+                                    <span class="badge bg-warning text-dark">
+                                        قيد التنفيذ
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">
+                                        لم تبدأ
+                                    </span>
+                                }
+
+                            </td>
+
+
+                            <td>
+                                @(item.DueDate?.ToString("yyyy-MM-dd") ?? "-")
+                            </td>
+
+
+                            <td>
+
+                                <button class="btn btn-sm btn-primary"
+                                        @onclick="@(() => EditReport(item.Id))">
+
+                                    تحديث
+
+                                </button>
+
+                            </td>
+
                         </tr>
                     }
+
                 </tbody>
+
             </table>
         </div>
     }
@@ -368,7 +372,7 @@
         {
             if (!string.IsNullOrEmpty(Email))
             {
-                await _repo.SendTryFollowUpReport(Email, reportDate.Value);
+                 _repo.TestGmail();
             }
             Snackbar.Add("👌تم ارسال التقرير", Severity.Success);
         }

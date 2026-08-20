@@ -1,171 +1,428 @@
 ﻿@page "/AddFollowUpReport"
+
 @using System.ComponentModel.DataAnnotations
 @using REMS.Interfaces
 @using REMS.Enititys
-@using System.Text.Json
-@using System.IO
 @using Microsoft.AspNetCore.Components.Forms
+
 @inject IFollowUpReportService ReportService
 @inject IHttpContextAccessor HttpContextAccessor
 @inject IWebHostEnvironment env
 @inject UserService UserRepo
+
 @attribute [Authorize(Roles = "Manager,Admin,FUser")]
 
-<div class="page-wrapper">
+<div class="page-wrapper" dir="rtl">
+
     <div class="card form-card">
+
         <div class="card-header">
-            <h3><i class="fas fa-plus-circle"></i> إضافة تقرير متابعة</h3>
+
+            <h3>
+                <i class="fas fa-tasks"></i>
+                إضافة مهمة جديدة
+            </h3>
+
         </div>
 
+
         <div class="card-body">
-            <EditForm Model="vm" OnValidSubmit="HandleValidSubmit">
+
+            <EditForm Model="vm"
+                      OnValidSubmit="HandleValidSubmit">
+
                 <DataAnnotationsValidator />
+
                 <ValidationSummary />
 
+
                 <div class="row g-3">
-                    <!-- المنطقة -->
-                    <div class="col-12 col-md-4">
-                        <label class="form-label">اسم المنطقة <span class="required">*</span></label>
-                        <InputText class="form-control" @bind-Value="vm.Region" />
-                        <ValidationMessage For="@(() => vm.Region)" />
-                    </div>
 
-                    <!-- المحافظة (اختيار) -->
-                    <div class="col-12 col-md-4">
-                        <label class="form-label">اسم المحافظة <span class="required">*</span></label>
-                        <select class="form-select" @bind="vm.Governorate">
-                            <option value="">-- اختر المحافظة --</option>
-                            @foreach (var g in Governorates)
-                            {
-                                <option value="@g">@g</option>
-                            }
-                        </select>
-                        <ValidationMessage For="@(() => vm.Governorate)" />
-                    </div>
 
-                    <!-- اسم المنسق (معروض فقط) -->
-                    <div class="col-12 col-md-4">
-                        <label class="form-label">اسم المنسق</label>
-                        <div class="form-control readonly-field">@User?.FullName</div>
-                    </div>
+                    <!-- ================================================= -->
+                    <!-- اسم المهمة -->
+                    <!-- ================================================= -->
 
-                    <!-- تاريخ العمل -->
-                    <div class="col-12 col-md-4">
-                        <label class="form-label">تاريخ العمل <span class="required">*</span></label>
-                        <InputDate TValue="DateTime?" class="form-control" @bind-Value="vm.WorkDate" />
-                        <ValidationMessage For="@(() => vm.WorkDate)" />
-                    </div>
-
-                    <!-- اسم المتجر -->
-                    <div class="col-12 col-md-4">
-                        <label class="form-label">اسم المتجر <span class="required">*</span></label>
-                        <InputText class="form-control" @bind-Value="vm.StoreName" />
-                        <ValidationMessage For="@(() => vm.StoreName)" />
-                    </div>
-
-                    <!-- نوع المتجر -->
-                    <div class="col-12 col-md-4">
-                        <label class="form-label">نوع المتجر <span class="required">*</span></label>
-                        <select class="form-select" @bind="vm.StoreType">
-                            <option value="">-- اختر نوع المتجر --</option>
-                            <option value="مخابز">مطاعم</option>
-                            <option value="بقالة">ماركت</option>
-                            <option value="مستلزمات">مستلزمات طبية</option>
-                            <option value="أخرى">أخرى</option>
-                        </select>
-                        <ValidationMessage For="@(() => vm.StoreType)" />
-                    </div>
-
-                    <!-- العنوان -->
-                    <div class="col-12 col-md-6">
-                        <label class="form-label">العنوان <span class="required">*</span></label>
-                        <InputText class="form-control" @bind-Value="vm.Address" />
-                        <ValidationMessage For="@(() => vm.Address)" />
-                    </div>
-
-                    <!-- الهاتف -->
-                    <div class="col-12 col-md-6">
-                        <label class="form-label">رقم الهاتف <span class="required">*</span></label>
-                        <InputText class="form-control" @bind-Value="vm.Phone" />
-                        <ValidationMessage For="@(() => vm.Phone)" />
-                    </div>
-
-                    <!-- توقيع العقد (ملف) -->
-                    <div class="col-12 col-md-6">
-                        <label class="form-label">توقيع العقد (صورة / ملف) <span class="required">*</span></label>
-                        <InputFile OnChange="OnContractFileSelected" />
-                        @if (!string.IsNullOrEmpty(ContractFileName))
-                        {
-                            <div class="small mt-1 file-info">@ContractFileName</div>
-                        }
-                        @if (contractFileValidationError != null)
-                        {
-                            <div class="text-danger small">@contractFileValidationError</div>
-                        }
-                    </div>
-
-                    <!-- تاريخ العقد -->
-                    <div class="col-12 col-md-6">
-                        <label class="form-label">تاريخ العقد <span class="required">*</span></label>
-                        <InputDate TValue="DateTime?" class="form-control" @bind-Value="vm.ContractDate" />
-                        <ValidationMessage For="@(() => vm.ContractDate)" />
-                    </div>
-
-                    <!-- إنجاز كافة المهام -->
-                    <div class="col-12 col-md-4">
-                        <label class="form-label">إنجاز كافة المهام <span class="required">*</span></label>
-                        <div class="form-check">
-                            <InputCheckbox class="form-check-input" @bind-Value="vm.AllTasksDone" />
-                            <label class="form-check-label">نعم / لا</label>
-                        </div>
-                        <ValidationMessage For="@(() => vm.AllTasksDone)" />
-                    </div>
-
-                    <!-- عدد المنتجات -->
-                    <div class="col-12 col-md-4">
-                        <label class="form-label">عدد المنتجات التي تم إدخالها <span class="required">*</span></label>
-                        <InputNumber TValue="int?" class="form-control" @bind-Value="vm.ProductsCount" />
-                        <ValidationMessage For="@(() => vm.ProductsCount)" />
-                    </div>
-
-                    <!-- حالة التقرير -->
-                    <div class="col-12 col-md-4">
-                        <label class="form-label">حالة التقرير</label>
-                        <div class="form-check">
-                            <InputCheckbox class="form-check-input" @bind-Value="vm.IsDone" />
-                            <label class="form-check-label">@((vm.IsDone) ? "تم" : "قيد التنفيذ")</label>
-                        </div>
-                    </div>
-
-                    <!-- الملاحظات -->
                     <div class="col-12">
-                        <label class="form-label">ملاحظات <span class="required">*</span></label>
-                        <InputTextArea class="form-control" @bind-Value="vm.Content" rows="5" />
+
+                        <label class="form-label">
+                            اسم المهمة
+                            <span class="required">*</span>
+                        </label>
+
+                        <InputText class="form-control"
+                                   @bind-Value="vm.Content"
+                                   placeholder="مثال: تصميم حملة إعلانية" />
+
                         <ValidationMessage For="@(() => vm.Content)" />
+
                     </div>
+
+
+                    <!-- ================================================= -->
+                    <!-- تفاصيل المهمة -->
+                    <!-- ================================================= -->
+
+                    <div class="col-12">
+
+                        <label class="form-label">
+                            تفاصيل المهمة
+                            <span class="required">*</span>
+                        </label>
+
+                        <InputTextArea class="form-control"
+                                       rows="4"
+                                       @bind-Value="vm.TaskDetails"
+                                       placeholder="اكتب تفاصيل المهمة..." />
+
+                        <ValidationMessage For="@(() => vm.TaskDetails)" />
+
+                    </div>
+
+
+                    <!-- ================================================= -->
+                    <!-- نوع المهمة -->
+                    <!-- ================================================= -->
+
+                    <div class="col-12 col-md-4">
+
+                        <label class="form-label">
+                            نوع المهمة
+                        </label>
+
+                        <select class="form-select"
+                                @bind="vm.TaskType">
+
+                            <option value="">
+                                -- اختر النوع --
+                            </option>
+
+                            <option value="تسويق">
+                                تسويق
+                            </option>
+
+                            <option value="برمجة">
+                                برمجة
+                            </option>
+
+                            <option value="تصميم">
+                                تصميم
+                            </option>
+
+                            <option value="إدارة">
+                                إدارة
+                            </option>
+
+                            <option value="أخرى">
+                                أخرى
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- ================================================= -->
+                    <!-- العميل / المشروع -->
+                    <!-- ================================================= -->
+
+                    <div class="col-12 col-md-4">
+
+                        <label class="form-label">
+                            العميل / المشروع
+                        </label>
+
+                        <InputText class="form-control"
+                                   @bind-Value="vm.ClientOrProject"
+                                   placeholder="اسم العميل أو المشروع" />
+
+                    </div>
+
+
+                    <!-- ================================================= -->
+                    <!-- الموظف المسؤول -->
+                    <!-- ================================================= -->
+
+                    <div class="col-12 col-md-4">
+
+                        <label class="form-label">
+                            الموظف المسؤول
+                        </label>
+
+                        <div class="form-control readonly-field">
+
+                            @if (User != null &&
+                                 !string.IsNullOrWhiteSpace(User.FullName))
+                            {
+                                <i class="fas fa-user me-2"></i>
+
+                                @User.FullName
+                            }
+                            else
+                            {
+                                <span class="text-muted">
+                                    جارٍ تحميل بيانات الموظف...
+                                </span>
+                            }
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ================================================= -->
+                    <!-- الأولوية -->
+                    <!-- ================================================= -->
+
+                    <div class="col-12 col-md-4">
+
+                        <label class="form-label">
+                            الأولوية
+                        </label>
+
+                        <select class="form-select"
+                                @bind="vm.Priority">
+
+                            <option value="منخفضة">
+                                منخفضة
+                            </option>
+
+                            <option value="متوسطة">
+                                متوسطة
+                            </option>
+
+                            <option value="عالية">
+                                عالية
+                            </option>
+
+                            <option value="عاجلة">
+                                عاجلة
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- ================================================= -->
+                    <!-- عدد البنود -->
+                    <!-- ================================================= -->
+
+                    <div class="col-12 col-md-4">
+
+                        <label class="form-label">
+                            عدد الأمور المتعلقة بالمهمة
+                            <span class="required">*</span>
+                        </label>
+
+                        <InputNumber class="form-control"
+                                     @bind-Value="vm.TotalItems" />
+
+                        <ValidationMessage For="@(() => vm.TotalItems)" />
+
+                    </div>
+
+
+                    <!-- ================================================= -->
+                    <!-- المدة -->
+                    <!-- ================================================= -->
+
+                    <div class="col-12 col-md-4">
+
+                        <label class="form-label">
+                            المدة المتوقعة (يوم)
+                        </label>
+
+                        <InputNumber class="form-control"
+                                     @bind-Value="vm.ExpectedDurationDays" />
+
+                    </div>
+
+
+                    <!-- ================================================= -->
+                    <!-- تاريخ البدء -->
+                    <!-- ================================================= -->
+
+                    <div class="col-12 col-md-6">
+
+                        <label class="form-label">
+                            تاريخ البدء
+                        </label>
+
+                        <InputDate TValue="DateTime?"
+                                   class="form-control"
+                                   @bind-Value="vm.StartDate" />
+
+                    </div>
+
+
+                    <!-- ================================================= -->
+                    <!-- تاريخ التسليم -->
+                    <!-- ================================================= -->
+
+                    <div class="col-12 col-md-6">
+
+                        <label class="form-label">
+                            تاريخ التسليم المتوقع
+                        </label>
+
+                        <InputDate TValue="DateTime?"
+                                   class="form-control"
+                                   @bind-Value="vm.DueDate" />
+
+                    </div>
+
+
+                    <!-- ================================================= -->
+                    <!-- المنجز عند الإنشاء -->
+                    <!-- ================================================= -->
+
+                    <div class="col-12 col-md-6">
+
+                        <label class="form-label">
+                            ما تم إنجازه عند الإنشاء
+                        </label>
+
+                        <InputNumber class="form-control"
+                                     @bind-Value="vm.CompletedItems" />
+
+                    </div>
+
+
+                    <!-- ================================================= -->
+                    <!-- تفاصيل المنجز -->
+                    <!-- ================================================= -->
+
+                    <div class="col-12">
+
+                        <label class="form-label">
+                            ما تم إنجازه
+                        </label>
+
+                        <InputTextArea class="form-control"
+                                       rows="4"
+                                       @bind-Value="vm.CompletedDetails"
+                                       placeholder="اكتب فقط الأمور التي تم إنجازها..." />
+
+                    </div>
+
+
+                    <!-- ================================================= -->
+                    <!-- رفع ملف -->
+                    <!-- ================================================= -->
+
+                    <div class="col-12">
+
+                        <label class="form-label">
+                            ملف المهمة
+                            <span class="text-muted">
+                                (اختياري)
+                            </span>
+                        </label>
+
+                        <div class="file-upload-box">
+
+                            <InputFile OnChange="OnFileSelected" />
+
+                            @if (!string.IsNullOrWhiteSpace(FileName))
+                            {
+                                <div class="file-info mt-2">
+
+                                    <i class="fas fa-file me-2"></i>
+
+                                    @FileName
+
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrWhiteSpace(FileError))
+                            {
+                                <div class="text-danger small mt-2">
+
+                                    @FileError
+
+                                </div>
+                            }
+
+                        </div>
+
+                    </div>
+
+
                 </div>
+
+
+                <!-- ===================================================== -->
+                <!-- زر الإنشاء -->
+                <!-- ===================================================== -->
 
                 <div class="mt-4 text-center">
-                    <button type="submit" class="btn submit-btn">إضافة تقرير</button>
+
+                    <button type="submit"
+                            class="btn submit-btn"
+                            disabled="@IsSaving">
+
+                        @if (IsSaving)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+
+                            <span>
+                                جارٍ إنشاء المهمة...
+                            </span>
+                        }
+                        else
+                        {
+                            <i class="fas fa-plus me-2"></i>
+
+                            <span>
+                                إنشاء المهمة
+                            </span>
+                        }
+
+                    </button>
+
                 </div>
+
+
             </EditForm>
+
 
             @if (!string.IsNullOrEmpty(successMessage))
             {
-                <div class="alert alert-success mt-3">@successMessage</div>
+                <div class="alert alert-success mt-3">
+
+                    <i class="fas fa-check-circle me-2"></i>
+
+                    @successMessage
+
+                </div>
             }
-            @if (!string.IsNullOrEmpty(ErrorMessage))
+
+
+            @if (!string.IsNullOrEmpty(errorMessage))
             {
-                <div class="alert alert-danger mt-3">@ErrorMessage</div>
+                <div class="alert alert-danger mt-3">
+
+                    <i class="fas fa-exclamation-circle me-2"></i>
+
+                    @errorMessage
+
+                </div>
             }
+
         </div>
+
     </div>
+
 </div>
 
+
 <style>
+
     .page-wrapper {
         padding: 20px;
     }
+
 
     .form-card {
         border-radius: 12px;
@@ -174,21 +431,25 @@
         box-shadow: 0 8px 24px rgba(255,140,0,0.12);
     }
 
+
     .card-header {
         background: linear-gradient(135deg, #ff8a00, #ff5e00);
         color: white;
         padding: 18px 24px;
     }
 
+
         .card-header h3 {
             margin: 0;
             font-weight: 700;
         }
 
+
     .card-body {
         background: linear-gradient(180deg, #fff, #fffaf2);
         padding: 24px;
     }
+
 
     .form-label {
         font-weight: 600;
@@ -197,18 +458,35 @@
         margin-bottom: 6px;
     }
 
+
     .required {
         color: #d9534f;
-        margin-left: 6px;
+        margin-right: 4px;
     }
+
+
+    .form-control,
+    .form-select {
+        border-radius: 6px;
+    }
+
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #ff8a00;
+            box-shadow: 0 0 0 0.2rem rgba(255,138,0,0.15);
+        }
+
 
     .readonly-field {
         background: #f7f2ee;
         border: 1px solid #f0d9c2;
-        padding: 8px;
-        border-radius: 6px;
         color: #8a4b00;
+        min-height: 38px;
+        display: flex;
+        align-items: center;
     }
+
 
     .submit-btn {
         background: linear-gradient(90deg,#ff8a00,#ff5e00);
@@ -217,447 +495,523 @@
         padding: 10px 28px;
         border-radius: 8px;
         font-weight: 700;
+        min-width: 180px;
     }
+
 
         .submit-btn:hover {
             opacity: 0.95;
+            color: white;
         }
 
-    .file-info {
-        color: #6b4a00;
-    }
 
-    .custom-fields-section .card {
-        border: 1px dashed #ffd6b3;
+        .submit-btn:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+
+
+    .file-upload-box {
+        border: 1px dashed #ffb366;
         background: #fffaf6;
+        border-radius: 8px;
+        padding: 15px;
     }
 
-    .form-control {
+
+    .file-info {
+        color: #8a4b00;
+        background: #fff1df;
         border-radius: 6px;
+        padding: 8px 12px;
+        display: inline-block;
     }
 
-    .form-check-label {
-        margin-right: 8px;
-    }
 
     .text-danger {
         color: #d9534f;
     }
 
-    .badge.bg-warning.text-dark {
-        background: #ffd89b;
-        color: #5a3300;
+
+    .alert {
+        border-radius: 8px;
     }
+
 </style>
 
+
 @code {
+
+    // =========================================================
+    // ViewModel
+    // =========================================================
+
     private FollowUpReportVm vm = new();
 
-    class FollowUpReportVm
-    {
-        [Required(ErrorMessage = "اسم المنطقة مطلوب")]
-        public string Region { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "المحافظة مطلوبة")]
-        public string Governorate { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "تاريخ العمل مطلوب")]
-        public DateTime? WorkDate { get; set; }
-
-        [Required(ErrorMessage = "اسم المتجر مطلوب")]
-        public string StoreName { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "نوع المتجر مطلوب")]
-        public string StoreType { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "العنوان مطلوب")]
-        public string Address { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "رقم الهاتف مطلوب")]
-        public string Phone { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "تاريخ العقد مطلوب")]
-        public DateTime? ContractDate { get; set; }
-
-        [Required(ErrorMessage = "حالة إنجاز المهام مطلوبة")]
-        public bool AllTasksDone { get; set; } = false;
-
-        [Required(ErrorMessage = "عدد المنتجات مطلوب")]
-        [Range(0, int.MaxValue, ErrorMessage = "أدخل رقماً صحيحاً")]
-        public int? ProductsCount { get; set; }
-
-        [Required(ErrorMessage = "الملاحظات مطلوبة")]
-        public string Content { get; set; } = string.Empty;
-
-        public bool IsDone { get; set; } = false;
-    }
 
     private string? successMessage;
-    private string newFieldName = string.Empty;
-    private FieldType newFieldType = FieldType.Text;
 
-    private Dictionary<Guid, IBrowserFile> fileValues = new();
-    private Dictionary<Guid, string> fileNames = new();
+    private string? errorMessage;
 
-    private IBrowserFile? ContractFile;
-    private string? ContractFileName;
-    private string? contractFileValidationError;
 
-    private List<FieldDefinition> fieldDefinitions = new();
-    private List<FieldEntry> fieldEntries = new();
+    // =========================================================
+    // المستخدم الحالي
+    // =========================================================
 
-    private List<string> Governorates = new List<string>
-    {
-        "دمشق",
-        "حمص",
-        "حماه",
-        "اللاذقية",
-        "طرطوس",
-        "درعا",
-        "السويداء",
-        "دير الزور",
-        "حلب",
-        "الحسكة",
-        "الرقة",
-        "بانياس",
-        "جبلة",
-        "سلمية",
-        "القنيطرة",
+    private User User { get; set; } = new();
 
-    };
 
-    // ----- تحميل بيانات المستخدم الحالي -----
-    private string ErrorMessage { get; set; } = string.Empty;
-    private User User { get; set; } = new User();
+    // =========================================================
+    // الملف
+    // =========================================================
+
+    private IBrowserFile? SelectedFile;
+
+    private string? FileName;
+
+    private string? FileError;
+
+
+    // =========================================================
+    // حالة الحفظ
+    // =========================================================
+
+    private bool IsSaving = false;
+
+
+    // =========================================================
+    // تحميل المستخدم الحالي
+    // =========================================================
 
     protected override async Task OnInitializedAsync()
     {
-        // الحصول على المستخدم المصرح (Id من الكلايم)
         try
         {
-            var idClaim = HttpContextAccessor.HttpContext?.User?.Claims?.FirstOrDefault(c => c.Type == "Id")?.Value;
-            if (!string.IsNullOrEmpty(idClaim) && int.TryParse(idClaim, out var uid))
+            var idClaim =
+                HttpContextAccessor.HttpContext?
+                    .User?
+                    .Claims?
+                    .FirstOrDefault(
+                        c => c.Type == "Id")
+                    ?.Value;
+
+
+            if (!string.IsNullOrEmpty(idClaim) &&
+                int.TryParse(idClaim, out var uid))
             {
-                var res = await UserRepo.GetById(uid);
-                if (res.IsSuccess)
+                var result =
+                    await UserRepo.GetById(uid);
+
+
+                if (result.IsSuccess)
                 {
-                    User = res.Value;
+                    User = result.Value;
                 }
             }
         }
         catch
         {
-            // تجاهل أخطاء التحميل البسيطة
+            errorMessage =
+                "تعذر تحميل بيانات المستخدم الحالي.";
         }
+
+
+        vm.StartDate = DateTime.Today;
     }
 
-    // ---------- Add/Remove للحقل المخصص ----------
-    void AddField()
+
+    // =========================================================
+    // اختيار الملف
+    // =========================================================
+
+    private void OnFileSelected(
+        InputFileChangeEventArgs e)
     {
-        if (string.IsNullOrWhiteSpace(newFieldName)) return;
+        FileError = null;
 
-        var id = Guid.NewGuid();
-        fieldDefinitions.Add(new FieldDefinition { Id = id, Name = newFieldName.Trim(), Type = newFieldType });
-
-        var entry = new FieldEntry { Id = id };
-        fieldEntries.Add(entry);
-
-        newFieldName = string.Empty;
-        newFieldType = FieldType.Text;
-    }
-
-    void RemoveField(Guid id)
-    {
-        var def = fieldDefinitions.FirstOrDefault(x => x.Id == id);
-        if (def != null)
-        {
-            fieldDefinitions.Remove(def);
-            var en = fieldEntries.FirstOrDefault(e => e.Id == id);
-            if (en != null) fieldEntries.Remove(en);
-            fileValues.Remove(id);
-            fileNames.Remove(id);
-        }
-    }
-
-    void ClearCustomFields()
-    {
-        fieldDefinitions.Clear();
-        fieldEntries.Clear();
-        fileValues.Clear();
-        fileNames.Clear();
-    }
-
-    // --------- التقاط ملفات لكل حقل مخصص ----------
-    async Task OnFileSelected(InputFileChangeEventArgs e, Guid fieldId)
-    {
         var file = e.File;
-        const long max = 104_857_600;
-        if (file.Size > max)
+
+        if (file == null)
         {
-            fileNames[fieldId] = $"الملف كبير جداً ({file.Size} bytes)";
+            SelectedFile = null;
+            FileName = null;
             return;
         }
 
-        fileValues[fieldId] = file;
-        fileNames[fieldId] = file.Name;
-    }
 
-    // --------- ملف توقيع العقد ----------
-    async Task OnContractFileSelected(InputFileChangeEventArgs e)
-    {
-        var file = e.File;
-        contractFileValidationError = null;
-        const long max = 104_857_600;
-        if (file.Size > max)
+        // الحد الأقصى 100 MB
+        const long maxSize = 104_857_600;
+
+
+        if (file.Size > maxSize)
         {
-            contractFileValidationError = $"الملف كبير جداً ({file.Size} bytes)";
-            ContractFile = null;
-            ContractFileName = null;
+            SelectedFile = null;
+            FileName = null;
+
+            FileError =
+                "حجم الملف كبير جداً. الحد الأقصى هو 100 MB.";
+
             return;
         }
 
-        ContractFile = file;
-        ContractFileName = file.Name;
+
+        SelectedFile = file;
+
+        FileName = file.Name;
     }
 
-    // ---------------- Helper: حفظ ملف IBrowserFile وإرجاع المسار النسبي ----------------
-    private async Task<string?> SaveBrowserFileAsync(IBrowserFile file, string uploadsFolder)
+
+    // =========================================================
+    // حفظ الملف
+    // =========================================================
+
+    private async Task<string?> SaveBrowserFileAsync(
+        IBrowserFile file)
     {
         try
         {
-            if (file == null) return null;
+            var webRoot =
+                env.WebRootPath ??
+                Path.Combine(
+                    Directory.GetCurrentDirectory(),
+                    "wwwroot");
 
-            // تأكد من وجود المجلد
+
+            var uploadsFolder =
+                Path.Combine(
+                    webRoot,
+                    "Files");
+
+
             if (!Directory.Exists(uploadsFolder))
-                Directory.CreateDirectory(uploadsFolder);
+            {
+                Directory.CreateDirectory(
+                    uploadsFolder);
+            }
 
-            // اسم ملف آمن وفريد
-            var safeName = $"{DateTime.Now:yyyy-MM-dd_HH-mm-ss}_{Guid.NewGuid()}{Path.GetExtension(file.Name)}";
-            var physicalPath = Path.Combine(uploadsFolder, safeName);
 
-            // افتح مجرى القراءة و انسخ
-            await using var stream = file.OpenReadStream(maxAllowedSize: 104857600); // 100MB limit
-            await using var fs = new FileStream(physicalPath, FileMode.Create, FileAccess.Write, FileShare.None, 81920, useAsync: true);
-            await stream.CopyToAsync(fs);
-            await fs.FlushAsync();
+            var extension =
+                Path.GetExtension(file.Name);
 
-            // ارجع المسار بالنسبة للويب
+
+            var safeName =
+                $"{DateTime.Now:yyyy-MM-dd_HH-mm-ss}_{Guid.NewGuid()}{extension}";
+
+
+            var physicalPath =
+                Path.Combine(
+                    uploadsFolder,
+                    safeName);
+
+
+            await using var input =
+                file.OpenReadStream(
+                    maxAllowedSize: 104_857_600);
+
+
+            await using var output =
+                new FileStream(
+                    physicalPath,
+                    FileMode.Create,
+                    FileAccess.Write,
+                    FileShare.None,
+                    81920,
+                    useAsync: true);
+
+
+            await input.CopyToAsync(output);
+
+
             return $"/Files/{safeName}";
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"SaveBrowserFileAsync failed: {ex}");
+            Console.Error.WriteLine(
+                $"File save error: {ex}");
+
             return null;
         }
     }
 
-    // --------- حفظ التقرير (محدّث ليشمل حفظ الصورة فعلياً وربطها بالـ entity) ----------
+
+    // =========================================================
+    // إنشاء المهمة
+    // =========================================================
+
     private async Task HandleValidSubmit()
     {
-        // مسح رسائل الخطأ السابقة
-        ErrorMessage = string.Empty;
-        contractFileValidationError = null;
+        errorMessage = null;
 
-        // التحقق من الحقول المطلوبة في الـ ViewModel (EditForm سيؤكد ذلك، لكن نضيف تحقق ملفي)
-        if (ContractFile == null)
+        successMessage = null;
+
+
+        // -----------------------------------------------------
+        // التحقق من البنود
+        // -----------------------------------------------------
+
+        if (vm.TotalItems <= 0)
         {
-            contractFileValidationError = "ملف توقيع العقد مطلوب.";
+            errorMessage =
+                "يجب إدخال عدد البنود.";
+
             return;
         }
 
-        // تحقق الحقول المخصصة إذا كانت موجودة
-        foreach (var def in fieldDefinitions)
-        {
-            var entry = fieldEntries.FirstOrDefault(e => e.Id == def.Id);
-            if (def.Type == FieldType.Text && string.IsNullOrWhiteSpace(entry?.StringValue))
-            {
-                ErrorMessage = $"الحقل المخصص '{def.Name}' مطلوب.";
-                return;
-            }
-            if (def.Type == FieldType.Date && entry?.DateValue == null)
-            {
-                ErrorMessage = $"الحقل المخصص '{def.Name}' مطلوب.";
-                return;
-            }
-            if (def.Type == FieldType.Number && entry?.NumberValue == null)
-            {
-                ErrorMessage = $"الحقل المخصص '{def.Name}' مطلوب.";
-                return;
-            }
-            if ((def.Type == FieldType.File || def.Type == FieldType.Image) && !fileValues.ContainsKey(def.Id))
-            {
-                ErrorMessage = $"يجب رفع ملف للحقل المخصص '{def.Name}'.";
-                return;
-            }
-        }
 
-        // مجلد التحميل داخل wwwroot (تأكد أن wwwroot موجود وصالح للكتابة)
-        var webRoot = env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-        var uploadsFolder = Path.Combine(webRoot, "Files");
-        if (!Directory.Exists(uploadsFolder))
-            Directory.CreateDirectory(uploadsFolder);
-
-        // ---------------- حفظ ملف توقيع العقد (ContractFile) ----------------
-        string? contractRelativePath = null;
-        try
+        if (vm.CompletedItems < 0 ||
+            vm.CompletedItems > vm.TotalItems)
         {
-            contractRelativePath = await SaveBrowserFileAsync(ContractFile, uploadsFolder);
-            if (contractRelativePath == null)
-            {
-                contractFileValidationError = "فشل حفظ ملف توقيع العقد (راجع السجل).";
-                return;
-            }
+            errorMessage =
+                "عدد المنجز يجب أن يكون بين 0 والعدد الكلي.";
 
-            // خزّن اسم الملف للعرض ضمن الواجهة إذا أردت
-            ContractFileName = Path.GetFileName(contractRelativePath);
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine($"Failed saving contract file: {ex}");
-            contractFileValidationError = "حدث خطأ أثناء حفظ ملف التوقيع.";
             return;
         }
 
-        // ---------------- حفظ الحقول المخصصة (بما فيها الملفات) ----------------
-        var savedFields = new List<ReportField>();
 
-        // أضف الحقول الأساسية أولاً
-        savedFields.Add(new ReportField { Name = "اسم المنطقة", Type = "Basic", Value = vm.Region });
-        savedFields.Add(new ReportField { Name = "اسم المحافظة", Type = "Basic", Value = vm.Governorate });
-        savedFields.Add(new ReportField { Name = "تاريخ العمل", Type = "Basic", Value = vm.WorkDate?.ToString("yyyy-MM-dd") ?? "" });
-        savedFields.Add(new ReportField { Name = "اسم المتجر", Type = "Basic", Value = vm.StoreName });
-        savedFields.Add(new ReportField { Name = "نوع المتجر", Type = "Basic", Value = vm.StoreType });
-        savedFields.Add(new ReportField { Name = "العنوان", Type = "Basic", Value = vm.Address });
-        savedFields.Add(new ReportField { Name = "رقم الهاتف", Type = "Basic", Value = vm.Phone });
-        savedFields.Add(new ReportField { Name = "تاريخ العقد", Type = "Basic", Value = vm.ContractDate?.ToString("yyyy-MM-dd") ?? "" });
-        savedFields.Add(new ReportField { Name = "إنجاز كافة المهام", Type = "Basic", Value = vm.AllTasksDone ? "true" : "false" });
-        savedFields.Add(new ReportField { Name = "عدد المنتجات التي تم إدخالها", Type = "Basic", Value = vm.ProductsCount?.ToString() ?? "" });
-        savedFields.Add(new ReportField { Name = "ملاحظات", Type = "Basic", Value = vm.Content });
+        // -----------------------------------------------------
+        // التأكد من وجود الموظف
+        // -----------------------------------------------------
 
-        // وضع مسار ملف التوقيع في الحقول
-        if (!string.IsNullOrEmpty(contractRelativePath))
+        if (User == null ||
+            string.IsNullOrWhiteSpace(User.FullName))
         {
-            savedFields.Add(new ReportField { Name = "توقيع العقد (ملف)", Type = "Basic", Value = contractRelativePath });
+            errorMessage =
+                "تعذر تحديد الموظف الحالي.";
+
+            return;
         }
 
-        // الحقول المخصّصة: حفظ الملفات أو القيم
-        foreach (var def in fieldDefinitions)
-        {
-            var entry = fieldEntries.FirstOrDefault(e => e.Id == def.Id);
-            if (def.Type == FieldType.File || def.Type == FieldType.Image)
-            {
-                if (fileValues.TryGetValue(def.Id, out var browserFile))
-                {
-                    var rel = await SaveBrowserFileAsync(browserFile, uploadsFolder);
-                    savedFields.Add(new ReportField { Name = def.Name, Type = def.Type.ToString(), Value = rel ?? "" });
-                }
-                else
-                {
-                    savedFields.Add(new ReportField { Name = def.Name, Type = def.Type.ToString(), Value = "" });
-                }
-            }
-            else if (def.Type == FieldType.Text)
-            {
-                savedFields.Add(new ReportField { Name = def.Name, Type = def.Type.ToString(), Value = entry?.StringValue ?? "" });
-            }
-            else if (def.Type == FieldType.Date)
-            {
-                savedFields.Add(new ReportField { Name = def.Name, Type = def.Type.ToString(), Value = entry?.DateValue?.ToString("yyyy-MM-dd") ?? "" });
-            }
-            else if (def.Type == FieldType.Number)
-            {
-                savedFields.Add(new ReportField { Name = def.Name, Type = def.Type.ToString(), Value = entry?.NumberValue?.ToString() ?? "" });
-            }
-            else if (def.Type == FieldType.Checkbox)
-            {
-                savedFields.Add(new ReportField { Name = def.Name, Type = def.Type.ToString(), Value = (entry?.BoolValue ?? false) ? "true" : "false" });
-            }
-        }
 
-        // ---------------- بناء الـ entity وتعيين مسارات الملفات ----------------
-        var report = new FollowUpReport();
-        // try
-        // {
-        //     report.CustomFieldsJson = JsonSerializer.Serialize(savedFields);
-        // }
-        // catch
-        // {
-        //     report.CustomFieldsJson = null;
-        // }
+        IsSaving = true;
 
-        report.Region = vm.Region;
-        report.Governorate = vm.Governorate;
-        report.WorkDate = vm.WorkDate;
-        report.StoreName = vm.StoreName;
-        report.StoreType = vm.StoreType;
-        report.Address = vm.Address;
-        report.Phone = vm.Phone;
-        report.ContractDate = vm.ContractDate;
-        report.AllTasksDone = vm.AllTasksDone;
-        report.ProductsCount = vm.ProductsCount;
-        report.Content = vm.Content;
-        report.IsDone = vm.IsDone;
-        report.IsDoneOrNot = vm.IsDone ? "تم" : "قيد التنفيذ";
-        report.DateTime = DateTime.Now;
-        report.FullName = User?.FullName ?? string.Empty;
 
-        // تعيين مسار ملف التوقيع في الحقل entity حتى يُخزن في الداتابيز
-        if (!string.IsNullOrEmpty(contractRelativePath))
-        {
-            report.ContractFilePath = contractRelativePath;
-            report.ContractFileName = ContractFileName ?? Path.GetFileName(contractRelativePath);
-            if (string.IsNullOrEmpty(report.Path))
-                report.Path = contractRelativePath;
-        }
-
-        // ---------------- حفظ التقرير عبر الخدمة ----------------
         try
         {
+            // -------------------------------------------------
+            // حالة المهمة
+            // -------------------------------------------------
+
+            bool done =
+                vm.CompletedItems ==
+                vm.TotalItems;
+
+
+            string status =
+                done
+                    ? "مكتملة"
+                    : vm.CompletedItems > 0
+                        ? "قيد التنفيذ"
+                        : "لم تبدأ";
+
+
+            // -------------------------------------------------
+            // حفظ الملف إن وجد
+            // -------------------------------------------------
+
+            string? filePath = null;
+
+
+            if (SelectedFile != null)
+            {
+                filePath =
+                    await SaveBrowserFileAsync(
+                        SelectedFile);
+
+
+                if (string.IsNullOrEmpty(filePath))
+                {
+                    errorMessage =
+                        "حدث خطأ أثناء حفظ الملف.";
+
+                    return;
+                }
+            }
+
+
+            // -------------------------------------------------
+            // إنشاء التقرير
+            // -------------------------------------------------
+
+            var report =
+                new FollowUpReport
+                {
+                    Content =
+                        vm.Content,
+
+                    TaskDetails =
+                        vm.TaskDetails,
+
+                    TaskType =
+                        vm.TaskType,
+
+                    ClientOrProject =
+                        vm.ClientOrProject,
+
+                    // =========================================
+                    // الموظف يؤخذ تلقائياً من المستخدم الحالي
+                    // =========================================
+
+                    AssignedEmployee =
+                        User.FullName,
+
+                    FullName =
+                        User.FullName,
+
+                    Priority =
+                        vm.Priority,
+
+                    TotalItems =
+                        vm.TotalItems,
+
+                    CompletedItems =
+                        vm.CompletedItems,
+
+                    CompletedDetails =
+                        vm.CompletedDetails,
+
+                    ExpectedDurationDays =
+                        vm.ExpectedDurationDays,
+
+                    StartDate =
+                        vm.StartDate,
+
+                    DueDate =
+                        vm.DueDate,
+
+                    IsDone =
+                        done,
+
+                    IsDoneOrNot =
+                        status,
+
+                    DateTime =
+                        DateTime.Now,
+
+                    LastUpdatedDate =
+                        DateTime.Now,
+
+                    LastUpdatedBy =
+                        User.FullName
+                };
+
+
+            // -------------------------------------------------
+            // ربط الملف بالتقرير
+            // -------------------------------------------------
+
+            if (!string.IsNullOrEmpty(filePath))
+            {
+                report.Path =
+                    filePath;
+
+                report.ContractFilePath =
+                    filePath;
+
+                report.ContractFileName =
+                    FileName;
+            }
+
+
+            // -------------------------------------------------
+            // الحفظ في قاعدة البيانات
+            // -------------------------------------------------
+
             await ReportService.AddReport(report);
-            successMessage = "تم إضافة التقرير بنجاح.";
-            // إعادة تهيئة النموذج
-            vm = new FollowUpReportVm();
-            ContractFile = null; ContractFileName = null; contractFileValidationError = null;
-            ClearCustomFields();
+
+
+            successMessage =
+                "تم إنشاء المهمة بنجاح.";
+
+
+            // -------------------------------------------------
+            // إعادة ضبط النموذج
+            // -------------------------------------------------
+
+            vm =
+                new FollowUpReportVm
+                {
+                    StartDate =
+                        DateTime.Today
+                };
+
+
+            SelectedFile = null;
+
+            FileName = null;
+
+            FileError = null;
         }
         catch (Exception ex)
         {
-            ErrorMessage = "حدث خطأ أثناء حفظ التقرير.";
-            Console.Error.WriteLine($"ReportService.AddReport failed: {ex}");
+            errorMessage =
+                "حدث خطأ أثناء إنشاء المهمة.";
+
+
+            Console.Error.WriteLine(
+                $"Add FollowUp Report Error: {ex}");
+        }
+        finally
+        {
+            IsSaving = false;
         }
     }
 
-    // ----- الموديلات المساعدة -----
-    enum FieldType
+
+    // =========================================================
+    // ViewModel
+    // =========================================================
+
+    private class FollowUpReportVm
     {
-        Text,
-        Date,
-        Number,
-        File,
-        Image,
-        Checkbox
+        [Required(
+            ErrorMessage = "اسم المهمة مطلوب")]
+        public string Content { get; set; }
+            = string.Empty;
+
+
+        [Required(
+            ErrorMessage = "تفاصيل المهمة مطلوبة")]
+        public string TaskDetails { get; set; }
+            = string.Empty;
+
+
+        public string TaskType { get; set; }
+            = "تسويق";
+
+
+        public string ClientOrProject { get; set; }
+            = string.Empty;
+
+
+        public string Priority { get; set; }
+            = "متوسطة";
+
+
+        [Range(
+            1,
+            int.MaxValue,
+            ErrorMessage = "يجب أن يكون العدد أكبر من صفر")]
+        public int TotalItems { get; set; }
+
+
+        [Range(
+            0,
+            int.MaxValue,
+            ErrorMessage = "أدخل رقماً صحيحاً")]
+        public int CompletedItems { get; set; }
+
+
+        public string CompletedDetails { get; set; }
+            = string.Empty;
+
+
+        public decimal? ExpectedDurationDays { get; set; }
+
+
+        public DateTime? StartDate { get; set; }
+
+
+        public DateTime? DueDate { get; set; }
     }
 
-    class FieldDefinition
-    {
-        public Guid Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public FieldType Type { get; set; } = FieldType.Text;
-    }
-
-    class FieldEntry
-    {
-        public Guid Id { get; set; }
-        public string StringValue { get; set; } = string.Empty;
-        public DateTime? DateValue { get; set; }
-        public int? NumberValue { get; set; }
-        public bool BoolValue { get; set; } = false;
-    }
-
-    class ReportField
-    {
-        public string Name { get; set; } = string.Empty;
-        public string Type { get; set; } = string.Empty;
-        public string Value { get; set; } = string.Empty;
-    }
 }

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace REMS.Migrations
 {
     /// <inheritdoc />
-    public partial class sdad : Migration
+    public partial class init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -56,7 +56,19 @@ namespace REMS.Migrations
                     IsDone = table.Column<bool>(type: "INTEGER", nullable: false),
                     IsDoneOrNot = table.Column<string>(type: "TEXT", nullable: true),
                     Path = table.Column<string>(type: "TEXT", nullable: true),
-                    CustomFieldsJson = table.Column<string>(type: "TEXT", nullable: true)
+                    Region = table.Column<string>(type: "TEXT", nullable: true),
+                    Governorate = table.Column<string>(type: "TEXT", nullable: true),
+                    Coordinator = table.Column<string>(type: "TEXT", nullable: true),
+                    WorkDate = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    StoreName = table.Column<string>(type: "TEXT", nullable: true),
+                    StoreType = table.Column<string>(type: "TEXT", nullable: true),
+                    Address = table.Column<string>(type: "TEXT", nullable: true),
+                    Phone = table.Column<string>(type: "TEXT", nullable: true),
+                    ContractFilePath = table.Column<string>(type: "TEXT", nullable: true),
+                    ContractFileName = table.Column<string>(type: "TEXT", nullable: true),
+                    ContractDate = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    AllTasksDone = table.Column<bool>(type: "INTEGER", nullable: false),
+                    ProductsCount = table.Column<int>(type: "INTEGER", nullable: true)
                 },
                 constraints: table =>
                 {

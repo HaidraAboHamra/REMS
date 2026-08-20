@@ -11,8 +11,8 @@ using REMS.Data;
 namespace REMS.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251030094909_init33")]
-    partial class init33
+    [Migration("20260813134332_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -101,9 +101,6 @@ namespace REMS.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Coordinator")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("CustomFieldsJson")
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("DateTime")

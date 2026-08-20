@@ -15,7 +15,7 @@ public class AppDbContext : DbContext
     public DbSet<FormData> FormData { get; set; }
     public DbSet<Employees> Employees { get; set; }
 
-
+    public DbSet<FollowUpReportUpdate> FollowUpReportUpdates { get; set; }
 
 
 

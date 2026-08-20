@@ -14,5 +14,8 @@ namespace REMS.Interfaces
         Task<FollowUpReport> Update(FollowUpReport report, string newPath);
         Task<bool> Delete(int Id);
         Task<FollowUpReport> Get(int Id);
+        Task<FollowUpReportUpdate> AddUpdate(FollowUpReportUpdate update);
+
+        Task<List<FollowUpReportUpdate>> GetUpdates(int reportId);
     }
 }

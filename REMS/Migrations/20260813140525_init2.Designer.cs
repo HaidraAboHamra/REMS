@@ -11,8 +11,8 @@ using REMS.Data;
 namespace REMS.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251028141846_init")]
-    partial class init
+    [Migration("20260813140525_init2")]
+    partial class init2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -88,7 +88,23 @@ namespace REMS.Migrations
                     b.Property<bool>("AllTasksDone")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("AssignedEmployee")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ClientOrProject")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("CompletedDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CompletedDetails")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("CompletedItems")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Content")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime?>("ContractDate")
@@ -103,10 +119,13 @@ namespace REMS.Migrations
                     b.Property<string>("Coordinator")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("CustomFieldsJson")
+                    b.Property<DateTime>("DateTime")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("DateTime")
+                    b.Property<DateTime?>("DueDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("ExpectedDurationDays")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("FullName")
@@ -121,10 +140,19 @@ namespace REMS.Migrations
                     b.Property<string>("IsDoneOrNot")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("LastUpdatedBy")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("LastUpdatedDate")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Path")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Phone")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Priority")
                         .HasColumnType("TEXT");
 
                     b.Property<int?>("ProductsCount")
@@ -133,11 +161,23 @@ namespace REMS.Migrations
                     b.Property<string>("Region")
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime?>("StartDate")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("StoreName")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("StoreType")
                         .HasColumnType("TEXT");
+
+                    b.Property<string>("TaskDetails")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TaskType")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("TotalItems")
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime?>("WorkDate")
                         .HasColumnType("TEXT");
@@ -145,6 +185,43 @@ namespace REMS.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("FollowUpReports");
+                });
+
+            modelBuilder.Entity("REMS.Enititys.FollowUpReportUpdate", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("CompletedDetails")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("CompletedItems")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("DateTime")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("FollowUpReportId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ProgressPercentage")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Status")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FollowUpReportId");
+
+                    b.ToTable("FollowUpReportUpdates");
                 });
 
             modelBuilder.Entity("REMS.Enititys.FormData", b =>
@@ -323,6 +400,17 @@ namespace REMS.Migrations
                             PasswordHash = "AQAAAAIAAYagAAAAEORnOyHZWpGTFS206rXM8pdrBz/Y6pJVOVO8gnGRg6hlLw0VLtacH0ZIGx5Rk9/a0A==",
                             PhoneNumber = "999"
                         });
+                });
+
+            modelBuilder.Entity("REMS.Enititys.FollowUpReportUpdate", b =>
+                {
+                    b.HasOne("REMS.Enititys.FollowUpReport", "FollowUpReport")
+                        .WithMany()
+                        .HasForeignKey("FollowUpReportId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("FollowUpReport");
                 });
 #pragma warning restore 612, 618
         }
