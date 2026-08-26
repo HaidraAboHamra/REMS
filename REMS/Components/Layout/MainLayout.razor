@@ -1,29 +1,22 @@
 ﻿@using MudBlazor
 @inherits LayoutComponentBase
 
-@* Required *@
 <MudThemeProvider />
 <MudPopoverProvider />
-
-@* Needed for dialogs *@
 <MudDialogProvider />
-
-@* Needed for snackbars *@
 <MudSnackbarProvider />
 
 <div class="page">
-    <main>
-  @*       <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div> *@
 
+    <main>
         <article class="content px-4">
             @Body
         </article>
     </main>
-    <div class="sidebar">
+
+    <aside class="sidebar">
         <NavMenu />
-    </div>
+    </aside>
 
 </div>
 
