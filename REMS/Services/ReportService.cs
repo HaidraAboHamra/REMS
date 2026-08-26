@@ -555,9 +555,9 @@ namespace ReportApp.Services
 
         #region Backward Compatibility
 
-        public Task SendDailyReports()
+        public async Task SendDailyReports()
         {
-            throw new NotImplementedException();
+           await SendDailyTaskReports();
         }
 
         public Task SendDailyReports(
