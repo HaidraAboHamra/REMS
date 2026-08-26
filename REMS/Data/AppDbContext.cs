@@ -16,6 +16,11 @@ public class AppDbContext : DbContext
     public DbSet<Employees> Employees { get; set; }
 
     public DbSet<FollowUpReportUpdate> FollowUpReportUpdates { get; set; }
+    public DbSet<FileFolder> FileFolders { get; set; }
+
+    public DbSet<StoredFile> StoredFiles { get; set; }
+    public DbSet<FilePermission> FilePermissions { get; set; }
+    public DbSet<FileShareLink> FileShareLinks { get; set; }
 
 
 
@@ -27,7 +32,32 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Setting>().HasData(
             new Setting { Id = 1, Hour = 16, Minute = 30, NotificationTimeDifference = 15, SendTo = "alaa.ajelo@rexos.co" }
             );
-      
+        modelBuilder.Entity<FileFolder>()
+      .HasOne(x => x.ParentFolder)
+      .WithMany(x => x.Children)
+      .HasForeignKey(x => x.ParentFolderId)
+      .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<StoredFile>()
+            .HasOne(x => x.Folder)
+            .WithMany(x => x.Files)
+            .HasForeignKey(x => x.FolderId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<FileFolder>()
+            .HasIndex(x => new
+            {
+                x.OwnerId,
+                x.ParentFolderId,
+                x.Name
+            });
+
+        modelBuilder.Entity<StoredFile>()
+            .HasIndex(x => new
+            {
+                x.OwnerId,
+                x.FolderId
+            });
         base.OnModelCreating(modelBuilder);
     }
 }

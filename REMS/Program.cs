@@ -3,6 +3,7 @@ using Blazorise.Bootstrap5;
 using Blazorise.Icons.FontAwesome;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using MudBlazor.Services;
@@ -16,21 +17,17 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 // ======================================================
-// ✅ Configure Services
+// Configure Services
 // ======================================================
 
-// Add Razor Pages (needed for /login, /Error, etc.)
 builder.Services.AddRazorPages();
 
-// Add Razor Components (for Blazor Server)
 builder.Services
     .AddRazorComponents()
     .AddInteractiveServerComponents();
 
-// MudBlazor
 builder.Services.AddMudServices();
 
-// Blazorise setup
 builder.Services
     .AddBlazorise(options =>
     {
@@ -39,84 +36,141 @@ builder.Services
     .AddBootstrap5Providers()
     .AddFontAwesomeIcons();
 
-builder.WebHost.UseUrls("http://0.0.0.0:2004");
+// ======================================================
+// Kestrel
+// ======================================================
+
+builder.WebHost.UseUrls("http://127.0.0.1:2004");
 
 // ======================================================
-// ✅ Database (SQLite in wwwroot)
+// Database
 // ======================================================
-string dbPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "wwwroot", "REMS.db");
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite($"Data Source={dbPath}"));
 
+//const string dbPath = "/var/lib/rems/REMS.db";
+
+//builder.Services.AddDbContext<AppDbContext>(options =>
+//    options.UseSqlite($"Data Source={dbPath}"));
+var dbPath =
+    builder.Configuration.GetConnectionString("DefaultConnection");
+
+builder.Services.AddDbContextFactory<AppDbContext>(options =>
+    options.UseSqlite(dbPath));
 // ======================================================
-// ✅ Dependency Injection
+// Dependency Injection
 // ======================================================
+
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddSingleton<EmailService>();
+
 builder.Services.AddHostedService<ReportEmailHostedService>();
+
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<TelegramService>();
+
 builder.Services.AddHostedService<TelegramMessageScheduler>();
+
 builder.Services.AddScoped<IAuthentication, AuthenticationRepository>();
 builder.Services.AddScoped<IFollowUpReportService, FollowUpReportService>();
 builder.Services.AddScoped<ISettings, SettingsRepository>();
 builder.Services.AddScoped<ExcelService>();
 builder.Services.AddScoped<Test>();
+builder.Services.AddScoped<FileStorageService>();
 builder.Services.AddHttpContextAccessor();
 
 // ======================================================
-// ✅ Authentication & Authorization
+// Authentication & Authorization
 // ======================================================
-builder.Services.AddAuthentication(options =>
+
+var jwtKey = builder.Configuration["Jwt:Key"];
+
+if (string.IsNullOrWhiteSpace(jwtKey))
 {
-    options.DefaultScheme = "Application";
-    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-})
-.AddPolicyScheme("Application", "JWT or Cookie", options =>
-{
-    options.ForwardDefaultSelector = context =>
+    throw new InvalidOperationException(
+        "JWT key is missing. Configure Jwt:Key in production.");
+}
+
+builder.Services
+    .AddAuthentication(options =>
     {
-        if (context.Request.Path.StartsWithSegments("/api"))
-            return JwtBearerDefaults.AuthenticationScheme;
-        return CookieAuthenticationDefaults.AuthenticationScheme;
-    };
-})
-.AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
+        options.DefaultScheme = "Application";
+        options.DefaultSignInScheme =
+            CookieAuthenticationDefaults.AuthenticationScheme;
+    })
+    .AddPolicyScheme("Application", "JWT or Cookie", options =>
     {
-        IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? "SuperSecretKey12345")),
-        ValidateIssuerSigningKey = true,
-        ValidateAudience = false,
-        ValidateIssuer = false,
-        RequireExpirationTime = false,
-    };
-})
-.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
-{
-    options.LoginPath = "/login";
-    options.ExpireTimeSpan = TimeSpan.FromDays(20);
-});
+        options.ForwardDefaultSelector = context =>
+        {
+            if (context.Request.Path.StartsWithSegments("/api"))
+                return JwtBearerDefaults.AuthenticationScheme;
+
+            return CookieAuthenticationDefaults.AuthenticationScheme;
+        };
+    })
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(jwtKey)),
+
+            ValidateIssuerSigningKey = true,
+            ValidateAudience = false,
+            ValidateIssuer = false,
+            RequireExpirationTime = false
+        };
+    })
+    .AddCookie(
+        CookieAuthenticationDefaults.AuthenticationScheme,
+        options =>
+        {
+            options.LoginPath = "/login";
+            options.ExpireTimeSpan = TimeSpan.FromDays(20);
+        });
 
 // ======================================================
-// ✅ CORS + Controllers
+// CORS
 // ======================================================
-builder.Services.AddCors(options => options.AddPolicy("AllowAll",
-    policy => policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy
+            .AllowAnyOrigin()
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
 
 builder.Services.AddControllers();
 
 // ======================================================
-// ✅ Build the app
+// Build
 // ======================================================
+
 var app = builder.Build();
+
+// ======================================================
+// Reverse Proxy / Nginx
+// ======================================================
+
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders =
+        ForwardedHeaders.XForwardedFor |
+        ForwardedHeaders.XForwardedProto
+});
+
+// ======================================================
+// CORS
+// ======================================================
 
 app.UseCors("AllowAll");
 
 // ======================================================
-// ✅ Middleware Pipeline
+// Middleware Pipeline
 // ======================================================
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
@@ -124,16 +178,22 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
 app.UseStaticFiles();
+
 app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
 app.UseAntiforgery();
+
 // ======================================================
-// ✅ Map Endpoints
+// Endpoints
 // ======================================================
+
 app.MapControllers();
+
 app.MapRazorPages();
 
 app.MapRazorComponents<App>()
@@ -142,6 +202,7 @@ app.MapRazorComponents<App>()
 app.MapFallbackToPage("/login");
 
 // ======================================================
-// ✅ Run the app
+// Run
 // ======================================================
+
 app.Run();
