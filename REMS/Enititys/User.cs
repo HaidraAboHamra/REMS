@@ -13,6 +13,10 @@ namespace REMS.Enititys
         [DisplayName("رقم هاتف")]
         public string? PhoneNumber { get; set; }
         public long? ChatId {  get; set; }
+        [DisplayName("اسم مستخدم تيليغرام")]
+        public string? TelegramUsername { get; set; }
+        public string? TelegramLinkToken { get; set; }
+        public DateTime? TelegramLinkedAt { get; set; }
         [DisplayName("الايميل")]
         public string? Email { get; set; }
         public string? PasswordHash { get; set; }

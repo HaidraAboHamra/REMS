@@ -196,6 +196,7 @@
 
                             @foreach (var item in Reports)
                             {
+                                var itemStatus = GetDisplayStatus(item);
                                 <tr class="report-row">
 
                                     <!-- المهمة -->
@@ -341,14 +342,14 @@
                                     <!-- الحالة -->
                                     <td>
 
-                                        @if (item.IsDoneOrNot == "مكتملة")
+                                        @if (itemStatus == "مكتملة")
                                         {
                                             <span class="status-pill status-completed">
                                                 <span class="status-dot"></span>
                                                 مكتملة
                                             </span>
                                         }
-                                        else if (item.IsDoneOrNot == "قيد التنفيذ")
+                                        else if (itemStatus == "قيد التنفيذ")
                                         {
                                             <span class="status-pill status-progress">
                                                 <span class="status-dot"></span>
@@ -357,9 +358,9 @@
                                         }
                                         else
                                         {
-                                            <span class="status-pill status-pending">
+                                            <span class="status-pill @(itemStatus == "متأخرة" ? "status-overdue" : "status-pending")">
                                                 <span class="status-dot"></span>
-                                                لم تبدأ
+                                                @itemStatus
                                             </span>
                                         }
 
@@ -447,14 +448,12 @@
 
                         <div class="action-card-content">
 
-                            <span class="action-label">
-                                تاريخ التقرير
-                            </span>
+                            <span class="action-label">فترة التقرير</span>
 
-                            <MudDatePicker Label="اختر تاريخ التقرير"
-                                           @bind-Date="reportDate"
-                                           Class="premium-datepicker"
-                                           @OnClick="MakeItTrue" />
+                            <div class="date-range">
+                                <MudDatePicker Label="من تاريخ" @bind-Date="FromDate" Class="premium-datepicker" />
+                                <MudDatePicker Label="إلى تاريخ" @bind-Date="ToDate" Class="premium-datepicker" />
+                            </div>
 
                         </div>
 
@@ -471,8 +470,16 @@
                         <div class="action-card-content">
 
                             <span class="action-label">
-                                إنشاء التقرير
+                                توليد Excel حسب الفلتر
                             </span>
+
+                            <select class="premium-email-input" @bind="SelectedStatus" aria-label="حالة المهمة">
+                                <option value="الكل">كل الحالات</option>
+                                <option value="معلقة">معلقة</option>
+                                <option value="قيد التنفيذ">قيد التنفيذ</option>
+                                <option value="متأخرة">متأخرة</option>
+                                <option value="مكتملة">مكتملة</option>
+                            </select>
 
                             <MudButton Variant="MudBlazor.Variant.Filled"
                                        Color="MudBlazor.Color.Primary"
@@ -485,6 +492,8 @@
                                 توليد التقرير
 
                             </MudButton>
+
+                            <button class="filter-button" @onclick="ApplyFilters">تطبيق الفلتر على الجدول</button>
 
                         </div>
 
@@ -574,11 +583,12 @@
 
 
 @code {
-    public DateTime? reportDate;
+    private DateTime? FromDate = DateTime.Today;
+    private DateTime? ToDate = DateTime.Today;
+    private string SelectedStatus = "الكل";
     public List<FollowUpReport>? Reports { get; set; }
     public bool isGeneratingExcel = false;
     private string reportUrl;
-    private bool ChooseDate = true;
     private string Email;
     private bool IsSendDisabled = true;
     private IBrowserFile? file { get; set; }
@@ -586,43 +596,40 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var result = await _service.GetReportsByDate(DateTime.Now.Date);
-
-        if (result != null)
-            Reports = result;
+        await ApplyFilters();
     }
 
     private async Task GenerateReport()
     {
-        if (reportDate == null)
+        if (!HasValidDateRange())
         {
-            Snackbar.Add("اختر تاريخ");
+            Snackbar.Add("تأكد أن تاريخ البداية يسبق تاريخ النهاية.", Severity.Warning);
             return;
-
         }
+
         isGeneratingExcel = true;
-
-        var request =
-            await _service.GetReportsByDate(reportDate.Value);
-
-        reportUrl =
-            await _excel.GenerateFollowUpReportExcelAsync(
-                request,
-                reportDate.Value
-            );
-
-        isGeneratingExcel = false;
-
-        await ViewReport();
+        try
+        {
+            var request = await _service.GetReports(CurrentFilter);
+            Reports = request;
+            reportUrl = await _excel.GenerateFollowUpReportExcelAsync(request, FromDate ?? DateTime.Today);
+            Snackbar.Add($"تم إنشاء تقرير Excel يضم {request.Count} مهمة.", Severity.Success);
+        }
+        finally
+        {
+            isGeneratingExcel = false;
+        }
     }
 
-    private async Task ViewReport()
+    private async Task ApplyFilters()
     {
-        var result =
-            await _service.GetReportsByDate(reportDate.Value);
+        if (!HasValidDateRange())
+        {
+            Snackbar.Add("تأكد أن تاريخ البداية يسبق تاريخ النهاية.", Severity.Warning);
+            return;
+        }
 
-        if (result != null)
-            Reports = result;
+        Reports = await _service.GetReports(CurrentFilter);
     }
 
     async void HandleFileSelected(InputFileChangeEventArgs e)
@@ -638,7 +645,7 @@
             {
                 await _repo.SendTryFollowUpReport(
                     Email,
-                    reportDate.Value
+                    FromDate ?? DateTime.Today
                 );
             }
 
@@ -707,10 +714,20 @@
 
         return images.Contains(ext);
     }
-    public void MakeItTrue()
+    private ReportFilter CurrentFilter => new()
     {
-        ChooseDate = false;
-    }
+        FromDate = FromDate,
+        ToDate = ToDate,
+        Status = SelectedStatus
+    };
+
+    private bool HasValidDateRange() =>
+        !FromDate.HasValue || !ToDate.HasValue || FromDate.Value.Date <= ToDate.Value.Date;
+
+    private static string GetDisplayStatus(FollowUpReport report) =>
+        !report.IsDone && report.DueDate?.Date < DateTime.Today ? "متأخرة" :
+        report.IsDone ? "مكتملة" :
+        report.IsDoneOrNot == "قيد التنفيذ" ? "قيد التنفيذ" : "معلقة";
 
     string DisplayPath(string? value)
     {
@@ -1362,6 +1379,17 @@
         border: 1px solid rgba(148,163,184,.14);
     }
 
+    .status-overdue {
+        color: #fecdd3;
+        background: rgba(190,24,93,.18);
+        border: 1px solid rgba(251,113,133,.30);
+    }
+
+        .status-overdue .status-dot {
+            background: #fb7185;
+            box-shadow: 0 0 9px rgba(251,113,133,.70);
+        }
+
 
         .status-pending .status-dot {
             background: #94a3b8;
@@ -1525,6 +1553,11 @@
         width: 100%;
         color: #f8fafc !important;
     }
+
+    .date-range { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+
+    .filter-button { width:100%; margin-top:8px; padding:9px 12px; border:1px solid rgba(129,140,248,.25); border-radius:11px; color:#c7d2fe; background:rgba(15,23,42,.7); font-weight:800; font-size:.72rem; cursor:pointer; transition:.2s ease; }
+    .filter-button:hover { color:#fff; border-color:rgba(129,140,248,.7); background:rgba(49,46,129,.45); }
 
 
         .premium-datepicker :deep(.mud-input) {
@@ -2002,6 +2035,8 @@
         .download-btn {
             justify-content: center;
         }
+
+        .date-range { grid-template-columns:1fr; }
     }
 
 

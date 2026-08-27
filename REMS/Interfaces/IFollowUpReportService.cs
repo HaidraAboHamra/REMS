@@ -6,6 +6,7 @@ namespace REMS.Interfaces
     public interface IFollowUpReportService
     {
         Task<List<FollowUpReport>> GetReportsByDate(DateTime date);
+        Task<List<FollowUpReport>> GetReports(ReportFilter filter);
         Task<FollowUpReport> AddReport(FollowUpReport report);
         Task SendWeeklyComplaint();
         Task<Complaint> AddComplaint(Complaint complaint);

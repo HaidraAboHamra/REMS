@@ -16,7 +16,7 @@ public class SettingsRepository(AppDbContext _db) : ISettings
             return count != 1;
         }
 
-        var settings = await _db.Settings.FirstOrDefaultAsync();
+        var settings = await _db.Settings.OrderBy(x => x.Id).FirstOrDefaultAsync();
         if (settings is null)
         {
             return Result<Setting>.Failure(new Error("The settings table was empty"));

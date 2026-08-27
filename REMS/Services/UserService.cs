@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using REMS.Abstractions;
 using REMS.Data;
 using REMS.Enititys;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 
 public class UserService
@@ -20,7 +21,10 @@ public class UserService
 
     public async Task<User> CreateUserAsync(User user)
     {
-          user.PasswordHash = _passwordHasher.HashPassword(user, user.PasswordHash);
+        ArgumentNullException.ThrowIfNull(user);
+        user.PasswordHash = _passwordHasher.HashPassword(user, user.PasswordHash);
+        user.TelegramUsername = NormalizeTelegramUsername(user.TelegramUsername);
+        user.TelegramLinkToken ??= CreateTelegramLinkToken();
         _context.Users.Add(user);
         await _context.SaveChangesAsync(); 
 
@@ -82,5 +86,26 @@ public class UserService
 
 		return Result.Success();
 	}
+
+    public async Task<string> CreateTelegramLinkTokenAsync(int userId)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == userId)
+            ?? throw new InvalidOperationException("User not found.");
+
+        user.TelegramLinkToken = CreateTelegramLinkToken();
+        user.ChatId = null;
+        user.TelegramLinkedAt = null;
+        await _context.SaveChangesAsync();
+        return user.TelegramLinkToken;
+    }
+
+    private static string CreateTelegramLinkToken() =>
+        Convert.ToHexString(RandomNumberGenerator.GetBytes(20)).ToLowerInvariant();
+
+    private static string? NormalizeTelegramUsername(string? username)
+    {
+        var value = username?.Trim().TrimStart('@');
+        return string.IsNullOrWhiteSpace(value) ? null : value;
+    }
 
 }

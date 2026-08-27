@@ -22,6 +22,13 @@ public class StoredFile
     public long Size { get; set; }
     public int OwnerId { get; set; }
     public int? FolderId { get; set; }
+
+    /// <summary>
+    /// A file published by an administrator in the company-wide hub.
+    /// Hub files are readable by every authenticated REMS user.
+    /// </summary>
+    public bool IsSharedHub { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public virtual FileFolder? Folder { get; set; }

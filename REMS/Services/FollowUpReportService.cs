@@ -193,6 +193,49 @@ namespace REMS.Services
                 .ToListAsync();
         }
 
+        public async Task<List<FollowUpReport>> GetReports(ReportFilter filter)
+        {
+            ArgumentNullException.ThrowIfNull(filter);
+
+            var query = _context.FollowUpReports.AsNoTracking().AsQueryable();
+
+            if (filter.FromDate.HasValue)
+                query = query.Where(x => x.DateTime >= filter.FromDate.Value.Date);
+
+            if (filter.ToDate.HasValue)
+            {
+                var exclusiveEnd = filter.ToDate.Value.Date.AddDays(1);
+                query = query.Where(x => x.DateTime < exclusiveEnd);
+            }
+
+            if (filter.AssignedEmployeeId.HasValue)
+                query = query.Where(x => x.AssignedEmployeeId == filter.AssignedEmployeeId.Value);
+
+            if (!string.IsNullOrWhiteSpace(filter.Search))
+            {
+                var search = filter.Search.Trim();
+                query = query.Where(x =>
+                    (x.Content ?? "").Contains(search) ||
+                    (x.TaskDetails ?? "").Contains(search) ||
+                    (x.ClientOrProject ?? "").Contains(search) ||
+                    (x.AssignedEmployee ?? "").Contains(search));
+            }
+
+            var reports = await query
+                .OrderByDescending(x => x.DueDate)
+                .ThenByDescending(x => x.DateTime)
+                .ToListAsync();
+
+            return string.IsNullOrWhiteSpace(filter.Status) || filter.Status == "الكل"
+                ? reports
+                : reports.Where(x => GetEffectiveStatus(x) == filter.Status).ToList();
+        }
+
+        private static string GetEffectiveStatus(FollowUpReport report) =>
+            !report.IsDone && report.DueDate?.Date < DateTime.Today
+                ? "متأخرة"
+                : report.IsDone ? "مكتملة" : report.IsDoneOrNot ?? "لم تبدأ";
+
 
         // =========================================================
         // تحديث المهمة

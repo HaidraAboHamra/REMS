@@ -6,6 +6,7 @@
 
 @inject IHttpContextAccessor HttpContextAccessor
 @inject NavigationManager Navigation
+@inject IConfiguration Configuration
 
 @attribute [Authorize]
 
@@ -86,6 +87,39 @@
                 <div class="header-status">
                     <span class="status-dot"></span>
                     ACTIVE
+                </div>
+
+                <div class="security-section">
+                    <div class="security-header">
+                        <div class="security-icon">✈️</div>
+                        <div>
+                            <strong>ربط تيليغرام</strong>
+                            <span>اربط حسابك مرة واحدة لتصلك الإشعارات دون إدخال Chat ID.</span>
+                        </div>
+                    </div>
+                    <div class="security-card">
+                        <div class="security-card-icon">@(User.ChatId.HasValue ? "✅" : "🔗")</div>
+                        <div class="security-card-content">
+                            <strong>@(User.ChatId.HasValue ? "تيليغرام مرتبط" : "تيليغرام غير مرتبط")</strong>
+                            <span>@(User.ChatId.HasValue ? $"تم الربط في {User.TelegramLinkedAt?.ToLocalTime():yyyy-MM-dd}" : "اضغط الرابط ثم أرسل Start للبوت لإكمال الربط.")</span>
+                        </div>
+                        @if (User.ChatId.HasValue)
+                        {
+                            <button class="password-btn" @onclick="CreateTelegramLinkAsync">إعادة الربط</button>
+                        }
+                        else if (!string.IsNullOrWhiteSpace(TelegramLink))
+                        {
+                            <a class="password-btn" href="@TelegramLink" target="_blank" rel="noopener">فتح بوت تيليغرام</a>
+                        }
+                        else
+                        {
+                            <button class="password-btn" @onclick="CreateTelegramLinkAsync">إنشاء رابط الربط</button>
+                        }
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(TelegramMessage))
+                    {
+                        <p class="telegram-message">@TelegramMessage</p>
+                    }
                 </div>
 
             </section>
@@ -264,11 +298,13 @@
     public int Id { get; set; }
 
     [Inject]
-    public UserService UserRepo { get; set; }
+    public UserService UserRepo { get; set; } = default!;
 
     private string ErrorMessage { get; set; } = string.Empty;
 
-    private User User { get; set; }
+    private User User { get; set; } = new();
+    private string? TelegramLink;
+    private string? TelegramMessage;
 
     private void NavigateToChangePassword()
     {
@@ -299,8 +335,28 @@
             else
             {
                 User = cur;
+                TelegramLink = BuildTelegramLink(User.TelegramLinkToken);
             }
         }
+    }
+
+    private async Task CreateTelegramLinkAsync()
+    {
+        var token = await UserRepo.CreateTelegramLinkTokenAsync(User.Id);
+        User.TelegramLinkToken = token;
+        User.ChatId = null;
+        TelegramLink = BuildTelegramLink(token);
+        TelegramMessage = string.IsNullOrWhiteSpace(TelegramLink)
+            ? "يجب ضبط Telegram:BotUsername في إعدادات الخادم أولاً."
+            : "تم إنشاء الرابط. افتحه في تيليغرام ثم أرسل Start.";
+    }
+
+    private string? BuildTelegramLink(string? token)
+    {
+        var username = Configuration["Telegram:BotUsername"]?.Trim().TrimStart('@');
+        return string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(token)
+            ? null
+            : $"https://t.me/{username}?start=link_{token}";
     }
 
     private int LoggedUserId =>

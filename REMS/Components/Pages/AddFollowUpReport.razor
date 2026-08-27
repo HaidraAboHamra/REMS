@@ -261,7 +261,8 @@
                         </label>
 
                         <InputNumber class="form-control"
-                                     @bind-Value="vm.ExpectedDurationDays" />
+                                     @bind-Value="vm.ExpectedDurationDays"
+                                     @bind-Value:after="CalculateDueDate" />
 
                     </div>
 
@@ -277,7 +278,8 @@
 
                         <InputDate TValue="DateTime?"
                                    class="form-control"
-                                   @bind-Value="vm.StartDate" />
+                                   @bind-Value="vm.StartDate"
+                                   @bind-Value:after="CalculateDueDate" />
 
                     </div>
 
@@ -1259,6 +1261,12 @@
             file.Name;
     }
 
+    private void CalculateDueDate()
+    {
+        if (vm.StartDate.HasValue && vm.ExpectedDurationDays is > 0)
+            vm.DueDate = vm.StartDate.Value.AddDays(Math.Ceiling((double)vm.ExpectedDurationDays.Value) - 1);
+    }
+
     // =========================================================
     // حفظ الملف
     // =========================================================
@@ -1355,6 +1363,12 @@
             errorMessage =
                 "عدد المنجز يجب أن يكون بين 0 والعدد الكلي.";
 
+            return;
+        }
+
+        if (vm.StartDate.HasValue && vm.DueDate.HasValue && vm.DueDate.Value.Date < vm.StartDate.Value.Date)
+        {
+            errorMessage = "تاريخ التسليم يجب أن يكون في تاريخ البدء أو بعده.";
             return;
         }
 

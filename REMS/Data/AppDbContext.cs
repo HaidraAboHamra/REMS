@@ -58,6 +58,9 @@ public class AppDbContext : DbContext
                 x.OwnerId,
                 x.FolderId
             });
+
+        modelBuilder.Entity<StoredFile>()
+            .HasIndex(x => new { x.IsSharedHub, x.CreatedAt });
         base.OnModelCreating(modelBuilder);
     }
 }

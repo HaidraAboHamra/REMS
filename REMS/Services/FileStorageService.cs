@@ -4,6 +4,7 @@ namespace REMS.Services;
 
 public sealed class FileStorageService
 {
+    public const long MaxFileSize = 100L * 1024 * 1024;
     private readonly string _rootPath;
 
     public FileStorageService(IConfiguration configuration, IWebHostEnvironment environment)
@@ -21,14 +22,19 @@ public sealed class FileStorageService
 
     public async Task<string> SaveAsync(IBrowserFile browserFile, int ownerId, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(browserFile);
+
+        if (browserFile.Size is <= 0 or > MaxFileSize)
+            throw new InvalidOperationException("The file must be between 1 byte and 100 MB.");
+
         var ownerDirectory = Path.Combine(_rootPath, "users", ownerId.ToString());
         Directory.CreateDirectory(ownerDirectory);
 
-        var extension = Path.GetExtension(browserFile.Name);
+        var extension = Path.GetExtension(Path.GetFileName(browserFile.Name));
         var storedName = $"{Guid.NewGuid():N}{extension}";
         var absolutePath = Path.Combine(ownerDirectory, storedName);
 
-        await using var source = browserFile.OpenReadStream(500L * 1024 * 1024, cancellationToken);
+        await using var source = browserFile.OpenReadStream(MaxFileSize, cancellationToken);
         await using var destination = new FileStream(
             absolutePath, FileMode.CreateNew, FileAccess.Write, FileShare.None,
             1024 * 128, FileOptions.Asynchronous | FileOptions.SequentialScan);

@@ -22,6 +22,26 @@
             </NavLink>
         </div>
 
+        <AuthorizeView>
+            <Authorized>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link premium-link" href="/tasks">
+                        <div class="nav-emoji-box tasks-emoji">📌</div>
+                        <div class="nav-text"><span class="nav-title">لوحة المهام</span><span class="nav-subtitle">المعلقة وقيد الإنجاز والمتأخرة</span></div>
+                        <div class="nav-arrow"><i class="bi bi-chevron-left"></i></div>
+                    </NavLink>
+                </div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link premium-link" href="/files">
+                        <div class="nav-emoji-box files-emoji">📁</div>
+                        <div class="nav-text"><span class="nav-title">الملفات وHub</span><span class="nav-subtitle">ملفاتك والملفات المشتركة</span></div>
+                        <div class="nav-arrow"><i class="bi bi-chevron-left"></i></div>
+                    </NavLink>
+                </div>
+            </Authorized>
+        </AuthorizeView>
+
         <AuthorizeView Roles="User,Manager,Admin1">
             <Authorized>
                 <div class="nav-item px-3">
@@ -33,7 +53,7 @@
                 </div>
 
                 <div class="nav-item px-3">
-                    <NavLink class="nav-link premium-link" href="/Tasks">
+                    <NavLink class="nav-link premium-link" href="/Tasks-m">
                         <div class="nav-emoji-box tasks-emoji">📅</div>
                         <div class="nav-text"><span class="nav-title">جدولة المهام</span><span class="nav-subtitle">إدارة وجدولة الأعمال</span></div>
                         <div class="nav-arrow"><i class="bi bi-chevron-left"></i></div>
@@ -67,13 +87,6 @@
                     </NavLink>
                 </div>
 
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link premium-link" href="/files">
-                        <div class="nav-emoji-box files-emoji">📁</div>
-                        <div class="nav-text">الملفات</div>
-                        <div class="nav-arrow"><i class="bi bi-chevron-left"></i></div>
-                    </NavLink>
-                </div>
             </Authorized>
         </AuthorizeView>
 
