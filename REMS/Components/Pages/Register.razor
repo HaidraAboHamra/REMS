@@ -179,11 +179,11 @@
                     </div>
 
 
-                    <!-- Telegram -->
+                    <!-- Telegram username: the actual chat is linked safely from the profile page. -->
                     <div class="field-group">
 
-                        <label for="chatId" class="form-label">
-                            Telegram ChatId
+                        <label for="telegramUsername" class="form-label">
+                            اسم مستخدم تيليغرام
                         </label>
 
                         <div class="input-wrapper">
@@ -192,10 +192,10 @@
                                 💬
                             </span>
 
-                            <InputNumber id="chatId"
-                                         class="form-control premium-input"
-                                         @bind-Value="Users.ChatId"
-                                         placeholder="Telegram ChatId" />
+                            <InputText id="telegramUsername"
+                                       class="form-control premium-input"
+                                       @bind-Value="Users.TelegramUsername"
+                                       placeholder="username (اختياري)" />
 
                         </div>
 

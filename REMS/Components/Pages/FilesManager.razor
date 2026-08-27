@@ -431,14 +431,20 @@
         </div>
 
         <div class="drive-actions">
-            <label class="drive-btn primary drive-upload">
-                ＋ Upload
-                <InputFile OnChange="UploadFiles" multiple accept="*/*" />
-            </label>
+            @if (!ShowingHub || CanManageHub)
+            {
+                <label class="drive-btn primary drive-upload">
+                    ＋ @(ShowingHub ? "Publish to Hub" : "Upload")
+                    <InputFile OnChange="UploadFiles" multiple accept="*/*" />
+                </label>
+            }
 
-            <button class="drive-btn ghost" @onclick="CreateFolder">
-                ＋ New folder
-            </button>
+            @if (!ShowingHub)
+            {
+                <button class="drive-btn ghost" @onclick="CreateFolder">
+                    ＋ New folder
+                </button>
+            }
         </div>
     </div>
 
@@ -452,6 +458,11 @@
             <button class="drive-sideitem @(ShowingShared ? "active" : "")"
                     @onclick="LoadSharedFiles">
                 🤝 Shared with me
+            </button>
+
+            <button class="drive-sideitem @(ShowingHub ? "active" : "")"
+                    @onclick="LoadHubFiles">
+                🌐 Company Hub
             </button>
         </aside>
 
@@ -467,7 +478,7 @@
                 </span>
             </div>
 
-            @if (SearchText.Length == 0 && !ShowingShared)
+            @if (SearchText.Length == 0 && !ShowingShared && !ShowingHub)
             {
                 <div class="drive-breadcrumbs">
                     <button @onclick="() => NavigateFolder(null)">
@@ -485,13 +496,20 @@
                 </div>
             }
 
-            <label class="dropzone @(IsDragging ? "drag" : "")">
-                <InputFile OnChange="UploadFiles" multiple />
-                <strong>Drop files here</strong>
-                <div>
-                    <small>or click to browse • up to 500 MB per file</small>
-                </div>
-            </label>
+            @if (!ShowingHub || CanManageHub)
+            {
+                <label class="dropzone @(IsDragging ? "drag" : "")">
+                    <InputFile OnChange="UploadFiles" multiple />
+                    <strong>@(ShowingHub ? "Publish files for all users" : "Drop files here")</strong>
+                    <div>
+                        <small>or click to browse • up to 100 MB per file</small>
+                    </div>
+                </label>
+            }
+            else
+            {
+                <div class="share-status">Company Hub files are published by administrators and available to every logged-in user.</div>
+            }
 
             @if (!string.IsNullOrWhiteSpace(Message))
             {
@@ -573,6 +591,10 @@
                                 @FormatSize(file.Size)
                                 •
                                 @file.CreatedAt.ToLocalTime().ToString("dd MMM yyyy")
+                                @if (file.IsSharedHub)
+                                {
+                                    <span> • Hub</span>
+                                }
                             </div>
 
                             <div class="drive-menu">
@@ -771,7 +793,7 @@
                 </button>
             </div>
 
-            @if (ShareTarget.OwnerId != CurrentUserId)
+            @if (!CanManageFile(ShareTarget))
             {
                 <div class="share-status" style="margin-top:18px">
                     You are not the owner of this file.
@@ -840,7 +862,7 @@
                         <select class="share-input"
                                 @bind="access.Permission"
                                 @bind:after="() => UpdatePermission(access.Id, access.Permission)"
-                                disabled="@(ShareTarget.OwnerId != CurrentUserId)">
+                                disabled="@(!CanManageFile(ShareTarget))">
 
                             <option value="view">
                                 View
@@ -854,7 +876,7 @@
 
                         <button class="drive-btn ghost"
                                 @onclick="() => RevokeShare(access.Id)"
-                                disabled="@(ShareTarget.OwnerId != CurrentUserId)">
+                                disabled="@(!CanManageFile(ShareTarget))">
                             Remove
                         </button>
 
@@ -868,7 +890,7 @@
                 </div>
             }
 
-            @if (ShareTarget.OwnerId == CurrentUserId)
+            @if (CanManageFile(ShareTarget))
             {
                 <hr />
 
@@ -932,6 +954,8 @@
     private int? CurrentFolderId;
 
     private bool ShowingShared;
+    private bool ShowingHub;
+    private bool CanManageHub;
     private bool IsBusy;
     private bool IsDragging;
 
@@ -942,6 +966,7 @@
     private List<StoredFile> Files = [];
     private List<FileFolder> Breadcrumbs = [];
     private List<StoredFile> SharedFiles = [];
+    private List<StoredFile> HubFiles = [];
 
     private StoredFile? SelectedFile;
     private StoredFile? FileMenuTarget;
@@ -977,6 +1002,10 @@
             return;
         }
 
+        CanManageHub = state.User.IsInRole("Manager") ||
+                       state.User.IsInRole("Admin") ||
+                       state.User.IsInRole("Admin1");
+
         await LoadCurrentFolder();
     }
 
@@ -986,8 +1015,12 @@
             x.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
 
     private IEnumerable<StoredFile> VisibleFiles =>
-        ShowingShared
-            ? SharedFiles.Where(x =>
+        ShowingHub
+            ? HubFiles.Where(x =>
+                string.IsNullOrWhiteSpace(SearchText) ||
+                x.OriginalName.Contains(SearchText, StringComparison.OrdinalIgnoreCase))
+            : ShowingShared
+                ? SharedFiles.Where(x =>
                 string.IsNullOrWhiteSpace(SearchText) ||
                 x.OriginalName.Contains(SearchText, StringComparison.OrdinalIgnoreCase))
             : Files.Where(x =>
@@ -1000,6 +1033,7 @@
     private async Task LoadCurrentFolder()
     {
         ShowingShared = false;
+        ShowingHub = false;
         Message = null;
 
         Folders = await Db.FileFolders
@@ -1026,6 +1060,7 @@
             Message = null;
 
             ShowingShared = true;
+            ShowingHub = false;
             CurrentFolderId = null;
 
             Folders = [];
@@ -1044,6 +1079,28 @@
         catch (Exception ex)
         {
             Message = $"Unable to load shared files: {ex.Message}";
+        }
+    }
+
+    private async Task LoadHubFiles()
+    {
+        try
+        {
+            Message = null;
+            ShowingShared = false;
+            ShowingHub = true;
+            CurrentFolderId = null;
+            Folders = [];
+            Breadcrumbs = [];
+
+            HubFiles = await Db.StoredFiles
+                .Where(x => x.IsSharedHub)
+                .OrderByDescending(x => x.CreatedAt)
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            Message = $"Unable to load the company hub: {ex.Message}";
         }
     }
 
@@ -1077,6 +1134,12 @@
 
     private async Task UploadFiles(InputFileChangeEventArgs e)
     {
+        if (ShowingHub && !CanManageHub)
+        {
+            Message = "Only administrators can publish files to the company hub.";
+            return;
+        }
+
         IsBusy = true;
         Message = null;
 
@@ -1097,7 +1160,8 @@
                     ContentType = browserFile.ContentType,
                     Size = browserFile.Size,
                     OwnerId = CurrentUserId,
-                    FolderId = CurrentFolderId,
+                    FolderId = ShowingHub ? null : CurrentFolderId,
+                    IsSharedHub = ShowingHub,
                     CreatedAt = DateTime.UtcNow
                 });
             }
@@ -1106,7 +1170,10 @@
 
             Message = "Upload complete.";
 
-            await LoadCurrentFolder();
+            if (ShowingHub)
+                await LoadHubFiles();
+            else
+                await LoadCurrentFolder();
         }
         catch (Exception ex)
         {
@@ -1120,6 +1187,12 @@
 
     private async Task CreateFolder()
     {
+        if (ShowingHub)
+        {
+            Message = "Folders are not used in the company hub.";
+            return;
+        }
+
         var name =
             await JS.InvokeAsync<string?>(
                 "prompt",
@@ -1311,12 +1384,12 @@
                 return false;
             }
 
-            // Always verify ownership from the database.
+            // Hub administrators may also manage hub files.
             var dbFile = await Db.StoredFiles
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x =>
                     x.Id == file.Id &&
-                    x.OwnerId == CurrentUserId);
+                    (x.OwnerId == CurrentUserId || (x.IsSharedHub && CanManageHub)));
 
             if (dbFile is null)
             {
@@ -1410,7 +1483,7 @@
                 return;
             }
 
-            if (ShareTarget.OwnerId != CurrentUserId)
+            if (!CanManageFile(ShareTarget))
             {
                 Message = "Only the owner can share this file.";
                 return;
@@ -1495,7 +1568,7 @@
             if (ShareTarget is null)
                 return;
 
-            if (ShareTarget.OwnerId != CurrentUserId)
+            if (!CanManageFile(ShareTarget))
             {
                 Message = "Only the owner can change permissions.";
                 return;
@@ -1533,7 +1606,7 @@
             if (ShareTarget is null)
                 return;
 
-            if (ShareTarget.OwnerId != CurrentUserId)
+            if (!CanManageFile(ShareTarget))
             {
                 Message = "Only the owner can revoke access.";
                 return;
@@ -1570,7 +1643,7 @@
             if (ShareTarget is null)
                 return;
 
-            if (ShareTarget.OwnerId != CurrentUserId)
+            if (!CanManageFile(ShareTarget))
             {
                 Message = "Only the owner can create a public link.";
                 return;
@@ -1619,7 +1692,7 @@
             if (ShareTarget is null)
                 return;
 
-            if (ShareTarget.OwnerId != CurrentUserId)
+            if (!CanManageFile(ShareTarget))
             {
                 Message = "Only the owner can revoke a public link.";
                 return;
@@ -1690,8 +1763,11 @@
 
     private bool CanShare(StoredFile file)
     {
-        return file.OwnerId == CurrentUserId;
+        return CanManageFile(file);
     }
+
+    private bool CanManageFile(StoredFile file) =>
+        file.OwnerId == CurrentUserId || (file.IsSharedHub && CanManageHub);
 
     private async Task RenameFile(StoredFile file)
     {
@@ -1723,7 +1799,11 @@
 
             await Db.SaveChangesAsync();
 
-            if (ShowingShared)
+            if (ShowingHub)
+            {
+                await LoadHubFiles();
+            }
+            else if (ShowingShared)
             {
                 await LoadSharedFiles();
             }
@@ -1771,7 +1851,11 @@
             CloseShare();
             CloseFileMenu();
 
-            if (ShowingShared)
+            if (ShowingHub)
+            {
+                await LoadHubFiles();
+            }
+            else if (ShowingShared)
             {
                 await LoadSharedFiles();
             }
@@ -1791,7 +1875,7 @@
 
     private async Task<bool> CanEdit(StoredFile file)
     {
-        if (file.OwnerId == CurrentUserId)
+        if (CanManageFile(file))
             return true;
 
         return await Db.FilePermissions.AnyAsync(x =>

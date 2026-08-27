@@ -3,7 +3,9 @@ using Blazorise.Bootstrap5;
 using Blazorise.Icons.FontAwesome;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using MudBlazor.Services;
@@ -13,14 +15,39 @@ using REMS.Interfaces;
 using REMS.Services;
 using ReportApp.Services;
 using System.Text;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// The Windows Event Log is frequently unavailable to desktop users and should
+// never prevent the web host from starting. Console/debug providers are enough
+// for the local application and preserve useful diagnostics.
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
 
 // ======================================================
 // Configure Services
 // ======================================================
 
 builder.Services.AddRazorPages();
+
+var dataProtectionPath = Path.Combine(builder.Environment.ContentRootPath, "App_Data", "DataProtection-Keys");
+Directory.CreateDirectory(dataProtectionPath);
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionPath))
+    .SetApplicationName("REMS");
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddFixedWindowLimiter("login", limiter =>
+    {
+        limiter.PermitLimit = 10;
+        limiter.Window = TimeSpan.FromMinutes(1);
+        limiter.QueueLimit = 0;
+    });
+});
 
 builder.Services
     .AddRazorComponents()
@@ -124,7 +151,11 @@ builder.Services
         options =>
         {
             options.LoginPath = "/login";
-            options.ExpireTimeSpan = TimeSpan.FromDays(20);
+            options.ExpireTimeSpan = TimeSpan.FromHours(12);
+            options.SlidingExpiration = true;
+            options.Cookie.HttpOnly = true;
+            options.Cookie.SameSite = SameSiteMode.Lax;
+            options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
         });
 
 // ======================================================
@@ -133,10 +164,20 @@ builder.Services
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    var allowedOrigins = builder.Configuration
+        .GetSection("Cors:AllowedOrigins")
+        .Get<string[]>() ?? [];
+
+    options.AddPolicy("AppOnly", policy =>
     {
         policy
-            .AllowAnyOrigin()
+            .SetIsOriginAllowed(origin =>
+            {
+                if (!Uri.TryCreate(origin, UriKind.Absolute, out var uri))
+                    return false;
+
+                return uri.IsLoopback || allowedOrigins.Contains(origin, StringComparer.OrdinalIgnoreCase);
+            })
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
@@ -149,6 +190,15 @@ builder.Services.AddControllers();
 // ======================================================
 
 var app = builder.Build();
+
+// Keep the local SQLite schema aligned with the application on first startup.
+// This is especially important for desktop deployments where migrations are not run separately.
+await using (var scope = app.Services.CreateAsyncScope())
+{
+    var dbFactory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<AppDbContext>>();
+    await using var db = await dbFactory.CreateDbContextAsync();
+    await db.Database.MigrateAsync();
+}
 
 // ======================================================
 // Reverse Proxy / Nginx
@@ -165,7 +215,7 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
 // CORS
 // ======================================================
 
-app.UseCors("AllowAll");
+app.UseCors("AppOnly");
 
 // ======================================================
 // Middleware Pipeline
@@ -179,9 +229,19 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.TryAdd("X-Content-Type-Options", "nosniff");
+    context.Response.Headers.TryAdd("X-Frame-Options", "SAMEORIGIN");
+    context.Response.Headers.TryAdd("Referrer-Policy", "strict-origin-when-cross-origin");
+    context.Response.Headers.TryAdd("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+    await next();
+});
+
 app.UseStaticFiles();
 
 app.UseRouting();
+app.UseRateLimiter();
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -194,7 +254,7 @@ app.UseAntiforgery();
 
 app.MapControllers();
 
-app.MapRazorPages();
+app.MapRazorPages().RequireRateLimiting("login");
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();

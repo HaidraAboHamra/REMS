@@ -59,13 +59,19 @@ public class FilesController : Controller
         var path = _storage.GetAbsolutePath(file.RelativePath);
         if (!System.IO.File.Exists(path)) return NotFound();
 
+        if (inline)
+        {
+            Response.Headers.Append("Content-Security-Policy", "sandbox; default-src 'none'; img-src 'self' data:; media-src 'self'; style-src 'unsafe-inline'");
+            Response.Headers.Append("X-Content-Type-Options", "nosniff");
+        }
+
         var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 128 * 1024, true);
         return File(stream, file.ContentType ?? "application/octet-stream", inline ? null : file.OriginalName, enableRangeProcessing: true);
     }
 
     private async Task<bool> CanRead(StoredFile file, int userId)
     {
-        if (file.OwnerId == userId) return true;
+        if (file.IsSharedHub || file.OwnerId == userId) return true;
         return await _db.Set<FilePermission>().AnyAsync(x => x.FileId == file.Id && x.UserId == userId);
     }
 
