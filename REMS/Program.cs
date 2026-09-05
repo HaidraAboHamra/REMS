@@ -93,10 +93,11 @@ builder.Services.AddHostedService<ReportEmailHostedService>();
 builder.Services.AddHostedService<LateTaskPenaltyService>();
 
 builder.Services.AddScoped<UserService>();
+
+builder.Services.AddSingleton<FileStorageService>();
 builder.Services.AddSingleton<TelegramService>();
 
 builder.Services.AddHostedService<TelegramMessageScheduler>();
-
 builder.Services.AddHostedService<TelegramBotHostedService>();
 
 builder.Services.AddScoped<IAuthentication, AuthenticationRepository>();
@@ -104,9 +105,7 @@ builder.Services.AddScoped<IFollowUpReportService, FollowUpReportService>();
 builder.Services.AddScoped<ISettings, SettingsRepository>();
 builder.Services.AddScoped<ExcelService>();
 builder.Services.AddScoped<Test>();
-builder.Services.AddScoped<FileStorageService>();
 builder.Services.AddHttpContextAccessor();
-
 // ======================================================
 // Authentication & Authorization
 // ======================================================

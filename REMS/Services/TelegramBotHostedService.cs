@@ -21,6 +21,35 @@ public class TelegramBotHostedService : BackgroundService
         _logger = logger;
     }
 
+    // =========================================================
+    // ARABIC MONTH NAME
+    // =========================================================
+
+    private static string GetArabicMonthName(
+        int month)
+    {
+        return month switch
+        {
+            1 => "يناير",
+            2 => "فبراير",
+            3 => "مارس",
+            4 => "أبريل",
+            5 => "مايو",
+            6 => "يونيو",
+            7 => "يوليو",
+            8 => "أغسطس",
+            9 => "سبتمبر",
+            10 => "أكتوبر",
+            11 => "نوفمبر",
+            12 => "ديسمبر",
+            _ => string.Empty
+        };
+    }
+
+    // =========================================================
+    // EXECUTE
+    // =========================================================
+
     [Obsolete]
     protected override async Task ExecuteAsync(
         CancellationToken stoppingToken)
@@ -75,7 +104,8 @@ public class TelegramBotHostedService : BackgroundService
         object? sender,
         UpdateEventArgs e)
     {
-        _ = ProcessUpdateAsync(e.Update);
+        _ = ProcessUpdateAsync(
+            e.Update);
     }
 
     private async Task ProcessUpdateAsync(
@@ -114,7 +144,8 @@ public class TelegramBotHostedService : BackgroundService
     private async Task HandleMessageAsync(
         Telegram.Bot.Types.Message message)
     {
-        var chatId = message.Chat.Id;
+        var chatId =
+            message.Chat.Id;
 
         // -----------------------------------------------------
         // TELEGRAM ACCOUNT LINKING
@@ -141,13 +172,15 @@ public class TelegramBotHostedService : BackgroundService
                 chatId,
                 "✅ تم ربط Telegram بحساب REMS بنجاح.");
 
-            await SendMainMenuAsync(chatId);
+            await SendMainMenuAsync(
+                chatId);
 
             return;
         }
 
         var user =
-            await _telegram.GetUserByChatIdAsync(chatId);
+            await _telegram.GetUserByChatIdAsync(
+                chatId);
 
         // -----------------------------------------------------
         // START
@@ -160,11 +193,13 @@ public class TelegramBotHostedService : BackgroundService
         {
             if (user == null)
             {
-                await SendLinkMenuAsync(chatId);
+                await SendLinkMenuAsync(
+                    chatId);
             }
             else
             {
-                await SendMainMenuAsync(chatId);
+                await SendMainMenuAsync(
+                    chatId);
             }
 
             return;
@@ -176,7 +211,22 @@ public class TelegramBotHostedService : BackgroundService
 
         if (user == null)
         {
-            await SendLinkMenuAsync(chatId);
+            await SendLinkMenuAsync(
+                chatId);
+
+            return;
+        }
+
+        // -----------------------------------------------------
+        // FILE UPLOAD
+        // -----------------------------------------------------
+
+        if (IsFileMessage(message))
+        {
+            await HandleFileUploadAsync(
+                user,
+                message);
+
             return;
         }
 
@@ -220,6 +270,172 @@ public class TelegramBotHostedService : BackgroundService
     }
 
     // =========================================================
+    // FILE MESSAGE DETECTION
+    // =========================================================
+
+    private static bool IsFileMessage(
+        Telegram.Bot.Types.Message message)
+    {
+        return
+            message.Document != null ||
+            (message.Photo != null &&
+             message.Photo.Length > 0) ||
+            message.Video != null ||
+            message.Audio != null ||
+            message.Animation != null;
+    }
+
+    // =========================================================
+    // FILE UPLOAD
+    // =========================================================
+
+    private async Task HandleFileUploadAsync(
+        User user,
+        Telegram.Bot.Types.Message message)
+    {
+        var chatId =
+            user.ChatId!.Value;
+
+        try
+        {
+            var fileName =
+                GetIncomingFileName(
+                    message);
+
+            await _telegram.SendMessageAsync(
+                chatId,
+                $"⏳ جارٍ رفع الملف إلى REMS...\n\n" +
+                $"📄 {fileName}\n" +
+                "يرجى الانتظار حتى يكتمل الرفع.");
+
+            var storedFile =
+                await _telegram.SaveTelegramFileAsync(
+                    chatId,
+                    message,
+                    folderId: null,
+                    isSharedHub: false);
+
+            if (storedFile == null)
+            {
+                await _telegram.SendMessageAsync(
+                    chatId,
+                    "❌ تعذر حفظ الملف.\n\n" +
+                    "تأكد أن حساب Telegram مربوط بحساب REMS.");
+
+                return;
+            }
+
+            var sizeText =
+                FormatFileSize(
+                    storedFile.Size);
+
+            await _telegram.SendMessageAsync(
+                chatId,
+                "✅ تم رفع الملف بنجاح إلى REMS.\n\n" +
+                $"📄 الاسم: {storedFile.OriginalName}\n" +
+                $"📦 الحجم: {sizeText}\n" +
+                $"🆔 File ID: {storedFile.Id}\n\n" +
+                "📁 تم حفظ الملف في ملفاتك داخل REMS.");
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(
+                ex,
+                "Telegram file upload rejected for user {UserId}",
+                user.Id);
+
+            await _telegram.SendMessageAsync(
+                chatId,
+                $"❌ لم يتم رفع الملف.\n\n{ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Telegram file upload failed for user {UserId}",
+                user.Id);
+
+            await _telegram.SendMessageAsync(
+                chatId,
+                "❌ حدث خطأ أثناء رفع الملف إلى REMS.\n\n" +
+                "حاول مرة أخرى لاحقًا.");
+        }
+    }
+
+    // =========================================================
+    // INCOMING FILE NAME
+    // =========================================================
+
+    private static string GetIncomingFileName(
+        Telegram.Bot.Types.Message message)
+    {
+        if (message.Document != null)
+        {
+            return Path.GetFileName(
+                string.IsNullOrWhiteSpace(
+                    message.Document.FileName)
+                    ? "telegram-file"
+                    : message.Document.FileName);
+        }
+
+        if (message.Photo is { Length: > 0 })
+        {
+            return
+                $"photo-{DateTime.Now:yyyyMMdd-HHmmss}.jpg";
+        }
+
+        if (message.Video != null)
+        {
+            return Path.GetFileName(
+                string.IsNullOrWhiteSpace(
+                    message.Video.FileName)
+                    ? $"video-{DateTime.Now:yyyyMMdd-HHmmss}.mp4"
+                    : message.Video.FileName);
+        }
+
+        if (message.Audio != null)
+        {
+            return Path.GetFileName(
+                string.IsNullOrWhiteSpace(
+                    message.Audio.FileName)
+                    ? $"audio-{DateTime.Now:yyyyMMdd-HHmmss}.mp3"
+                    : message.Audio.FileName);
+        }
+
+        if (message.Animation != null)
+        {
+            return Path.GetFileName(
+                string.IsNullOrWhiteSpace(
+                    message.Animation.FileName)
+                    ? $"animation-{DateTime.Now:yyyyMMdd-HHmmss}.mp4"
+                    : message.Animation.FileName);
+        }
+
+        return
+            $"telegram-file-{DateTime.Now:yyyyMMdd-HHmmss}";
+    }
+
+    // =========================================================
+    // FILE SIZE
+    // =========================================================
+
+    private static string FormatFileSize(
+        long bytes)
+    {
+        if (bytes < 1024)
+            return $"{bytes} B";
+
+        if (bytes < 1024 * 1024)
+            return $"{bytes / 1024d:0.##} KB";
+
+        if (bytes < 1024L * 1024L * 1024L)
+            return $"{bytes / (1024d * 1024d):0.##} MB";
+
+        return
+            $"{bytes / (1024d * 1024d * 1024d):0.##} GB";
+    }
+
+    // =========================================================
     // COMMANDS
     // =========================================================
 
@@ -241,15 +457,18 @@ public class TelegramBotHostedService : BackgroundService
         {
             case "/start":
             case "/menu":
-                await SendMainMenuAsync(chatId);
+                await SendMainMenuAsync(
+                    chatId);
                 break;
 
             case "/tasks":
-                await SendMyTasksAsync(user);
+                await SendMyTasksAsync(
+                    user);
                 break;
 
             case "/add":
-                await StartAddTaskAsync(user);
+                await StartAddTaskAsync(
+                    user);
                 break;
 
             case "/finish":
@@ -271,48 +490,60 @@ public class TelegramBotHostedService : BackgroundService
                 break;
 
             case "/overdue":
-                await SendOverdueAsync(user);
+                await SendOverdueAsync(
+                    user);
                 break;
 
             case "/report":
                 if (CanViewReports(user))
-                    await SendDailyReportAsync(user);
+                    await SendDailyReportAsync(
+                        user);
                 else
-                    await SendAccessDeniedAsync(user);
+                    await SendAccessDeniedAsync(
+                        user);
                 break;
 
             case "/weekly":
                 if (CanViewReports(user))
-                    await SendWeeklyReportAsync(user);
+                    await SendWeeklyReportAsync(
+                        user);
                 else
-                    await SendAccessDeniedAsync(user);
+                    await SendAccessDeniedAsync(
+                        user);
                 break;
 
             case "/backlog":
                 if (CanViewReports(user))
-                    await SendBacklogReportAsync(user);
+                    await SendBacklogReportAsync(
+                        user);
                 else
-                    await SendAccessDeniedAsync(user);
+                    await SendAccessDeniedAsync(
+                        user);
                 break;
 
             case "/employees":
                 if (CanManageUsers(user))
-                    await SendEmployeesAsync(user);
+                    await SendEmployeesAsync(
+                        user);
                 else
-                    await SendAccessDeniedAsync(user);
+                    await SendAccessDeniedAsync(
+                        user);
                 break;
 
             case "/addemployee":
                 if (CanManageUsers(user))
-                    await StartAddEmployeeAsync(user);
+                    await StartAddEmployeeAsync(
+                        user);
                 else
-                    await SendAccessDeniedAsync(user);
+                    await SendAccessDeniedAsync(
+                        user);
                 break;
 
             default:
                 await _telegram.SendMessageAsync(
                     chatId,
-                    "❌ الأمر غير معروف.\n\nاستخدم /menu");
+                    "❌ الأمر غير معروف.\n\n" +
+                    "استخدم /menu");
                 break;
         }
     }
@@ -325,18 +556,23 @@ public class TelegramBotHostedService : BackgroundService
         long chatId)
     {
         var user =
-            await _telegram.GetUserByChatIdAsync(chatId);
+            await _telegram.GetUserByChatIdAsync(
+                chatId);
 
         if (user == null)
         {
-            await SendLinkMenuAsync(chatId);
+            await SendLinkMenuAsync(
+                chatId);
+
             return;
         }
 
         await _telegram.SendMessageAsync(
             chatId,
             $"👋 أهلاً {user.FullName}\n\n" +
-            "REMS Telegram Control Center",
+            "REMS Telegram Control Center\n\n" +
+            "📎 يمكنك إرسال ملف مباشرة إلى البوت " +
+            "ليتم حفظه في File Manager الخاص بك.",
             BuildMainMenu(user));
     }
 
@@ -347,9 +583,9 @@ public class TelegramBotHostedService : BackgroundService
             new List<
                 Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton[]>();
 
-        // ============================
+        // =====================================================
         // BASIC
-        // ============================
+        // =====================================================
 
         rows.Add(new[]
         {
@@ -390,9 +626,9 @@ public class TelegramBotHostedService : BackgroundService
                     "overdue")
         });
 
-        // ============================
+        // =====================================================
         // ADMIN
-        // ============================
+        // =====================================================
 
         if (CanViewReports(user))
         {
@@ -418,9 +654,9 @@ public class TelegramBotHostedService : BackgroundService
             });
         }
 
-        // ============================
+        // =====================================================
         // USER MANAGEMENT
-        // ============================
+        // =====================================================
 
         if (CanManageUsers(user))
         {
@@ -438,9 +674,9 @@ public class TelegramBotHostedService : BackgroundService
             });
         }
 
-        // ============================
+        // =====================================================
         // BROADCAST
-        // ============================
+        // =====================================================
 
         if (CanBroadcast(user))
         {
@@ -453,6 +689,10 @@ public class TelegramBotHostedService : BackgroundService
             });
         }
 
+        // =====================================================
+        // REFRESH
+        // =====================================================
+
         rows.Add(new[]
         {
             Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton
@@ -461,7 +701,9 @@ public class TelegramBotHostedService : BackgroundService
                     "refresh")
         });
 
-        return new Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup(rows);
+        return
+            new Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup(
+                rows);
     }
 
     // =========================================================
@@ -580,7 +822,8 @@ public class TelegramBotHostedService : BackgroundService
         await _telegram.SendMessageAsync(
             user.ChatId!.Value,
             message,
-            new Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup(rows));
+            new Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup(
+                rows));
     }
 
     // =========================================================
@@ -593,14 +836,17 @@ public class TelegramBotHostedService : BackgroundService
         _states[user.ChatId!.Value] =
             new BotState
             {
-                Action = BotAction.AddTask,
-                Step = 1
+                Action =
+                    BotAction.AddTask,
+
+                Step =
+                    1
             };
 
         await _telegram.SendMessageAsync(
             user.ChatId.Value,
             "➕ إنشاء مهمة جديدة\n\n" +
-            "أرسل وصف المهمة:");
+            "📝 أرسل وصف المهمة:");
     }
 
     // =========================================================
@@ -612,15 +858,20 @@ public class TelegramBotHostedService : BackgroundService
     {
         if (!CanManageUsers(admin))
         {
-            await SendAccessDeniedAsync(admin);
+            await SendAccessDeniedAsync(
+                admin);
+
             return;
         }
 
         _states[admin.ChatId!.Value] =
             new BotState
             {
-                Action = BotAction.AddEmployee,
-                Step = 1
+                Action =
+                    BotAction.AddEmployee,
+
+                Step =
+                    1
             };
 
         await _telegram.SendMessageAsync(
@@ -637,7 +888,10 @@ public class TelegramBotHostedService : BackgroundService
         return
             "👤 إضافة حساب جديد\n\n" +
             $"🏢 القسم: {department}\n\n" +
-            "اختر نوع الحساب الذي تريد إنشاءه:";
+            "اختر نوع الحساب الذي تريد إنشاءه:\n\n" +
+            "1️⃣ موظف تابع لقسمك\n" +
+            "2️⃣ Admin من نفس قسمك\n\n" +
+            "أرسل 1 أو 2";
     }
 
     // =========================================================
@@ -652,90 +906,54 @@ public class TelegramBotHostedService : BackgroundService
         var chatId =
             user.ChatId!.Value;
 
-        if (string.IsNullOrWhiteSpace(text))
-        {
-            await _telegram.SendMessageAsync(
-                chatId,
-                "❌ أرسل نصًا صحيحًا.");
-
-            return;
-        }
-
         // =====================================================
         // ADD TASK
         // =====================================================
 
         if (state.Action == BotAction.AddTask)
         {
+            // -------------------------------------------------
+            // STEP 1 = TASK DESCRIPTION
+            // -------------------------------------------------
+
             if (state.Step == 1)
             {
-                state.Content = text;
-                state.Step = 2;
-
-                await _telegram.SendMessageAsync(
-                    chatId,
-                    "📅 أرسل تاريخ الاستحقاق:\n\n" +
-                    "2026-09-20\n\n" +
-                    "أو اكتب:\n" +
-                    "بدون موعد");
-
-                return;
-            }
-
-            if (state.Step == 2)
-            {
-                DateTime? dueDate = null;
-
-                if (!text.Equals(
-                        "بدون موعد",
-                        StringComparison.OrdinalIgnoreCase))
+                if (string.IsNullOrWhiteSpace(text))
                 {
-                    if (!DateTime.TryParse(
-                            text,
-                            out var parsed))
-                    {
-                        await _telegram.SendMessageAsync(
-                            chatId,
-                            "❌ التاريخ غير صحيح.\n\n" +
-                            "مثال:\n" +
-                            "2026-09-20");
-
-                        return;
-                    }
-
-                    dueDate = parsed.Date;
-                }
-
-                state.DueDate = dueDate;
-
-                if (IsAnyAdmin(user))
-                {
-                    await SendEmployeeSelectionForCreationAsync(
-                        chatId);
+                    await _telegram.SendMessageAsync(
+                        chatId,
+                        "❌ يجب إرسال وصف المهمة.");
 
                     return;
                 }
 
-                var task =
-                    await _telegram.CreateTaskAsync(
-                        user.Id,
-                        user.Id,
-                        state.Content!,
-                        state.DueDate,
-                        0);
+                state.Content =
+                    text.Trim();
 
-                _states.TryRemove(
-                    chatId,
-                    out _);
+                state.Step =
+                    2;
 
-                await _telegram.SendMessageAsync(
-                    chatId,
-                    task == null
-                        ? "❌ تعذر إنشاء المهمة."
-                        : $"✅ تم إنشاء المهمة #{task.Id}.");
+                await SendTaskDueDateCalendarAsync(
+                    chatId);
 
                 return;
             }
+
+            // -------------------------------------------------
+            // STEP 2 = WAITING FOR CALENDAR SELECTION
+            // -------------------------------------------------
+
+            if (state.Step == 2)
+            {
+                await _telegram.SendMessageAsync(
+                    chatId,
+                    "⚠️ اختيار تاريخ التسليم إلزامي.\n\n" +
+                    "استخدم التقويم أعلاه لاختيار التاريخ.");
+
+                return;
+            }
+
+            return;
         }
 
         // =====================================================
@@ -744,6 +962,15 @@ public class TelegramBotHostedService : BackgroundService
 
         if (state.Action == BotAction.EditTask)
         {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                await _telegram.SendMessageAsync(
+                    chatId,
+                    "❌ أرسل النص الجديد للمهمة.");
+
+                return;
+            }
+
             if (!state.TaskId.HasValue)
             {
                 _states.TryRemove(
@@ -784,19 +1011,26 @@ public class TelegramBotHostedService : BackgroundService
                     chatId,
                     out _);
 
-                await SendAccessDeniedAsync(user);
+                await SendAccessDeniedAsync(
+                    user);
+
                 return;
             }
 
+            // -------------------------------------------------
             // STEP 1 = ROLE
+            // -------------------------------------------------
+
             if (state.Step == 1)
             {
                 if (text == "1")
                 {
                     state.NewEmployeeType =
-                        EmployeeCreationType.DepartmentEmployee;
+                        EmployeeCreationType
+                            .DepartmentEmployee;
 
-                    state.Step = 2;
+                    state.Step =
+                        2;
 
                     await _telegram.SendMessageAsync(
                         chatId,
@@ -806,9 +1040,11 @@ public class TelegramBotHostedService : BackgroundService
                 else if (text == "2")
                 {
                     state.NewEmployeeType =
-                        EmployeeCreationType.SameTypeAdmin;
+                        EmployeeCreationType
+                            .SameTypeAdmin;
 
-                    state.Step = 2;
+                    state.Step =
+                        2;
 
                     await _telegram.SendMessageAsync(
                         chatId,
@@ -819,17 +1055,22 @@ public class TelegramBotHostedService : BackgroundService
                 {
                     await SendEmployeeRoleMenu(
                         user);
-
                 }
 
                 return;
             }
 
+            // -------------------------------------------------
             // STEP 2 = NAME
+            // -------------------------------------------------
+
             if (state.Step == 2)
             {
-                state.EmployeeFullName = text;
-                state.Step = 3;
+                state.EmployeeFullName =
+                    text;
+
+                state.Step =
+                    3;
 
                 await _telegram.SendMessageAsync(
                     chatId,
@@ -838,11 +1079,17 @@ public class TelegramBotHostedService : BackgroundService
                 return;
             }
 
+            // -------------------------------------------------
             // STEP 3 = PHONE
+            // -------------------------------------------------
+
             if (state.Step == 3)
             {
-                state.EmployeePhone = text;
-                state.Step = 4;
+                state.EmployeePhone =
+                    text;
+
+                state.Step =
+                    4;
 
                 await _telegram.SendMessageAsync(
                     chatId,
@@ -851,11 +1098,17 @@ public class TelegramBotHostedService : BackgroundService
                 return;
             }
 
+            // -------------------------------------------------
             // STEP 4 = EMAIL
+            // -------------------------------------------------
+
             if (state.Step == 4)
             {
-                state.EmployeeEmail = text;
-                state.Step = 5;
+                state.EmployeeEmail =
+                    text;
+
+                state.Step =
+                    5;
 
                 await _telegram.SendMessageAsync(
                     chatId,
@@ -864,7 +1117,10 @@ public class TelegramBotHostedService : BackgroundService
                 return;
             }
 
+            // -------------------------------------------------
             // STEP 5 = PASSWORD
+            // -------------------------------------------------
+
             if (state.Step == 5)
             {
                 var result =
@@ -873,7 +1129,9 @@ public class TelegramBotHostedService : BackgroundService
                         state.EmployeePhone!,
                         state.EmployeeEmail!,
                         text!,
-                        GetNewEmployeeRole(user, state));
+                        GetNewEmployeeRole(
+                            user,
+                            state));
 
                 _states.TryRemove(
                     chatId,
@@ -883,7 +1141,7 @@ public class TelegramBotHostedService : BackgroundService
                 {
                     await _telegram.SendMessageAsync(
                         chatId,
-                        $"❌ لم يتم إنشاء الحساب.\n\n" +
+                        "❌ لم يتم إنشاء الحساب.\n\n" +
                         result.Message);
 
                     return;
@@ -897,6 +1155,8 @@ public class TelegramBotHostedService : BackgroundService
                     BuildEmployeeCreatedMessage(
                         employee,
                         state));
+
+                return;
             }
 
             return;
@@ -914,7 +1174,18 @@ public class TelegramBotHostedService : BackgroundService
                     chatId,
                     out _);
 
-                await SendAccessDeniedAsync(user);
+                await SendAccessDeniedAsync(
+                    user);
+
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                await _telegram.SendMessageAsync(
+                    chatId,
+                    "❌ لا يمكن إرسال رسالة فارغة.");
+
                 return;
             }
 
@@ -931,6 +1202,224 @@ public class TelegramBotHostedService : BackgroundService
 
             return;
         }
+    }
+
+    // =========================================================
+    // TASK DUE DATE CALENDAR
+    // =========================================================
+
+    private async Task SendTaskDueDateCalendarAsync(
+        long chatId,
+        int monthOffset = 0)
+    {
+        await _telegram.SendMessageAsync(
+            chatId,
+            "📅 اختر تاريخ التسليم:\n\n" +
+            "⚠️ اختيار الموعد إلزامي.",
+            new Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup(
+                BuildTaskDueDateCalendar(
+                    monthOffset)));
+    }
+
+    private static List<
+        Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton[]>
+        BuildTaskDueDateCalendar(
+            int monthOffset)
+    {
+        var targetDate =
+            DateTime.Today.AddMonths(
+                monthOffset);
+
+        var year =
+            targetDate.Year;
+
+        var month =
+            targetDate.Month;
+
+        var firstDay =
+            new DateTime(
+                year,
+                month,
+                1);
+
+        var daysInMonth =
+            DateTime.DaysInMonth(
+                year,
+                month);
+
+        var buttons =
+            new List<
+                Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton[]>();
+
+        // =====================================================
+        // HEADER
+        // =====================================================
+
+        buttons.Add(
+            new[]
+            {
+                Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton
+                    .WithCallbackData(
+                        $"📅 {GetArabicMonthName(month)} {year}",
+                        "noop")
+            });
+
+        // =====================================================
+        // WEEK DAYS
+        // =====================================================
+
+        buttons.Add(
+            new[]
+            {
+                Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton
+                    .WithCallbackData(
+                        "أحد",
+                        "noop"),
+
+                Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton
+                    .WithCallbackData(
+                        "اثن",
+                        "noop"),
+
+                Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton
+                    .WithCallbackData(
+                        "ثلا",
+                        "noop"),
+
+                Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton
+                    .WithCallbackData(
+                        "أرب",
+                        "noop"),
+
+                Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton
+                    .WithCallbackData(
+                        "خمي",
+                        "noop"),
+
+                Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton
+                    .WithCallbackData(
+                        "جمع",
+                        "noop"),
+
+                Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton
+                    .WithCallbackData(
+                        "سبت",
+                        "noop")
+            });
+
+        // =====================================================
+        // EMPTY CELLS
+        // =====================================================
+
+        var startDay =
+            (int)firstDay.DayOfWeek;
+
+        var row =
+            new List<
+                Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton>();
+
+        for (var i = 0;
+             i < startDay;
+             i++)
+        {
+            row.Add(
+                Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton
+                    .WithCallbackData(
+                        "·",
+                        "noop"));
+        }
+
+        // =====================================================
+        // DAYS
+        // =====================================================
+
+        for (var day = 1;
+             day <= daysInMonth;
+             day++)
+        {
+            var date =
+                new DateTime(
+                    year,
+                    month,
+                    day);
+
+            // Do not allow selecting dates before today.
+            if (date.Date < DateTime.Today)
+            {
+                row.Add(
+                    Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton
+                        .WithCallbackData(
+                            "·",
+                            "noop"));
+            }
+            else
+            {
+                var label =
+                    date.Date == DateTime.Today
+                        ? $"🟢 {day}"
+                        : day.ToString();
+
+                row.Add(
+                    Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton
+                        .WithCallbackData(
+                            label,
+                            $"task_due:{date:yyyy-MM-dd}"));
+            }
+
+            if (row.Count == 7)
+            {
+                buttons.Add(
+                    row.ToArray());
+
+                row =
+                    new List<
+                        Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton>();
+            }
+        }
+
+        // =====================================================
+        // FINAL ROW
+        // =====================================================
+
+        if (row.Count > 0)
+        {
+            while (row.Count < 7)
+            {
+                row.Add(
+                    Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton
+                        .WithCallbackData(
+                            "·",
+                            "noop"));
+            }
+
+            buttons.Add(
+                row.ToArray());
+        }
+
+        // =====================================================
+        // NAVIGATION
+        // =====================================================
+
+        buttons.Add(
+            new[]
+            {
+                Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton
+                    .WithCallbackData(
+                        "◀️ السابق",
+                        $"task_due_month:{monthOffset - 1}"),
+
+                Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton
+                    .WithCallbackData(
+                        "📅 الحالي",
+                        "task_due_month:0"),
+
+                Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton
+                    .WithCallbackData(
+                        "التالي ▶️",
+                        $"task_due_month:{monthOffset + 1}")
+            });
+
+        return buttons;
     }
 
     // =========================================================
@@ -971,24 +1460,6 @@ public class TelegramBotHostedService : BackgroundService
         return "غير معروف";
     }
 
-    private static string GetEmployeeCreationIntro(
-        User admin,
-        bool includeChoices = true)
-    {
-        if (!includeChoices)
-            return "👤 إضافة حساب جديد";
-
-        var department =
-            GetAdminDepartment(admin);
-
-        return
-            "👤 إضافة حساب جديد\n\n" +
-            $"🏢 القسم: {department}\n\n" +
-            "1️⃣ موظف تابع لقسمك\n" +
-            "2️⃣ Admin من نفس قسمك\n\n" +
-            "أرسل 1 أو 2";
-    }
-
     // =========================================================
     // NEW EMPLOYEE ROLE
     // =========================================================
@@ -1005,10 +1476,17 @@ public class TelegramBotHostedService : BackgroundService
         {
             return new NewEmployeeRole
             {
-                IsAdmin = false,
-                IsItAdmin = isAdmin,
-                IsFollowUpAdmin = false,
-                IsFUser = false
+                IsAdmin =
+                    false,
+
+                IsItAdmin =
+                    isAdmin,
+
+                IsFollowUpAdmin =
+                    false,
+
+                IsFUser =
+                    false
             };
         }
 
@@ -1016,31 +1494,51 @@ public class TelegramBotHostedService : BackgroundService
         {
             return new NewEmployeeRole
             {
-                IsAdmin = false,
-                IsItAdmin = false,
-                IsFollowUpAdmin = isAdmin,
-                IsFUser = !isAdmin
+                IsAdmin =
+                    false,
+
+                IsItAdmin =
+                    false,
+
+                IsFollowUpAdmin =
+                    isAdmin,
+
+                IsFUser =
+                    !isAdmin
             };
         }
 
-        // General admin
         if (creator.IsAdmin)
         {
             return new NewEmployeeRole
             {
-                IsAdmin = isAdmin,
-                IsItAdmin = false,
-                IsFollowUpAdmin = false,
-                IsFUser = false
+                IsAdmin =
+                    isAdmin,
+
+                IsItAdmin =
+                    false,
+
+                IsFollowUpAdmin =
+                    false,
+
+                IsFUser =
+                    false
             };
         }
 
         return new NewEmployeeRole
         {
-            IsAdmin = false,
-            IsItAdmin = false,
-            IsFollowUpAdmin = false,
-            IsFUser = false
+            IsAdmin =
+                false,
+
+            IsItAdmin =
+                false,
+
+            IsFollowUpAdmin =
+                false,
+
+            IsFUser =
+                false
         };
     }
 
@@ -1068,18 +1566,176 @@ public class TelegramBotHostedService : BackgroundService
             callback.Id);
 
         var data =
-            callback.Data ?? string.Empty;
+            callback.Data ??
+            string.Empty;
+
+        // =====================================================
+        // CALENDAR - NOOP
+        // =====================================================
+
+        if (data == "noop")
+        {
+            return;
+        }
+
+        // =====================================================
+        // CALENDAR - CHANGE MONTH
+        // =====================================================
+
+        if (data.StartsWith(
+                "task_due_month:"))
+        {
+            if (!int.TryParse(
+                    data["task_due_month:".Length..],
+                    out var monthOffset))
+            {
+                return;
+            }
+
+            if (!_states.TryGetValue(
+                    chatId.Value,
+                    out var calendarState))
+            {
+                return;
+            }
+
+            if (calendarState.Action !=
+                BotAction.AddTask ||
+                calendarState.Step != 2)
+            {
+                return;
+            }
+
+            await SendTaskDueDateCalendarAsync(
+                chatId.Value,
+                monthOffset);
+
+            return;
+        }
+
+        // =====================================================
+        // CALENDAR - SELECT DATE
+        // =====================================================
+
+        // =====================================================
+        // CALENDAR - SELECT DATE
+        // =====================================================
+
+        if (data.StartsWith(
+                "task_due:"))
+        {
+            var dateText =
+                data["task_due:".Length..];
+
+            DateTime selectedDate;
+
+            if (!DateTime.TryParse(
+                    dateText,
+                    out selectedDate))
+            {
+                await _telegram.SendMessageAsync(
+                    chatId.Value,
+                    "❌ تعذر قراءة التاريخ المحدد.");
+
+                return;
+            }
+
+            if (!_states.TryGetValue(
+                    chatId.Value,
+                    out var taskState))
+            {
+                return;
+            }
+
+            if (taskState.Action != BotAction.AddTask ||
+                taskState.Step != 2)
+            {
+                return;
+            }
+
+            // -------------------------------------------------
+            // DATE CANNOT BE IN THE PAST
+            // -------------------------------------------------
+
+            if (selectedDate.Date < DateTime.Today)
+            {
+                await _telegram.SendMessageAsync(
+                    chatId.Value,
+                    "❌ لا يمكنك اختيار تاريخ في الماضي.");
+
+                return;
+            }
+
+            // -------------------------------------------------
+            // SAVE DATE
+            // -------------------------------------------------
+
+            taskState.DueDate =
+                selectedDate.Date;
+
+            // -------------------------------------------------
+            // ADMIN → SELECT EMPLOYEE
+            // -------------------------------------------------
+
+            if (IsAnyAdmin(user))
+            {
+                taskState.Step = 3;
+
+                await _telegram.SendMessageAsync(
+                    chatId.Value,
+                    $"✅ تم اختيار موعد التسليم:\n\n" +
+                    $"📅 {selectedDate:yyyy-MM-dd}");
+
+                await SendEmployeeSelectionForCreationAsync(
+                    chatId.Value);
+
+                return;
+            }
+
+            // -------------------------------------------------
+            // NORMAL USER → CREATE TASK
+            // -------------------------------------------------
+
+            var task =
+                await _telegram.CreateTaskAsync(
+                    user.Id,
+                    user.Id,
+                    taskState.Content!,
+                    taskState.DueDate,
+                    0);
+
+            _states.TryRemove(
+                chatId.Value,
+                out _);
+
+            await _telegram.SendMessageAsync(
+                chatId.Value,
+                task == null
+                    ? "❌ تعذر إنشاء المهمة."
+                    : $"✅ تم إنشاء المهمة #{task.Id}.\n\n" +
+                      $"📅 موعد التسليم: {taskState.DueDate:yyyy-MM-dd}");
+
+            return;
+        }
+
+        // =====================================================
+        // NORMAL CALLBACKS
+        // =====================================================
 
         switch (data)
         {
             case "tasks":
 
-                await SendMyTasksAsync(user);
+                await SendMyTasksAsync(
+                    user);
+
                 return;
 
             case "add":
 
-                await StartAddTaskAsync(user);
+                await StartAddTaskAsync(
+                    user);
+
                 return;
 
             case "finish":
@@ -1087,6 +1743,7 @@ public class TelegramBotHostedService : BackgroundService
                 await SendTaskSelectionAsync(
                     user,
                     "finish");
+
                 return;
 
             case "edit":
@@ -1094,6 +1751,7 @@ public class TelegramBotHostedService : BackgroundService
                 await SendTaskSelectionAsync(
                     user,
                     "edit");
+
                 return;
 
             case "delete":
@@ -1101,60 +1759,75 @@ public class TelegramBotHostedService : BackgroundService
                 await SendTaskSelectionAsync(
                     user,
                     "delete");
+
                 return;
 
             case "overdue":
 
-                await SendOverdueAsync(user);
+                await SendOverdueAsync(
+                    user);
+
                 return;
 
             case "refresh":
 
-                await SendMainMenuAsync(chatId.Value);
+                await SendMainMenuAsync(
+                    chatId.Value);
+
                 return;
 
             case "report_daily":
 
                 if (CanViewReports(user))
-                    await SendDailyReportAsync(user);
+                    await SendDailyReportAsync(
+                        user);
                 else
-                    await SendAccessDeniedAsync(user);
+                    await SendAccessDeniedAsync(
+                        user);
 
                 return;
 
             case "report_weekly":
 
                 if (CanViewReports(user))
-                    await SendWeeklyReportAsync(user);
+                    await SendWeeklyReportAsync(
+                        user);
                 else
-                    await SendAccessDeniedAsync(user);
+                    await SendAccessDeniedAsync(
+                        user);
 
                 return;
 
             case "backlog":
 
                 if (CanViewReports(user))
-                    await SendBacklogReportAsync(user);
+                    await SendBacklogReportAsync(
+                        user);
                 else
-                    await SendAccessDeniedAsync(user);
+                    await SendAccessDeniedAsync(
+                        user);
 
                 return;
 
             case "employees":
 
                 if (CanManageUsers(user))
-                    await SendEmployeesAsync(user);
+                    await SendEmployeesAsync(
+                        user);
                 else
-                    await SendAccessDeniedAsync(user);
+                    await SendAccessDeniedAsync(
+                        user);
 
                 return;
 
             case "add_employee":
 
                 if (CanManageUsers(user))
-                    await StartAddEmployeeAsync(user);
+                    await StartAddEmployeeAsync(
+                        user);
                 else
-                    await SendAccessDeniedAsync(user);
+                    await SendAccessDeniedAsync(
+                        user);
 
                 return;
 
@@ -1165,8 +1838,11 @@ public class TelegramBotHostedService : BackgroundService
                     _states[user.ChatId!.Value] =
                         new BotState
                         {
-                            Action = BotAction.Broadcast,
-                            Step = 1
+                            Action =
+                                BotAction.Broadcast,
+
+                            Step =
+                                1
                         };
 
                     await _telegram.SendMessageAsync(
@@ -1175,17 +1851,19 @@ public class TelegramBotHostedService : BackgroundService
                 }
                 else
                 {
-                    await SendAccessDeniedAsync(user);
+                    await SendAccessDeniedAsync(
+                        user);
                 }
 
                 return;
         }
 
-        // -----------------------------------------------------
+        // =====================================================
         // TASK ACTIONS
-        // -----------------------------------------------------
+        // =====================================================
 
-        if (data.StartsWith("finish_task:"))
+        if (data.StartsWith(
+                "finish_task:"))
         {
             var id =
                 ParseId(data);
@@ -1207,7 +1885,8 @@ public class TelegramBotHostedService : BackgroundService
             return;
         }
 
-        if (data.StartsWith("reopen:"))
+        if (data.StartsWith(
+                "reopen:"))
         {
             var id =
                 ParseId(data);
@@ -1229,7 +1908,8 @@ public class TelegramBotHostedService : BackgroundService
             return;
         }
 
-        if (data.StartsWith("delete_task:"))
+        if (data.StartsWith(
+                "delete_task:"))
         {
             var id =
                 ParseId(data);
@@ -1251,7 +1931,8 @@ public class TelegramBotHostedService : BackgroundService
             return;
         }
 
-        if (data.StartsWith("edit_task:"))
+        if (data.StartsWith(
+                "edit_task:"))
         {
             var id =
                 ParseId(data);
@@ -1261,9 +1942,14 @@ public class TelegramBotHostedService : BackgroundService
                 _states[chatId.Value] =
                     new BotState
                     {
-                        Action = BotAction.EditTask,
-                        TaskId = id.Value,
-                        Step = 1
+                        Action =
+                            BotAction.EditTask,
+
+                        TaskId =
+                            id.Value,
+
+                        Step =
+                            1
                     };
 
                 await _telegram.SendMessageAsync(
@@ -1275,11 +1961,12 @@ public class TelegramBotHostedService : BackgroundService
             return;
         }
 
-        // -----------------------------------------------------
+        // =====================================================
         // ASSIGN TASK
-        // -----------------------------------------------------
+        // =====================================================
 
-        if (data.StartsWith("assign_employee:"))
+        if (data.StartsWith(
+                "assign_employee:"))
         {
             if (!CanManageUsers(user))
                 return;
@@ -1295,8 +1982,21 @@ public class TelegramBotHostedService : BackgroundService
                     out var state))
                 return;
 
-            if (state.Action != BotAction.AddTask)
+            if (state.Action !=
+                BotAction.AddTask)
                 return;
+
+            if (!state.DueDate.HasValue)
+            {
+                await _telegram.SendMessageAsync(
+                    chatId.Value,
+                    "❌ يجب اختيار تاريخ التسليم أولًا.");
+
+                await SendTaskDueDateCalendarAsync(
+                    chatId.Value);
+
+                return;
+            }
 
             var employee =
                 await _telegram.GetUserByIdAsync(
@@ -1334,8 +2034,9 @@ public class TelegramBotHostedService : BackgroundService
 
             await _telegram.SendMessageAsync(
                 chatId.Value,
-                $"✅ تم إنشاء المهمة #{task.Id}\n" +
-                $"👤 للموظف: {employee.FullName}");
+                $"✅ تم إنشاء المهمة #{task.Id}\n\n" +
+                $"👤 الموظف: {employee.FullName}\n" +
+                $"📅 موعد التسليم: {task.DueDate:yyyy-MM-dd}");
 
             if (employee.ChatId.HasValue)
             {
@@ -1344,7 +2045,7 @@ public class TelegramBotHostedService : BackgroundService
                     $"🔔 تم إسناد مهمة جديدة لك.\n\n" +
                     $"📌 #{task.Id}\n" +
                     $"📝 {task.Content}\n" +
-                    $"📅 الموعد: {(task.DueDate?.ToString("yyyy-MM-dd") ?? "غير محدد")}");
+                    $"📅 موعد التسليم: {task.DueDate:yyyy-MM-dd}");
             }
 
             return;
@@ -1376,28 +2077,36 @@ public class TelegramBotHostedService : BackgroundService
         var buttons =
             tasks
                 .Take(30)
-                .Select(task =>
-                    new[]
-                    {
-                        Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton
-                            .WithCallbackData(
-                                $"#{task.Id} {Shorten(task.Content, 30)}",
-                                action == "finish"
-                                    ? $"finish_task:{task.Id}"
-                                    : action == "edit"
-                                        ? $"edit_task:{task.Id}"
-                                        : $"delete_task:{task.Id}")
-                    })
+                .Select(
+                    task =>
+                        new[]
+                        {
+                            Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton
+                                .WithCallbackData(
+                                    $"#{task.Id} {Shorten(task.Content, 30)}",
+                                    action == "finish"
+                                        ? $"finish_task:{task.Id}"
+                                        : action == "edit"
+                                            ? $"edit_task:{task.Id}"
+                                            : $"delete_task:{task.Id}")
+                        })
                 .ToList();
 
         await _telegram.SendMessageAsync(
             user.ChatId!.Value,
             action switch
             {
-                "finish" => "✅ اختر المهمة التي تريد إنهاءها:",
-                "edit" => "✏️ اختر المهمة التي تريد تعديلها:",
-                "delete" => "🗑 اختر المهمة التي تريد حذفها:",
-                _ => "اختر المهمة:"
+                "finish" =>
+                    "✅ اختر المهمة التي تريد إنهاءها:",
+
+                "edit" =>
+                    "✏️ اختر المهمة التي تريد تعديلها:",
+
+                "delete" =>
+                    "🗑 اختر المهمة التي تريد حذفها:",
+
+                _ =>
+                    "اختر المهمة:"
             },
             new Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup(
                 buttons));
@@ -1433,14 +2142,15 @@ public class TelegramBotHostedService : BackgroundService
         var buttons =
             employees
                 .Take(50)
-                .Select(employee =>
-                    new[]
-                    {
-                        Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton
-                            .WithCallbackData(
-                                $"👤 {employee.FullName ?? $"User #{employee.Id}"}",
-                                $"assign_employee:{employee.Id}")
-                    })
+                .Select(
+                    employee =>
+                        new[]
+                        {
+                            Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton
+                                .WithCallbackData(
+                                    $"👤 {employee.FullName ?? $"User #{employee.Id}"}",
+                                    $"assign_employee:{employee.Id}")
+                        })
                 .ToList();
 
         await _telegram.SendMessageAsync(
@@ -1460,29 +2170,32 @@ public class TelegramBotHostedService : BackgroundService
         var all =
             await _telegram.GetEmployeesAsync();
 
-        // General Admin -> الجميع
         if (admin.IsAdmin)
-            return all
-                .Where(x => x.Id != admin.Id)
-                .ToList();
-
-        // IT Admin -> IT users/admins
-        if (admin.IsItAdmin)
         {
             return all
-                .Where(x =>
-                    x.Id != admin.Id &&
-                    x.IsItAdmin)
+                .Where(
+                    x => x.Id != admin.Id)
                 .ToList();
         }
 
-        // Follow-Up Admin -> Follow-Up users/admins
+        if (admin.IsItAdmin)
+        {
+            return all
+                .Where(
+                    x =>
+                        x.Id != admin.Id &&
+                        x.IsItAdmin)
+                .ToList();
+        }
+
         if (admin.IsFollowUpAdmin)
         {
             return all
-                .Where(x =>
-                    x.Id != admin.Id &&
-                    (x.IsFollowUpAdmin || x.IsFUser))
+                .Where(
+                    x =>
+                        x.Id != admin.Id &&
+                        (x.IsFollowUpAdmin ||
+                         x.IsFUser))
                 .ToList();
         }
 
@@ -1502,21 +2215,24 @@ public class TelegramBotHostedService : BackgroundService
         if (!user.IsAdmin)
         {
             var visibleEmployees =
-                await GetVisibleEmployeesAsync(user);
+                await GetVisibleEmployeesAsync(
+                    user);
 
             var visibleIds =
                 visibleEmployees
                     .Select(x => x.Id)
                     .ToHashSet();
 
-            visibleIds.Add(user.Id);
+            visibleIds.Add(
+                user.Id);
 
             tasks =
                 tasks
-                    .Where(x =>
-                        x.AssignedEmployeeId.HasValue &&
-                        visibleIds.Contains(
-                            x.AssignedEmployeeId.Value))
+                    .Where(
+                        x =>
+                            x.AssignedEmployeeId.HasValue &&
+                            visibleIds.Contains(
+                                x.AssignedEmployeeId.Value))
                     .ToList();
         }
 
@@ -1533,10 +2249,11 @@ public class TelegramBotHostedService : BackgroundService
             "🔴 المهام المتأخرة\n\n" +
             string.Join(
                 "\n\n",
-                tasks.Select(x =>
-                    $"#{x.Id} {x.Content}\n" +
-                    $"📅 {x.DueDate:yyyy-MM-dd}\n" +
-                    $"📍 {x.IsDoneOrNot ?? "لم تبدأ"}"));
+                tasks.Select(
+                    x =>
+                        $"#{x.Id} {x.Content}\n" +
+                        $"📅 {x.DueDate:yyyy-MM-dd}\n" +
+                        $"📍 {x.IsDoneOrNot ?? "لم تبدأ"}"));
 
         await _telegram.SendMessageAsync(
             user.ChatId!.Value,
@@ -1567,7 +2284,8 @@ public class TelegramBotHostedService : BackgroundService
 
         var diff =
             (7 +
-             (today.DayOfWeek - DayOfWeek.Saturday))
+             (today.DayOfWeek -
+              DayOfWeek.Saturday))
             % 7;
 
         var start =
@@ -1601,7 +2319,8 @@ public class TelegramBotHostedService : BackgroundService
         User admin)
     {
         var employees =
-            await GetVisibleEmployeesAsync(admin);
+            await GetVisibleEmployeesAsync(
+                admin);
 
         if (employees.Count == 0)
         {
@@ -1616,18 +2335,20 @@ public class TelegramBotHostedService : BackgroundService
             $"👥 موظفو {GetAdminDepartment(admin)}\n\n" +
             string.Join(
                 "\n\n",
-                employees.Select(e =>
-                    $"{GetRoleIcon(e)} " +
-                    $"#{e.Id} {e.FullName}\n" +
-                    $"📱 Telegram: {(e.ChatId.HasValue ? "✅" : "❌")}\n" +
-                    $"📧 {e.Email}"));
+                employees.Select(
+                    e =>
+                        $"{GetRoleIcon(e)} " +
+                        $"#{e.Id} {e.FullName}\n" +
+                        $"📱 Telegram: {(e.ChatId.HasValue ? "✅" : "❌")}\n" +
+                        $"📧 {e.Email}"));
 
         await _telegram.SendMessageAsync(
             admin.ChatId!.Value,
             message);
     }
 
-    private static string GetRoleIcon(User user)
+    private static string GetRoleIcon(
+        User user)
     {
         if (user.IsAdmin)
             return "👑";
@@ -1793,15 +2514,23 @@ public class TelegramBotHostedService : BackgroundService
         DepartmentEmployee,
         SameTypeAdmin
     }
+}
 
-    public class NewEmployeeRole
-    {
-        public bool IsAdmin { get; set; }
+// =============================================================
+// NEW EMPLOYEE ROLE
+// =============================================================
+// IMPORTANT:
+// This class is outside TelegramBotHostedService so it can be
+// shared directly with TelegramService.
+// =============================================================
 
-        public bool IsItAdmin { get; set; }
+public class NewEmployeeRole
+{
+    public bool IsAdmin { get; set; }
 
-        public bool IsFollowUpAdmin { get; set; }
+    public bool IsItAdmin { get; set; }
 
-        public bool IsFUser { get; set; }
-    }
+    public bool IsFollowUpAdmin { get; set; }
+
+    public bool IsFUser { get; set; }
 }

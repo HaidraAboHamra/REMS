@@ -36,9 +36,4 @@
     </Content>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="App_Data\Files\users\1\" />
-    <Folder Include="App_Data\Files\users\2\" />
-  </ItemGroup>
-
 </Project>
