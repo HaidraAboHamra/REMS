@@ -59,7 +59,65 @@ public sealed class FileStorageService
 
         return candidate;
     }
+    public async Task<string> SaveAsync(
+    Stream source,
+    string originalFileName,
+    long fileSize,
+    int ownerId,
+    string? contentType = null,
+    CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(source);
 
+        if (fileSize <= 0 || fileSize > MaxFileSize)
+            throw new InvalidOperationException(
+                "The file must be between 1 byte and 100 MB.");
+
+        if (string.IsNullOrWhiteSpace(originalFileName))
+            throw new InvalidOperationException(
+                "The file name is required.");
+
+        originalFileName = Path.GetFileName(originalFileName);
+
+        var ownerDirectory =
+            Path.Combine(
+                _rootPath,
+                "users",
+                ownerId.ToString());
+
+        Directory.CreateDirectory(ownerDirectory);
+
+        var extension =
+            Path.GetExtension(originalFileName);
+
+        var storedName =
+            $"{Guid.NewGuid():N}{extension}";
+
+        var absolutePath =
+            Path.Combine(
+                ownerDirectory,
+                storedName);
+
+        await using var destination =
+            new FileStream(
+                absolutePath,
+                FileMode.CreateNew,
+                FileAccess.Write,
+                FileShare.None,
+                1024 * 128,
+                FileOptions.Asynchronous |
+                FileOptions.SequentialScan);
+
+        await source.CopyToAsync(
+            destination,
+            cancellationToken);
+
+        return Path.Combine(
+                "users",
+                ownerId.ToString(),
+                storedName)
+            .Replace('\\', '/');
+    }
     public Task DeleteAsync(string relativePath)
     {
         var path = GetAbsolutePath(relativePath);

@@ -1,11 +1,14 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using REMS.Data;
 using REMS.Enititys;
+using System.Security.Cryptography;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
+using static REMS.Services.TelegramBotHostedService;
 using User = REMS.Enititys.User;
 
 namespace REMS.Services;
@@ -15,11 +18,12 @@ public class TelegramService
     private readonly TelegramBotClient _client;
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly ILogger<TelegramService> _logger;
-
+    private readonly FileStorageService _fileStorage;
     public TelegramService(
         IConfiguration configuration,
         IDbContextFactory<AppDbContext> dbFactory,
-        ILogger<TelegramService> logger)
+        ILogger<TelegramService> logger,
+        FileStorageService fileStorage)
     {
         var token = configuration["TelegramBotToken"];
 
@@ -30,6 +34,7 @@ public class TelegramService
         _client = new TelegramBotClient(token);
         _dbFactory = dbFactory;
         _logger = logger;
+        _fileStorage = fileStorage;
     }
 
     public TelegramBotClient Client => _client;
@@ -99,7 +104,168 @@ public class TelegramService
             .OrderBy(x => x.FullName)
             .ToListAsync(cancellationToken);
     }
+    public async Task<StoredFile?> SaveTelegramFileAsync(
+    long chatId,
+    Telegram.Bot.Types.Message message,
+    int? folderId = null,
+    bool isSharedHub = false,
+    CancellationToken cancellationToken = default)
+    {
+        await using var db =
+            await _dbFactory.CreateDbContextAsync(
+                cancellationToken);
 
+        var user = await db.Users
+            .FirstOrDefaultAsync(
+                x => x.ChatId == chatId,
+                cancellationToken);
+
+        if (user == null)
+            return null;
+
+        Telegram.Bot.Types.File? telegramFile = null;
+        string fileName;
+        string contentType = "application/octet-stream";
+        long fileSize;
+
+        // DOCUMENT
+        if (message.Document != null)
+        {
+            fileName =
+                Path.GetFileName(
+                    message.Document.FileName ??
+                    $"telegram-{message.Document.FileId}");
+
+            contentType =
+                message.Document.MimeType ??
+                contentType;
+
+            fileSize =
+                message.Document.FileSize;
+
+            telegramFile =
+                await _client.GetFileAsync(
+                    message.Document.FileId,
+                    cancellationToken);
+        }
+        // PHOTO
+        else if (message.Photo is { Length: > 0 })
+        {
+            var photo =
+                message.Photo
+                    .OrderByDescending(x => x.FileSize)
+                    .First();
+
+            fileName =
+                $"photo-{DateTime.UtcNow:yyyyMMddHHmmss}.jpg";
+
+            contentType = "image/jpeg";
+            fileSize = photo.FileSize;
+
+            telegramFile =
+                await _client.GetFileAsync(
+                    photo.FileId,
+                    cancellationToken);
+        }
+        // VIDEO
+        else if (message.Video != null)
+        {
+            fileName =
+                Path.GetFileName(
+                    message.Video.FileName ??
+                    $"video-{DateTime.UtcNow:yyyyMMddHHmmss}.mp4");
+
+            contentType =
+                message.Video.MimeType ??
+                "video/mp4";
+
+            fileSize =
+                message.Video.FileSize;
+
+            telegramFile =
+                await _client.GetFileAsync(
+                    message.Video.FileId,
+                    cancellationToken);
+        }
+        // AUDIO
+        else if (message.Audio != null)
+        {
+            fileName =
+                Path.GetFileName(
+                    message.Audio.FileName ??
+                    $"audio-{DateTime.UtcNow:yyyyMMddHHmmss}.mp3");
+
+            contentType =
+                message.Audio.MimeType ??
+                "audio/mpeg";
+
+            fileSize =
+                message.Audio.FileSize;
+
+            telegramFile =
+                await _client.GetFileAsync(
+                    message.Audio.FileId,
+                    cancellationToken);
+        }
+        else
+        {
+            return null;
+        }
+
+        if (telegramFile == null ||
+            string.IsNullOrWhiteSpace(telegramFile.FilePath))
+        {
+            return null;
+        }
+
+        if (fileSize <= 0 ||
+            fileSize > FileStorageService.MaxFileSize)
+        {
+            throw new InvalidOperationException(
+                "Telegram file exceeds the REMS 100 MB file limit.");
+        }
+
+        await using var stream =
+            new MemoryStream();
+
+        await _client.DownloadFileAsync(
+            telegramFile.FilePath,
+            stream,
+            cancellationToken);
+
+        stream.Position = 0;
+
+        var relativePath =
+            await _fileStorage.SaveAsync(
+                stream,
+                fileName,
+                fileSize,
+                user.Id,
+                contentType,
+                cancellationToken);
+
+        var storedFile =
+            new StoredFile
+            {
+                OriginalName = fileName,
+                StoredName =
+                    Path.GetFileName(relativePath),
+                RelativePath = relativePath,
+                ContentType = contentType,
+                Size = fileSize,
+                OwnerId = user.Id,
+                FolderId = folderId,
+                IsSharedHub = isSharedHub,
+                CreatedAt = DateTime.UtcNow
+            };
+
+        db.StoredFiles.Add(storedFile);
+
+        await db.SaveChangesAsync(
+            cancellationToken);
+
+        return storedFile;
+    }
     // =========================================================
     // LINK TELEGRAM ACCOUNT USING PHONE CONTACT
     // =========================================================
@@ -235,7 +401,93 @@ public class TelegramService
 
         return task;
     }
+    public async Task<(bool Success, string Message, User? User)>
+  CreateEmployeeAsync(
+      string fullName,
+      string phoneNumber,
+      string email,
+      string password,
+      NewEmployeeRole role,
+      CancellationToken cancellationToken = default)
+    {
+        fullName = fullName.Trim();
+        phoneNumber = phoneNumber.Trim();
+        email = email.Trim();
 
+        if (string.IsNullOrWhiteSpace(fullName))
+            return (false, "الاسم مطلوب.", null);
+
+        if (string.IsNullOrWhiteSpace(phoneNumber))
+            return (false, "رقم الهاتف مطلوب.", null);
+
+        if (string.IsNullOrWhiteSpace(email))
+            return (false, "البريد الإلكتروني مطلوب.", null);
+
+        if (string.IsNullOrWhiteSpace(password))
+            return (false, "كلمة المرور مطلوبة.", null);
+
+        if (password.Length < 6)
+            return (false, "كلمة المرور يجب أن تكون 6 أحرف على الأقل.", null);
+
+        await using var db =
+            await _dbFactory.CreateDbContextAsync(cancellationToken);
+
+        var emailExists =
+            await db.Users.AnyAsync(
+                x => x.Email == email,
+                cancellationToken);
+
+        if (emailExists)
+            return (false, "❌ هذا البريد الإلكتروني مستخدم بالفعل.", null);
+
+        var phoneExists =
+            await db.Users.AnyAsync(
+                x => x.PhoneNumber == phoneNumber,
+                cancellationToken);
+
+        if (phoneExists)
+            return (false, "❌ رقم الهاتف مستخدم بالفعل.", null);
+        var user = new User
+        {
+            FullName = fullName,
+            PhoneNumber = phoneNumber,
+            Email = email,
+
+            // الصلاحيات يتم تحديدها حسب نوع الحساب المختار
+            IsAdmin = role.IsAdmin,
+            IsItAdmin = role.IsItAdmin,
+            IsFollowUpAdmin = role.IsFollowUpAdmin,
+            IsFUser = role.IsFUser,
+
+            // لا يرتبط بـ Telegram حتى يقوم الموظف بربطه
+            ChatId = null,
+            TelegramUsername = null,
+
+            TelegramLinkToken =
+                Convert.ToHexString(
+                    RandomNumberGenerator.GetBytes(20))
+                .ToLowerInvariant(),
+
+            TelegramLinkedAt = null
+        };
+
+        var passwordHasher = new PasswordHasher<User>();
+
+        user.PasswordHash =
+            passwordHasher.HashPassword(
+                user,
+                password);
+
+        db.Users.Add(user);
+
+        await db.SaveChangesAsync(cancellationToken);
+
+        return (
+            true,
+            "✅ تم إنشاء حساب الموظف بنجاح.",
+            user
+        );
+    }
     public async Task<bool> CompleteTaskAsync(
         int taskId,
         int requesterId,
