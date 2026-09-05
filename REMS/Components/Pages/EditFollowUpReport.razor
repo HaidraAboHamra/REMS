@@ -8,7 +8,7 @@
 @inject UserService UserRepo
 @inject IHttpContextAccessor HttpContextAccessor
 
-@attribute [Authorize(Roles = "Manager,Admin,FUser")]
+@attribute [Authorize(Roles = "Manager,Admin,Admin1,FUser")]
 
 <div class="update-page" dir="rtl">
 
@@ -262,6 +262,14 @@
                             </div>
 
 
+                            @if (report?.IsDone == true)
+                            {
+                                <div class="form-section completed-lock" role="status">
+                                    هذه المهمة مكتملة ولا يمكن تعديلها.
+                                </div>
+                            }
+                            else
+                            {
                             <EditForm Model="updateVm"
                                       OnValidSubmit="SaveUpdate">
 
@@ -379,6 +387,7 @@
                                 </div>
 
                             </EditForm>
+                            }
 
                         </div>
 
@@ -581,6 +590,9 @@
     private async Task SaveUpdate()
     {
         if (report == null)
+            return;
+
+        if (report.IsDone)
             return;
 
 

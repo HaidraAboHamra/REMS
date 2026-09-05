@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace REMS.Enititys
 {
@@ -24,6 +25,9 @@ namespace REMS.Enititys
         public bool IsItAdmin { get; set; } = false;
         public bool IsFollowUpAdmin { get; set; } = false;
         public bool IsFUser {  get; set; } = false;
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal TotalDeductions { get; set; }
 
     }
 }

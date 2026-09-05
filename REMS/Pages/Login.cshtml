@@ -9,6 +9,10 @@
     <title>تسجيل الدخول</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
     <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Arial', sans-serif;
             background: linear-gradient(120deg, red,black);
@@ -19,6 +23,8 @@
             justify-content: center;
             align-items: center;
             margin: 0;
+            padding: 1rem;
+            overflow-x: hidden;
         }
 
         @@keyframes gradientAnimation {
@@ -59,7 +65,7 @@
         }
 
         input {
-            width: 90%;
+            width: 100%;
             padding: 12px 15px;
             border: 1px solid #ccc;
             border-radius: 10px;
@@ -103,6 +109,16 @@
         button:hover {
             background-color:ActiveBorder;
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        @@media (max-width: 400px) {
+            form {
+                padding: 1.25rem;
+            }
+
+            h3 {
+                font-size: 1.35rem;
+            }
         }
 
         .alert {

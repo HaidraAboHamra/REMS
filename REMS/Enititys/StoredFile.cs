@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace REMS.Enititys;
 
@@ -30,6 +31,9 @@ public class StoredFile
     public bool IsSharedHub { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    [NotMapped]
+    public string OwnerName { get; set; } = string.Empty;
 
     public virtual FileFolder? Folder { get; set; }
     public virtual ICollection<FilePermission> Permissions { get; set; } = new List<FilePermission>();

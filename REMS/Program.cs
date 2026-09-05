@@ -90,6 +90,7 @@ builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddSingleton<EmailService>();
 
 builder.Services.AddHostedService<ReportEmailHostedService>();
+builder.Services.AddHostedService<LateTaskPenaltyService>();
 
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<TelegramService>();
@@ -227,14 +228,17 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 app.Use(async (context, next) =>
 {
     context.Response.Headers.TryAdd("X-Content-Type-Options", "nosniff");
     context.Response.Headers.TryAdd("X-Frame-Options", "SAMEORIGIN");
     context.Response.Headers.TryAdd("Referrer-Policy", "strict-origin-when-cross-origin");
-    context.Response.Headers.TryAdd("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+    context.Response.Headers.TryAdd("Permissions-Policy", "camera=(), microphone=(), geolocation=(), unload=*");
     await next();
 });
 

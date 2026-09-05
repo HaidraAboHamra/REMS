@@ -1,4 +1,8 @@
 ﻿@page "/users-and-reports"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Manager,Admin,Admin1")]
+@using Microsoft.EntityFrameworkCore
+@using REMS.Data
 
 @using REMS.Enititys
 @using System.Text.Json
@@ -8,6 +12,7 @@
 @inject ExcelService _excel
 @inject IHttpContextAccessor HttpContextAccessor
 @inject NavigationManager NavigationManager
+@inject AppDbContext Db
 
 <div class="employees-page" dir="rtl">
 
@@ -222,6 +227,7 @@
                                 }
 
                             </div>
+
                         }
 
                     </div>
@@ -505,12 +511,43 @@
                                 </strong>
 
                             </div>
+
+                            <div class="results-count deduction-count">
+                                <span>إجمالي الخصم</span>
+                                <strong>@SelectedUser.TotalDeductions.ToString("N2")</strong>
+                            </div>
                         }
 
                     </div>
 
 
                     <div class="reports-body">
+
+                        @if (SelectedUser != null && IsAdmin)
+                        {
+                            <section class="user-notes-panel">
+                                <div class="notes-panel-heading">
+                                    <strong>ملاحظات الموظف</strong>
+                                    <span>ملاحظات داخلية تظهر للإدارة</span>
+                                </div>
+
+                                <div class="notes-panel-form">
+                                    <InputTextArea class="premium-input"
+                                                   rows="2"
+                                                   @bind-Value="NewUserNote"
+                                                   placeholder="أضف ملاحظة عن الموظف..." />
+                                    <button type="button" class="action-button" @onclick="AddUserNote" disabled="@string.IsNullOrWhiteSpace(NewUserNote)">حفظ الملاحظة</button>
+                                </div>
+
+                                @foreach (var note in UserNotes)
+                                {
+                                    <div class="user-note-item">
+                                        <span>@note.Content</span>
+                                        <small>@note.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</small>
+                                    </div>
+                                }
+                            </section>
+                        }
 
                         @if (SelectedUser == null)
                         {
@@ -546,8 +583,7 @@
                         }
                         else
                         {
-                            <div class="table-wrapper">
-
+                            <div class="table-responsive">
                                 <table class="reports-table">
 
                                     <thead>
@@ -902,6 +938,8 @@
     // =============================================================
 
     private User User { get; set; } = new User();
+    private List<UserNote> UserNotes = new();
+    private string NewUserNote = string.Empty;
 
     bool IsAdmin = false;
 
@@ -937,7 +975,7 @@
                     User = res.Value;
 
                     IsAdmin =
-                        User.IsFollowUpAdmin;
+                        User.IsAdmin || User.IsFollowUpAdmin || User.IsItAdmin;
 
                     CurrentUserName =
                         User.FullName;
@@ -1074,8 +1112,31 @@
     private async Task SelectUser(User u)
     {
         SelectedUser = u;
+        NewUserNote = string.Empty;
+        UserNotes = await Db.UserNotes
+            .Where(x => x.UserId == u.Id)
+            .OrderByDescending(x => x.CreatedAt)
+            .ToListAsync();
 
         await RefreshFilteredReportsAsync();
+    }
+
+    private async Task AddUserNote()
+    {
+        if (SelectedUser is null || string.IsNullOrWhiteSpace(NewUserNote) || !IsAdmin)
+            return;
+
+        var note = new UserNote
+        {
+            UserId = SelectedUser.Id,
+            Content = NewUserNote.Trim(),
+            CreatedByUserId = User.Id
+        };
+
+        Db.UserNotes.Add(note);
+        await Db.SaveChangesAsync();
+        UserNotes.Insert(0, note);
+        NewUserNote = string.Empty;
     }
 
 
@@ -1504,7 +1565,12 @@
         font-size: clamp( 1.3rem, 2.5vw, 2rem );
         font-weight: 500;
     }
-
+    .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch; /* لتمرير سلس على أجهزة آبل */
+        white-space: nowrap;
+    }
 
     .employees-header p {
         margin: 6px 0 0;
@@ -1924,7 +1990,25 @@
             font-size: .68rem;
             font-weight: 800;
         }
+    .sidebar {
+        width: 260px;
+        transition: transform 0.3s ease-in-out;
+    }
 
+    @@media (max-width: 768px) {
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            transform: translateX(-100%); /* إخفاء القائمة خارج الشاشة */
+            z-index: 1000;
+        }
+
+            .sidebar.open {
+                transform: translateX(0); /* إظهار القائمة عند إضافة كلاس open عبر جافاسكريبت */
+            }
+    }
 
     .premium-input,
     .premium-select {

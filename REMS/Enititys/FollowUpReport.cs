@@ -77,6 +77,13 @@ namespace REMS.Enititys
 
         public bool IsDone { get; set; }
 
+        public bool LatePenaltyApplied { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal LatePenaltyAmount { get; set; }
+
+        public DateTime? LatePenaltyAppliedAt { get; set; }
+
         // =========================================
         // المستخدم والتواريخ
         // =========================================

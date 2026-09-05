@@ -37,7 +37,7 @@ public class TelegramMessageScheduler : BackgroundService
                     try
                     {
                     var telegramService = scope.ServiceProvider.GetRequiredService<TelegramService>();
-                    await telegramService.SendMessagesToAllUsers("يرجى اضافة تقرير الى REMS");
+                    await telegramService.SendDailyAssignedTasks(stoppingToken);
 
                     }
                     catch(Exception ex)
