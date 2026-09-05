@@ -14,70 +14,26 @@ public class AuthenticationRepository(UserService userService) : IAuthentication
             return Result<ClaimsPrincipal>.Failure(new Error("Login failed"));
         }
 
+        var claims = new List<Claim>
+        {
+            new(ClaimTypes.Name, result.FullName ?? string.Empty),
+            new("Id", result.Id.ToString()),
+            new(ClaimTypes.Role, "User")
+        };
+
         if (result.IsAdmin)
-        {
-            var role = "Manager";
-            var claims = new List<Claim>
-                    {
-                        new(ClaimTypes.Name, $"{result.FullName}"),
-                        new("Id", $"{result.Id}"),
-                        new(ClaimTypes.Role, role)
-                    };
-            var identity = new ClaimsIdentity(claims, "AuthenticationType");
-            var user = new ClaimsPrincipal(identity);
-            return Result<ClaimsPrincipal>.Success(user);
-        }
-        else if (result.IsFollowUpAdmin)
-        {
-            var role = "Admin";
-            var claims = new List<Claim>
-                    {
-                        new(ClaimTypes.Name, $"{result.FullName}"),
-                        new("Id", $"{result.Id}"),
-                        new(ClaimTypes.Role, role)
-                    };
-            var identity = new ClaimsIdentity(claims, "AuthenticationType");
-            var user = new ClaimsPrincipal(identity);
-            return Result<ClaimsPrincipal>.Success(user);
-        }
-        else if (result.IsItAdmin)
-        {
-            var role = "Admin1";
-            var claims = new List<Claim>
-                    {
-                        new(ClaimTypes.Name, $"{result.FullName}"),
-                        new("Id", $"{result.Id}"),
-                        new(ClaimTypes.Role, role)
-                    };
-            var identity = new ClaimsIdentity(claims, "AuthenticationType");
-            var user = new ClaimsPrincipal(identity);
-            return Result<ClaimsPrincipal>.Success(user);
-        }
-        else if (result.IsFUser)
-        {
-            var role = "FUser";
-            var claims = new List<Claim>
-                    {
-                        new(ClaimTypes.Name, $"{result.FullName}"),
-                        new("Id", $"{result.Id}"),
-                        new(ClaimTypes.Role, role)
-                    };
-            var identity = new ClaimsIdentity(claims, "AuthenticationType");
-            var user = new ClaimsPrincipal(identity);
-            return Result<ClaimsPrincipal>.Success(user);
-        }
-        else
-        {
-            var role = "User";
-            var claims = new List<Claim>
-                    {
-                        new(ClaimTypes.Name, $"{result.FullName}"),
-                        new("Id", $"{result.Id}"),
-                        new(ClaimTypes.Role, role)
-                    };
-            var identity = new ClaimsIdentity(claims, "AuthenticationType");
-            var user = new ClaimsPrincipal(identity);
-            return Result<ClaimsPrincipal>.Success(user);
-        }
+            claims.Add(new Claim(ClaimTypes.Role, "Manager"));
+
+        if (result.IsFollowUpAdmin)
+            claims.Add(new Claim(ClaimTypes.Role, "Admin"));
+
+        if (result.IsItAdmin)
+            claims.Add(new Claim(ClaimTypes.Role, "Admin1"));
+
+        if (result.IsFUser)
+            claims.Add(new Claim(ClaimTypes.Role, "FUser"));
+
+        var identity = new ClaimsIdentity(claims, "AuthenticationType");
+        return Result<ClaimsPrincipal>.Success(new ClaimsPrincipal(identity));
     }
 }

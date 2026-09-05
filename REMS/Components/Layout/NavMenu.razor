@@ -1,233 +1,160 @@
-﻿<div class="top-row ps-3 navbar navbar-dark custom-navbar">
-    <div class="container-fluid">
-        <a class="navbar-brand premium-brand" href="/home">
-            <div class="brand-logo-wrapper"><img src="images/hex-studio-logo.png" alt="HEX Studio" class="brand-logo" /></div>
-            <div class="brand-info"><span class="brand-name">HEMS</span><span class="brand-company">HEX STUDIO</span></div>
-        </a>
-        <div class="brand-status"><span class="status-dot"></span><span class="status-text">ONLINE</span></div>
-    </div>
-</div>
+﻿<div class="nav-scrollable" dir="rtl">
+    <nav class="sidebar-nav">
 
-<input type="checkbox" id="nav-toggle" class="navbar-toggler" title="Navigation menu" />
-
-<div class="nav-scrollable">
-    <nav>
         <div class="nav-section-title">MAIN</div>
 
-        <div class="nav-item px-3">
+        <div class="nav-item">
             <NavLink class="nav-link premium-link" href="/user">
-                <div class="nav-emoji-box user-emoji">👤</div>
-                <div class="nav-text">الحساب</div>
+                <div class="nav-emoji-box">👤</div>
+                <div class="nav-text">
+                    <span class="nav-title">الحساب الشخصي</span>
+                    <span class="nav-subtitle">إدارة معلومات الحساب وكلمة المرور</span>
+                </div>
                 <div class="nav-arrow"><i class="bi bi-chevron-left"></i></div>
             </NavLink>
         </div>
 
-        <AuthorizeView>
-            <Authorized>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link premium-link" href="/tasks">
-                        <div class="nav-emoji-box tasks-emoji">📌</div>
-                        <div class="nav-text"><span class="nav-title">لوحة المهام</span><span class="nav-subtitle">المعلقة وقيد الإنجاز والمتأخرة</span></div>
-                        <div class="nav-arrow"><i class="bi bi-chevron-left"></i></div>
-                    </NavLink>
-                </div>
-
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link premium-link" href="/files">
-                        <div class="nav-emoji-box files-emoji">📁</div>
-                        <div class="nav-text"><span class="nav-title">الملفات وHub</span><span class="nav-subtitle">ملفاتك والملفات المشتركة</span></div>
-                        <div class="nav-arrow"><i class="bi bi-chevron-left"></i></div>
-                    </NavLink>
-                </div>
-            </Authorized>
-        </AuthorizeView>
-
-        <AuthorizeView Roles="User,Manager,Admin1">
-            <Authorized>
-                <div class="nav-item px-3">
+        <AuthorizeView Roles="User,Manager,Admin,Admin1">
+            <Authorized Context="mainNav">
+                <div class="nav-item">
                     <NavLink class="nav-link premium-link" href="/home" Match="NavLinkMatch.All">
-                        <div class="nav-emoji-box home-emoji">🏠</div>
-                        <div class="nav-text"><span class="nav-title">الصفحة الرئيسية</span><span class="nav-subtitle">لوحة التحكم</span></div>
+                        <div class="nav-emoji-box">🏠</div>
+                        <div class="nav-text">
+                            <span class="nav-title">الصفحة الرئيسية</span>
+                            <span class="nav-subtitle">الواجهة الرئيسية للنظام</span>
+                        </div>
                         <div class="nav-arrow"><i class="bi bi-chevron-left"></i></div>
                     </NavLink>
                 </div>
 
-                <div class="nav-item px-3">
+                <div class="nav-item">
                     <NavLink class="nav-link premium-link" href="/Tasks-m">
-                        <div class="nav-emoji-box tasks-emoji">📅</div>
-                        <div class="nav-text"><span class="nav-title">جدولة المهام</span><span class="nav-subtitle">إدارة وجدولة الأعمال</span></div>
+                        <div class="nav-emoji-box">📊</div>
+                        <div class="nav-text">
+                            <span class="nav-title">لوحة المتابعة</span>
+                            <span class="nav-subtitle">مؤشرات الأداء والإحصائيات</span>
+                        </div>
                         <div class="nav-arrow"><i class="bi bi-chevron-left"></i></div>
                     </NavLink>
                 </div>
             </Authorized>
         </AuthorizeView>
 
-        <AuthorizeView Roles="Manager,Admin1">
-            <Authorized>
-                <div class="nav-section-title">WORK</div>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link premium-link" href="/Task/listing">
-                        <div class="nav-emoji-box today-emoji">✅</div>
-                        <div class="nav-text"><span class="nav-title">مهام اليوم</span><span class="nav-subtitle">المهام الحالية</span></div>
-                        <div class="nav-arrow"><i class="bi bi-chevron-left"></i></div>
-                    </NavLink>
-                </div>
-            </Authorized>
-        </AuthorizeView>
-
-        <AuthorizeView Roles="Manager,Admin,Admin1">
-            <Authorized>
-                <div class="nav-section-title">MANAGEMENT</div>
-
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link premium-link" href="/register">
-                        <div class="nav-emoji-box register-emoji">👨‍💼</div>
-                        <div class="nav-text">تسجيل حساب جديد</div>
-                        <div class="nav-arrow"><i class="bi bi-chevron-left"></i></div>
-                    </NavLink>
-                </div>
-
-            </Authorized>
-        </AuthorizeView>
-
-        <AuthorizeView Roles="Manager,Admin">
-            <Authorized>
-                <div class="nav-section-title">REPORTS</div>
-                <div class="nav-item px-3">
+                <AuthorizeView Roles="User,Manager,Admin,Admin1,FUser">
+            <Authorized Context="taskNav">
+                <div class="nav-section-title">إدارة المهام</div>
+                
+                <div class="nav-item">
                     <NavLink class="nav-link premium-link" href="/followupreport">
-                        <div class="nav-emoji-box reports-emoji">📊</div>
-                        <div class="nav-text">التقارير</div>
+                        <div class="nav-emoji-box">📋</div>
+                        <div class="nav-text">
+                            <span class="nav-title">جميع المهام</span>
+                            <span class="nav-subtitle">تقارير المتابعة والمهام الحالية</span>
+                        </div>
+                        <div class="nav-arrow"><i class="bi bi-chevron-left"></i></div>
+                    </NavLink>
+                </div>
+
+                <div class="nav-item">
+                    <NavLink class="nav-link premium-link" href="/AddFollowUpReport">
+                        <div class="nav-emoji-box">➕</div>
+                        <div class="nav-text">
+                            <span class="nav-title">إضافة مهمة</span>
+                            <span class="nav-subtitle">إنشاء مهمة متابعة جديدة</span>
+                        </div>
+                        <div class="nav-arrow"><i class="bi bi-chevron-left"></i></div>
+                    </NavLink>
+                </div>
+
+                <AuthorizeView Roles="Manager,Admin,Admin1">
+                    <Authorized Context="todayTasks">
+                    </Authorized>
+                </AuthorizeView>
+
+            </Authorized>
+        </AuthorizeView>
+
+
+        <AuthorizeView>
+            <Authorized Context="filesNav">
+                <div class="nav-section-title">الملفات والمستندات</div>
+
+                <div class="nav-item">
+                    <NavLink class="nav-link premium-link" href="/files">
+                        <div class="nav-emoji-box">📁</div>
+                        <div class="nav-text">
+                            <span class="nav-title">الملفات وHub</span>
+                            <span class="nav-subtitle">ملفاتك والملفات المشتركة</span>
+                        </div>
                         <div class="nav-arrow"><i class="bi bi-chevron-left"></i></div>
                     </NavLink>
                 </div>
             </Authorized>
         </AuthorizeView>
 
-        <AuthorizeView Roles="Manager,Admin,FUser">
-            <Authorized>
-                <div class="nav-item px-3">
+
+        <AuthorizeView Roles="Manager,Admin,Admin1,FUser">
+            <Authorized Context="adminNav">
+                <div class="nav-section-title">الإدارة</div>
+
+                <div class="nav-item">
                     <NavLink class="nav-link premium-link" href="/users-and-reports">
-                        <div class="nav-emoji-box coordinators-emoji">👥</div>
-                        <div class="nav-text">الموظفون</div>
+                        <div class="nav-emoji-box">👥</div>
+                        <div class="nav-text">
+                            <span class="nav-title">الموظفون والمستخدمون</span>
+                            <span class="nav-subtitle">إدارة الحسابات والصلاحيات</span>
+                        </div>
                         <div class="nav-arrow"><i class="bi bi-chevron-left"></i></div>
                     </NavLink>
                 </div>
 
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link premium-link" href="/addfollowupreport">
-                        <div class="nav-emoji-box add-report-emoji">📝</div>
-                        <div class="nav-text">إنشاء تقرير جديد</div>
-                        <div class="nav-arrow"><i class="bi bi-chevron-left"></i></div>
-                    </NavLink>
-                </div>
+                <AuthorizeView Roles="Manager,Admin,Admin1">
+                    <Authorized Context="addUserNav">
+                        <div class="nav-item">
+                            <NavLink class="nav-link premium-link" href="/register">
+                                <div class="nav-emoji-box">👤➕</div>
+                                <div class="nav-text">
+                                    <span class="nav-title">إضافة مستخدم</span>
+                                    <span class="nav-subtitle">تسجيل مستخدم جديد بالنظام</span>
+                                </div>
+                                <div class="nav-arrow"><i class="bi bi-chevron-left"></i></div>
+                            </NavLink>
+                        </div>
+                    </Authorized>
+                </AuthorizeView>
+
+                <AuthorizeView Roles="Manager,Admin,Admin1">
+                    <Authorized Context="settingsNav">
+                        <div class="nav-item">
+                            <NavLink class="nav-link premium-link" href="/setting">
+                                <div class="nav-emoji-box">⚙️</div>
+                                <div class="nav-text">
+                                    <span class="nav-title">الإعدادات</span>
+                                    <span class="nav-subtitle">إعدادات النظام العامة</span>
+                                </div>
+                                <div class="nav-arrow"><i class="bi bi-chevron-left"></i></div>
+                            </NavLink>
+                        </div>
+                    </Authorized>
+                </AuthorizeView>
             </Authorized>
         </AuthorizeView>
 
-        <AuthorizeView Roles="Manager,Admin1,Admin">
-            <Authorized>
-                <div class="nav-section-title">SYSTEM</div>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link premium-link" href="/setting">
-                        <div class="nav-emoji-box settings-emoji">⚙️</div>
-                        <div class="nav-text">الإعدادات</div>
-                        <div class="nav-arrow"><i class="bi bi-chevron-left"></i></div>
-                    </NavLink>
-                </div>
-            </Authorized>
-        </AuthorizeView>
     </nav>
 
+
     <AuthorizeView>
-        <Authorized>
+        <Authorized Context="logoutNav">
             <div class="logout-area">
                 <div class="logout-divider"></div>
-                <a href="/logout" class="logout-link">
+                <NavLink href="/logout" class="logout-link">
                     <div class="logout-btn">
                         <div class="logout-emoji-box">🚪</div>
-                        <div class="logout-content">تسجيل خروج</div>
+                        <div class="logout-content">تسجيل الخروج</div>
                         <div class="logout-arrow"><i class="bi bi-arrow-left"></i></div>
                     </div>
-                </a>
+                </NavLink>
             </div>
         </Authorized>
     </AuthorizeView>
 </div>
-
-<label class="sidebar-backdrop" for="nav-toggle"></label>
-
-<style>
-:root{--p:#6366f1;--c:#38bdf8;--w:#f8fafc;--t:#e5e7eb;--m:#94a3b8;--b:rgba(129,140,248,.15);--bg:linear-gradient(145deg,#020204,#050711 45%,#0b0f1f 75%,#141744)}
-.custom-navbar{position:relative;z-index:20;min-height:78px;width:100%;overflow:hidden;background:radial-gradient(circle at 90% -20%,rgba(99,102,241,.25),transparent 30%),var(--bg);border-bottom:1px solid var(--b);box-shadow:0 15px 45px rgba(0,0,0,.35);backdrop-filter:blur(22px)}
-.custom-navbar .container-fluid{min-height:78px;display:flex;align-items:center;justify-content:space-between}
-.premium-brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:#fff!important}
-.brand-logo-wrapper{width:47px;height:47px;display:grid;place-items:center;border-radius:15px;background:linear-gradient(145deg,rgba(99,102,241,.95),rgba(30,64,175,.8));border:1px solid rgba(255,255,255,.14);box-shadow:0 10px 30px rgba(79,70,229,.3)}
-.brand-logo{width:33px;height:33px;object-fit:contain}
-.brand-info{display:flex;flex-direction:column;gap:4px}
-.brand-name{font-family:"Unbounded","Space Grotesk",sans-serif;font-size:1.08rem;font-weight:600;letter-spacing:.12em;background:linear-gradient(90deg,#fff,#c7d2fe);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.brand-company{font-size:.5rem;font-weight:600;letter-spacing:.28em;color:rgba(165,180,252,.58)}
-.brand-status{display:flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid var(--b);border-radius:99px;background:rgba(15,23,42,.3)}
-.status-dot{width:6px;height:6px;border-radius:50%;background:#4ade80;box-shadow:0 0 10px #4ade80;animation:pulse 2.4s infinite}
-.status-text{font-size:.48rem;font-weight:800;letter-spacing:.18em;color:rgba(226,232,240,.6)}
-
-.navbar-toggler{display:none}
-.nav-scrollable{width:100%;height:calc(100dvh - 78px);display:flex;flex-direction:column;overflow:hidden;padding:12px;background:var(--bg);border-right:1px solid var(--b);backdrop-filter:blur(24px)}
-.nav-scrollable nav{flex:1;min-height:0;overflow-y:auto;padding-bottom:8px;scrollbar-width:thin;scrollbar-color:rgba(129,140,248,.2) transparent}
-.nav-scrollable nav::-webkit-scrollbar{width:5px}
-.nav-scrollable nav::-webkit-scrollbar-thumb{background:rgba(129,140,248,.2);border-radius:99px}
-.nav-section-title{padding:15px 10px 7px;color:rgba(148,163,184,.35);font-size:.45rem;font-weight:800;letter-spacing:.24em}
-.nav-item{margin-bottom:6px}
-.premium-link{position:relative;min-height:62px;display:flex;align-items:center;width:100%;padding:8px 10px;border-radius:16px;text-decoration:none;color:#cbd5e1!important;background:linear-gradient(135deg,rgba(9,11,20,.45),rgba(15,23,42,.25));border:1px solid transparent;transition:.25s}
-.premium-link:hover{transform:translateX(-3px);color:#fff!important;background:linear-gradient(135deg,rgba(24,30,54,.8),rgba(49,46,129,.3));border-color:var(--b);box-shadow:0 10px 25px rgba(0,0,0,.22)}
-.premium-link.active{color:#fff!important;background:linear-gradient(135deg,rgba(67,56,202,.55),rgba(29,78,216,.25));border-color:rgba(129,140,248,.24);box-shadow:0 10px 28px rgba(0,0,0,.25)}
-.premium-link.active:before{content:"";position:absolute;right:0;top:16%;width:3px;height:68%;border-radius:99px;background:linear-gradient(#818cf8,#4f46e5,#38bdf8);box-shadow:0 0 12px #818cf8}
-.nav-emoji-box{width:44px;height:44px;flex:0 0 44px;display:grid;place-items:center;margin-left:2px;margin-right:11px;border-radius:14px;background:linear-gradient(145deg,rgba(49,46,129,.25),rgba(15,23,42,.6));border:1px solid var(--b);font-size:1.28rem;transition:.25s}
-.premium-link:hover .nav-emoji-box,.premium-link.active .nav-emoji-box{transform:scale(1.05);box-shadow:0 0 20px rgba(99,102,241,.16)}
-.nav-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
-.nav-title{font-size:.9rem;font-weight:700;color:var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.nav-subtitle{font-size:.61rem;color:rgba(148,163,184,.48);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.premium-link:hover .nav-title,.premium-link.active .nav-title{color:#fff}
-.premium-link:hover .nav-subtitle,.premium-link.active .nav-subtitle{color:#c7d2fe}
-.nav-arrow{margin-right:2px;color:rgba(129,140,248,.25);font-size:.7rem;transition:.25s}
-.premium-link:hover .nav-arrow{color:#818cf8;transform:translateX(-3px)}
-.logout-area{flex:0 0 auto;margin:8px 0 0;padding-top:8px}
-.logout-divider{height:1px;margin:0 6px 10px;background:linear-gradient(90deg,transparent,rgba(129,140,248,.2),transparent)}
-.logout-link{text-decoration:none;color:#fff}
-.logout-btn{position:relative;display:flex;align-items:center;gap:10px;min-height:56px;padding:7px 10px;border-radius:15px;border:1px solid var(--b);background:linear-gradient(120deg,rgba(17,24,39,.96),rgba(49,46,129,.7),rgba(67,56,202,.68));box-shadow:0 12px 28px rgba(0,0,0,.25);transition:.25s}
-.logout-link:hover .logout-btn{transform:translateY(-2px);box-shadow:0 16px 32px rgba(49,46,129,.3)}
-.logout-emoji-box{width:36px;height:36px;flex:0 0 36px;display:grid;place-items:center;border-radius:11px;background:rgba(255,255,255,.08)}
-.logout-content{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
-.logout-text{font-size:.82rem;font-weight:700}
-.logout-subtext{font-size:.55rem;color:rgba(199,210,254,.45)}
-.logout-arrow{color:rgba(199,210,254,.5)}
-
-.sidebar-backdrop{display:none}
-
-@@media(max-width:768px){
-    .custom-navbar,.custom-navbar .container-fluid{min-height:66px}
-    .brand-logo-wrapper{width:39px;height:39px}
-    .brand-logo{width:27px;height:27px}
-    .brand-name{font-size:.9rem}
-    .brand-company,.brand-status{display:none}
-    .navbar-toggler{display:block;position:fixed;top:11px;right:12px;width:42px;height:42px;border:1px solid var(--b);border-radius:13px;background:rgba(7,10,22,.85);z-index:10001}
-    .navbar-toggler:before,.navbar-toggler:after{content:"";position:absolute;left:50%;width:19px;height:2px;border-radius:99px;background:linear-gradient(90deg,#818cf8,#38bdf8);transform:translateX(-50%)}
-    .navbar-toggler:before{top:16px;box-shadow:0 7px #818cf8,0 14px #38bdf8}
-    .navbar-toggler:after{top:30px}
-    .nav-scrollable{position:fixed;top:66px;right:0;width:min(340px,88vw);height:calc(100dvh - 66px);z-index:10000;transform:translateX(110%);transition:transform .35s cubic-bezier(.2,.75,.2,1);border-left:1px solid var(--b);box-shadow:-25px 0 65px rgba(0,0,0,.45)}
-    #nav-toggle:checked~.nav-scrollable{transform:translateX(0)}
-    .sidebar-backdrop{display:block;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);opacity:0;visibility:hidden;pointer-events:none;transition:.3s}
-    #nav-toggle:checked~.nav-scrollable+.sidebar-backdrop{opacity:1;visibility:visible;pointer-events:auto}
-    .premium-link:hover{transform:none}
-}
-@@media(max-width:480px){
-    .custom-navbar,.custom-navbar .container-fluid{min-height:62px}
-    .nav-scrollable{top:62px;width:92vw;height:calc(100dvh - 62px)}
-    .navbar-toggler{top:9px}
-    .brand-logo-wrapper{width:36px;height:36px}
-    .brand-logo{width:25px;height:25px}
-    .brand-name{font-size:.82rem}
-    .premium-link{min-height:55px}
-    .nav-emoji-box{width:38px;height:38px;flex-basis:38px;font-size:1.1rem}
-}
-@@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-@@keyframes pulse{50%{opacity:.7;transform:scale(1.12)}}
-</style>

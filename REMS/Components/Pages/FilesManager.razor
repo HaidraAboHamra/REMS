@@ -591,6 +591,10 @@
                                 @FormatSize(file.Size)
                                 •
                                 @file.CreatedAt.ToLocalTime().ToString("dd MMM yyyy")
+                                @if (IsAdministrator)
+                                {
+                                    <span> • @(string.IsNullOrWhiteSpace(file.OwnerName) ? $"User {file.OwnerId}" : file.OwnerName)</span>
+                                }
                                 @if (file.IsSharedHub)
                                 {
                                     <span> • Hub</span>
@@ -956,6 +960,7 @@
     private bool ShowingShared;
     private bool ShowingHub;
     private bool CanManageHub;
+    private bool IsAdministrator;
     private bool IsBusy;
     private bool IsDragging;
 
@@ -1005,6 +1010,7 @@
         CanManageHub = state.User.IsInRole("Manager") ||
                        state.User.IsInRole("Admin") ||
                        state.User.IsInRole("Admin1");
+        IsAdministrator = CanManageHub;
 
         await LoadCurrentFolder();
     }
@@ -1038,17 +1044,19 @@
 
         Folders = await Db.FileFolders
             .Where(x =>
-                x.OwnerId == CurrentUserId &&
+                (IsAdministrator || x.OwnerId == CurrentUserId) &&
                 x.ParentFolderId == CurrentFolderId)
             .OrderBy(x => x.Name)
             .ToListAsync();
 
         Files = await Db.StoredFiles
             .Where(x =>
-                x.OwnerId == CurrentUserId &&
+                (IsAdministrator || x.OwnerId == CurrentUserId) &&
                 x.FolderId == CurrentFolderId)
             .OrderByDescending(x => x.CreatedAt)
             .ToListAsync();
+
+        await LoadOwnerNames(Files);
 
         await BuildBreadcrumbs();
     }
@@ -1075,6 +1083,8 @@
                 .Where(x => ids.Contains(x.Id))
                 .OrderByDescending(x => x.CreatedAt)
                 .ToListAsync();
+
+            await LoadOwnerNames(SharedFiles);
         }
         catch (Exception ex)
         {
@@ -1097,6 +1107,8 @@
                 .Where(x => x.IsSharedHub)
                 .OrderByDescending(x => x.CreatedAt)
                 .ToListAsync();
+
+            await LoadOwnerNames(HubFiles);
         }
         catch (Exception ex)
         {
@@ -1122,13 +1134,36 @@
             var folder = await Db.FileFolders
                 .FirstOrDefaultAsync(x =>
                     x.Id == id.Value &&
-                    x.OwnerId == CurrentUserId);
+                    (IsAdministrator || x.OwnerId == CurrentUserId));
 
             if (folder is null)
                 break;
 
             Breadcrumbs.Insert(0, folder);
             id = folder.ParentFolderId;
+        }
+    }
+
+    private async Task LoadOwnerNames(List<StoredFile> files)
+    {
+        if (!IsAdministrator || files.Count == 0)
+            return;
+
+        var ownerIds = files
+            .Select(x => x.OwnerId)
+            .Distinct()
+            .ToList();
+
+        var names = await Db.Users
+            .Where(x => ownerIds.Contains(x.Id))
+            .ToDictionaryAsync(
+                x => x.Id,
+                x => string.IsNullOrWhiteSpace(x.FullName) ? x.Email ?? $"User {x.Id}" : x.FullName);
+
+        foreach (var file in files)
+        {
+            if (names.TryGetValue(file.OwnerId, out var ownerName))
+                file.OwnerName = ownerName;
         }
     }
 

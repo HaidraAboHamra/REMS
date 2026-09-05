@@ -257,6 +257,11 @@ namespace REMS.Services
                     "المهمة غير موجودة");
             }
 
+            if (existingReport.IsDone)
+            {
+                throw new InvalidOperationException("لا يمكن تعديل مهمة مكتملة.");
+            }
+
 
             // ==============================================
             // حفظ البيانات الجديدة

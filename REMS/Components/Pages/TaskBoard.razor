@@ -1,4 +1,4 @@
-@page "/tasks"
+@page "/Tasks-m"
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 @using REMS.Enititys
@@ -29,8 +29,8 @@
             <button class="summary-card pending @(SelectedStatus == "معلقة" ? "selected" : "")" @onclick="ShowPending">
                 <span>معلقة</span><strong>@PendingCount</strong>
             </button>
-            <button class="summary-card progress @(SelectedStatus == "قيد التنفيذ" ? "selected" : "")" @onclick="ShowInProgress">
-                <span>قيد الإنجاز</span><strong>@InProgressCount</strong>
+            <button class="summary-card in-progress @(SelectedStatus == "قيد التنفيذ" ? "selected" : "")" @onclick="ShowInProgress">
+                <span>قيد الإنجاز</span><strong style="color:#facc15">@InProgressCount</strong>
             </button>
             <button class="summary-card overdue @(SelectedStatus == "متأخرة" ? "selected" : "")" @onclick="ShowOverdue">
                 <span>متأخرة</span><strong>@OverdueCount</strong>

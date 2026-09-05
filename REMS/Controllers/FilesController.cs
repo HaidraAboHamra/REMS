@@ -71,6 +71,13 @@ public class FilesController : Controller
 
     private async Task<bool> CanRead(StoredFile file, int userId)
     {
+        if (User.IsInRole("Manager") ||
+            User.IsInRole("Admin") ||
+            User.IsInRole("Admin1"))
+        {
+            return true;
+        }
+
         if (file.IsSharedHub || file.OwnerId == userId) return true;
         return await _db.Set<FilePermission>().AnyAsync(x => x.FileId == file.Id && x.UserId == userId);
     }

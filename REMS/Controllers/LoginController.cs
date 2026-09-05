@@ -48,9 +48,9 @@ namespace REMS.Controllers
         // دالة للحصول على الدور
         private string GetRole(User user)
         {
+            if (user.IsFollowUpAdmin) return "Admin";
             if (user.IsAdmin) return "Manager";
             if (user.IsItAdmin) return "Admin1";
-            if (user.IsFollowUpAdmin) return "Admin";
             if (user.IsFUser) return "FUser";
             return "User";
         }
