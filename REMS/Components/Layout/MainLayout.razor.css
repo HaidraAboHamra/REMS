@@ -8,7 +8,20 @@
 .mud-drawer * {
     word-break: keep-all !important; /* يمنع فصل الحروف العربية عن بعضها */
     overflow-wrap: normal !important; /* يمنع التكسير القسري للكلمات */
-    white-space: nowrap !important; /* يضمن بقاء النص في خط واحد */
+    white-space: nowrap !important;
+}
+
+::deep .mud-main-content {
+    min-width: 0;
+    background: transparent;
+}
+
+::deep .mud-container {
+    max-width: 1600px;
+}
+
+::deep .mud-icon-button:focus-visible {
+    box-shadow: var(--rems-focus);
 }
 
 /* السماح للوصف الفرعي بالتعدد إن كان نصاً طويلاً دون تقطيع الكلمات */
@@ -27,18 +40,22 @@
     }
 
     /* تحويل القائمة لتأخذ عرض الشاشة بالكامل دون حصرها في 280px */
-    .app-sidebar,
     .mud-drawer {
-        width: 100% !important;
-        min-width: 100% !important;
-        height: auto !important;
-        position: relative !important;
-        border-left: none !important;
-        border-bottom: 1px solid rgba(129, 140, 248, 0.15) !important;
+        width: min(88vw, 340px) !important;
+        min-width: min(88vw, 340px) !important;
+        max-width: 340px !important;
+        height: 100dvh !important;
+        position: fixed !important;
+        border-left: 1px solid var(--rems-border) !important;
     }
 
     .app-viewport {
         width: 100% !important;
+    }
+
+    .mud-main-content > .mud-container {
+        padding-top: .75rem !important;
+        padding-bottom: 1rem !important;
     }
 }
 

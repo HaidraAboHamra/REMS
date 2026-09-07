@@ -18,409 +18,7 @@
 
 <PageTitle>Files - REMS</PageTitle>
 
-<style>
-    .rems-drive {
-        padding: 28px;
-        max-width: 1450px;
-        margin: 0 auto;
-        color: #111827;
-    }
 
-    .drive-head {
-        display: flex;
-        justify-content: space-between;
-        align-items: end;
-        gap: 20px;
-        margin-bottom: 22px;
-    }
-
-    .drive-kicker {
-        font-size: 11px;
-        letter-spacing: .2em;
-        font-weight: 800;
-        opacity: .45;
-    }
-
-    .drive-head h1 {
-        font-size: 36px;
-        line-height: 1;
-        margin: 7px 0;
-    }
-
-    .drive-head p {
-        margin: 0;
-        opacity: .55;
-    }
-
-    .drive-actions {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-    }
-
-    .drive-btn {
-        border: 0;
-        border-radius: 14px;
-        padding: 11px 16px;
-        font-weight: 800;
-        cursor: pointer;
-        transition: .18s ease;
-    }
-
-        .drive-btn:hover {
-            transform: translateY(-1px);
-        }
-
-        .drive-btn:disabled {
-            opacity: .5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .drive-btn.primary {
-            background: #111827;
-            color: #fff;
-        }
-
-        .drive-btn.ghost {
-            background: #f3f4f6;
-            color: #111827;
-        }
-
-    .drive-upload {
-        position: relative;
-        overflow: hidden;
-    }
-
-        .drive-upload input {
-            position: absolute;
-            inset: 0;
-            opacity: 0;
-            cursor: pointer;
-        }
-
-    .drive-shell {
-        display: grid;
-        grid-template-columns: 220px 1fr;
-        gap: 16px;
-    }
-
-    .drive-sidebar,
-    .drive-main {
-        background: rgba(255, 255, 255, .82);
-        backdrop-filter: blur(18px);
-        border: 1px solid rgba(17, 24, 39, .07);
-        border-radius: 24px;
-    }
-
-    .drive-sidebar {
-        padding: 14px;
-        height: fit-content;
-    }
-
-    .drive-sideitem {
-        width: 100%;
-        display: flex;
-        gap: 10px;
-        align-items: center;
-        border: 0;
-        background: transparent;
-        padding: 11px 12px;
-        border-radius: 12px;
-        font-weight: 700;
-        cursor: pointer;
-        text-align: left;
-    }
-
-        .drive-sideitem.active,
-        .drive-sideitem:hover {
-            background: #f3f4f6;
-        }
-
-    .drive-main {
-        padding: 18px;
-        min-width: 0;
-    }
-
-    .drive-toolbar {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        justify-content: space-between;
-        margin-bottom: 16px;
-    }
-
-    .drive-search {
-        flex: 1;
-        max-width: 500px;
-        border: 1px solid #e5e7eb;
-        background: #f8fafc;
-        border-radius: 14px;
-        padding: 11px 14px;
-        outline: 0;
-    }
-
-    .drive-breadcrumbs {
-        display: flex;
-        gap: 7px;
-        align-items: center;
-        flex-wrap: wrap;
-        margin-bottom: 15px;
-    }
-
-        .drive-breadcrumbs button {
-            border: 0;
-            background: transparent;
-            font-weight: 800;
-            cursor: pointer;
-            padding: 0;
-        }
-
-    .dropzone {
-        border: 1px dashed #cbd5e1;
-        border-radius: 18px;
-        padding: 20px;
-        text-align: center;
-        margin-bottom: 16px;
-        background: #fafcff;
-    }
-
-        .dropzone.drag {
-            border-color: #111827;
-            background: #f4f6f8;
-        }
-
-        .dropzone small {
-            opacity: .55;
-        }
-
-    .drive-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-        gap: 12px;
-    }
-
-    .drive-card {
-        position: relative;
-        border: 1px solid #eef0f3;
-        border-radius: 18px;
-        background: #fff;
-        padding: 14px;
-        min-height: 146px;
-        cursor: pointer;
-    }
-
-        .drive-card:hover {
-            box-shadow: 0 10px 26px rgba(0,0,0,.06);
-        }
-
-        .drive-card .thumb {
-            height: 78px;
-            border-radius: 14px;
-            background: #f8fafc;
-            display: grid;
-            place-items: center;
-            font-size: 34px;
-            overflow: hidden;
-            margin-bottom: 10px;
-        }
-
-        .drive-card img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .drive-card .name {
-            font-weight: 800;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .drive-card .sub {
-            font-size: 12px;
-            opacity: .5;
-            margin-top: 4px;
-        }
-
-    .drive-menu {
-        position: absolute;
-        right: 9px;
-        top: 9px;
-    }
-
-        .drive-menu button {
-            border: 0;
-            background: #fff;
-            border-radius: 10px;
-            padding: 5px 8px;
-            cursor: pointer;
-        }
-
-    .drive-empty {
-        padding: 70px 20px;
-        text-align: center;
-        opacity: .55;
-    }
-
-    .drive-modal-backdrop {
-        position: fixed;
-        inset: 0;
-        background: rgba(15, 23, 42, .38);
-        display: grid;
-        place-items: center;
-        z-index: 5000;
-        padding: 20px;
-    }
-
-    .drive-modal {
-        width: min(920px, 95vw);
-        max-height: 90vh;
-        overflow: auto;
-        background: #fff;
-        border-radius: 24px;
-        padding: 20px;
-        box-shadow: 0 24px 90px rgba(0,0,0,.25);
-    }
-
-    .preview-stage {
-        min-height: 420px;
-        background: #0f172a;
-        border-radius: 18px;
-        display: grid;
-        place-items: center;
-        overflow: hidden;
-    }
-
-        .preview-stage img,
-        .preview-stage iframe,
-        .preview-stage video {
-            max-width: 100%;
-            max-height: 68vh;
-            border: 0;
-        }
-
-        .preview-stage audio {
-            width: min(520px, 90%);
-        }
-
-    .share-row {
-        display: grid;
-        grid-template-columns: 1fr auto auto;
-        gap: 10px;
-        align-items: center;
-        padding: 10px 0;
-        border-bottom: 1px solid #eef0f3;
-    }
-
-    .share-input {
-        border: 1px solid #e5e7eb;
-        border-radius: 12px;
-        padding: 10px;
-        background: #fff;
-        outline: none;
-        min-width: 0;
-    }
-
-        .share-input:focus {
-            border-color: #94a3b8;
-        }
-
-    .share-link {
-        background: #f8fafc;
-        border-radius: 12px;
-        padding: 10px;
-        word-break: break-all;
-        font-size: 13px;
-    }
-
-    .share-user-box {
-        display: grid;
-        grid-template-columns: 1fr 130px auto;
-        gap: 8px;
-        margin: 20px 0;
-    }
-
-    .share-user-hint {
-        margin-top: -12px;
-        margin-bottom: 16px;
-        font-size: 12px;
-        opacity: .5;
-    }
-
-    .share-status {
-        padding: 10px 12px;
-        border-radius: 12px;
-        background: #f1f5f9;
-        margin-bottom: 14px;
-    }
-
-    @@media (max-width: 900px) {
-        .drive-shell {
-            grid-template-columns: 1fr;
-        }
-
-        .drive-sidebar {
-            display: flex;
-            overflow: auto;
-        }
-
-        .drive-sideitem {
-            white-space: nowrap;
-        }
-
-        .drive-head {
-            align-items: start;
-            flex-direction: column;
-        }
-
-        .drive-toolbar {
-            align-items: stretch;
-            flex-direction: column;
-        }
-
-        .drive-search {
-            max-width: none;
-        }
-
-        .drive-grid {
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-        }
-
-        .share-user-box {
-            grid-template-columns: 1fr;
-        }
-
-        .share-row {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    @@media (max-width: 560px) {
-        .rems-drive {
-            padding: 14px;
-        }
-
-        .drive-modal-backdrop {
-            padding: 10px;
-        }
-
-        .drive-modal {
-            width: 100%;
-            border-radius: 18px;
-            padding: 14px;
-        }
-
-        .preview-stage {
-            min-height: 280px;
-        }
-
-        .drive-head h1 {
-            font-size: 30px;
-        }
-    }
-</style>
 
 <div class="rems-drive">
     <div class="drive-head">
@@ -439,10 +37,10 @@
                 </label>
             }
 
-            @if (!ShowingHub)
+            @if (!ShowingHub || CanManageHub)
             {
                 <button class="drive-btn ghost" @onclick="CreateFolder">
-                    ＋ New folder
+                    ＋ @(ShowingHub ? "New Hub folder" : "New folder")
                 </button>
             }
         </div>
@@ -461,7 +59,7 @@
             </button>
 
             <button class="drive-sideitem @(ShowingHub ? "active" : "")"
-                    @onclick="LoadHubFiles">
+                    @onclick="OpenHubRoot">
                 🌐 Company Hub
             </button>
         </aside>
@@ -478,11 +76,11 @@
                 </span>
             </div>
 
-            @if (SearchText.Length == 0 && !ShowingShared && !ShowingHub)
+            @if (SearchText.Length == 0 && !ShowingShared)
             {
                 <div class="drive-breadcrumbs">
                     <button @onclick="() => NavigateFolder(null)">
-                        My Files
+                        @(ShowingHub ? "Company Hub" : "My Files")
                     </button>
 
                     @foreach (var crumb in Breadcrumbs)
@@ -555,12 +153,21 @@
                                 Folder
                             </div>
 
-                            <div class="drive-menu">
-                                <button @onclick:stopPropagation="true"
-                                        @onclick="() => RenameFolder(folder)">
-                                    ⋯
-                                </button>
-                            </div>
+                            @if (CanManageFolder(folder))
+                            {
+                                <div class="drive-menu">
+                                    <button title="Rename folder"
+                                            @onclick:stopPropagation="true"
+                                            @onclick="() => RenameFolder(folder)">
+                                        ✎
+                                    </button>
+                                    <button title="Delete empty folder"
+                                            @onclick:stopPropagation="true"
+                                            @onclick="() => DeleteFolder(folder)">
+                                        ⌫
+                                    </button>
+                                </div>
+                            }
                         </div>
                     }
 
@@ -1044,21 +651,21 @@
 
         Folders = await Db.FileFolders
             .Where(x =>
-                (IsAdministrator || x.OwnerId == CurrentUserId) &&
+                !x.IsSharedHub &&
+                x.OwnerId == CurrentUserId &&
                 x.ParentFolderId == CurrentFolderId)
             .OrderBy(x => x.Name)
             .ToListAsync();
 
         Files = await Db.StoredFiles
             .Where(x =>
-                (IsAdministrator || x.OwnerId == CurrentUserId) &&
+                !x.IsSharedHub &&
+                x.OwnerId == CurrentUserId &&
                 x.FolderId == CurrentFolderId)
             .OrderByDescending(x => x.CreatedAt)
             .ToListAsync();
 
-        await LoadOwnerNames(Files);
-
-        await BuildBreadcrumbs();
+        await BuildBreadcrumbs(isHub: false);
     }
 
     private async Task LoadSharedFiles()
@@ -1080,7 +687,7 @@
                 .ToListAsync();
 
             SharedFiles = await Db.StoredFiles
-                .Where(x => ids.Contains(x.Id))
+                .Where(x => ids.Contains(x.Id) && !x.IsSharedHub)
                 .OrderByDescending(x => x.CreatedAt)
                 .ToListAsync();
 
@@ -1099,16 +706,23 @@
             Message = null;
             ShowingShared = false;
             ShowingHub = true;
-            CurrentFolderId = null;
-            Folders = [];
-            Breadcrumbs = [];
+
+            Folders = await Db.FileFolders
+                .Where(x =>
+                    x.IsSharedHub &&
+                    x.ParentFolderId == CurrentFolderId)
+                .OrderBy(x => x.Name)
+                .ToListAsync();
 
             HubFiles = await Db.StoredFiles
-                .Where(x => x.IsSharedHub)
+                .Where(x =>
+                    x.IsSharedHub &&
+                    x.FolderId == CurrentFolderId)
                 .OrderByDescending(x => x.CreatedAt)
                 .ToListAsync();
 
             await LoadOwnerNames(HubFiles);
+            await BuildBreadcrumbs(isHub: true);
         }
         catch (Exception ex)
         {
@@ -1118,23 +732,57 @@
 
     private async Task NavigateFolder(int? folderId)
     {
+        if (ShowingShared)
+            return;
+
+        if (folderId.HasValue)
+        {
+            var folder = await Db.FileFolders
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == folderId.Value);
+
+            var canOpen = folder is not null &&
+                (ShowingHub
+                    ? folder.IsSharedHub
+                    : !folder.IsSharedHub && folder.OwnerId == CurrentUserId);
+
+            if (!canOpen)
+            {
+                Message = "That folder is unavailable.";
+                return;
+            }
+        }
+
         CurrentFolderId = folderId;
         SearchText = string.Empty;
-        await LoadCurrentFolder();
+
+        if (ShowingHub)
+            await LoadHubFiles();
+        else
+            await LoadCurrentFolder();
     }
 
-    private async Task BuildBreadcrumbs()
+    private async Task OpenHubRoot()
+    {
+        CurrentFolderId = null;
+        SearchText = string.Empty;
+        await LoadHubFiles();
+    }
+
+    private async Task BuildBreadcrumbs(bool isHub)
     {
         Breadcrumbs = [];
 
         var id = CurrentFolderId;
+        var visited = new HashSet<int>();
 
-        while (id.HasValue)
+        while (id.HasValue && visited.Add(id.Value))
         {
             var folder = await Db.FileFolders
                 .FirstOrDefaultAsync(x =>
                     x.Id == id.Value &&
-                    (IsAdministrator || x.OwnerId == CurrentUserId));
+                    x.IsSharedHub == isHub &&
+                    (isHub || x.OwnerId == CurrentUserId));
 
             if (folder is null)
                 break;
@@ -1175,6 +823,12 @@
             return;
         }
 
+        if (!await IsCurrentFolderValid())
+        {
+            Message = "The current folder is unavailable.";
+            return;
+        }
+
         IsBusy = true;
         Message = null;
 
@@ -1195,7 +849,7 @@
                     ContentType = browserFile.ContentType,
                     Size = browserFile.Size,
                     OwnerId = CurrentUserId,
-                    FolderId = ShowingHub ? null : CurrentFolderId,
+                    FolderId = CurrentFolderId,
                     IsSharedHub = ShowingHub,
                     CreatedAt = DateTime.UtcNow
                 });
@@ -1222,9 +876,15 @@
 
     private async Task CreateFolder()
     {
-        if (ShowingHub)
+        if (ShowingShared || (ShowingHub && !CanManageHub))
         {
-            Message = "Folders are not used in the company hub.";
+            Message = "Only administrators can manage Company Hub folders.";
+            return;
+        }
+
+        if (!await IsCurrentFolderValid())
+        {
+            Message = "The current folder is unavailable.";
             return;
         }
 
@@ -1233,15 +893,18 @@
                 "prompt",
                 "Folder name");
 
-        if (string.IsNullOrWhiteSpace(name))
-            return;
+        name = NormalizeFolderName(name);
 
-        name = name.Trim();
+        if (name is null)
+        {
+            Message = "Folder names must be 1–180 characters and cannot contain path characters.";
+            return;
+        }
 
         if (await Db.FileFolders.AnyAsync(x =>
-                x.OwnerId == CurrentUserId &&
+                x.IsSharedHub == ShowingHub &&
                 x.ParentFolderId == CurrentFolderId &&
-                x.Name == name))
+                x.Name.ToLower() == name.ToLower()))
         {
             Message = "A folder with this name already exists.";
             return;
@@ -1252,31 +915,135 @@
             {
                 Name = name,
                 OwnerId = CurrentUserId,
-                ParentFolderId = CurrentFolderId
+                ParentFolderId = CurrentFolderId,
+                IsSharedHub = ShowingHub
             });
 
         await Db.SaveChangesAsync();
 
-        await LoadCurrentFolder();
+        if (ShowingHub)
+            await LoadHubFiles();
+        else
+            await LoadCurrentFolder();
     }
 
     private async Task RenameFolder(FileFolder folder)
     {
+        var dbFolder = await Db.FileFolders
+            .FirstOrDefaultAsync(x => x.Id == folder.Id);
+
+        if (dbFolder is null || !CanManageFolder(dbFolder))
+        {
+            Message = "You do not have permission to rename this folder.";
+            return;
+        }
+
         var name =
             await JS.InvokeAsync<string?>(
                 "prompt",
                 "New folder name",
-                folder.Name);
+                dbFolder.Name);
 
-        if (string.IsNullOrWhiteSpace(name) ||
-            name.Trim() == folder.Name)
+        name = NormalizeFolderName(name);
+
+        if (name is null)
+        {
+            Message = "Folder names must be 1–180 characters and cannot contain path characters.";
+            return;
+        }
+
+        if (name == dbFolder.Name)
             return;
 
-        folder.Name = name.Trim();
+        var exists = await Db.FileFolders.AnyAsync(x =>
+            x.Id != dbFolder.Id &&
+            x.IsSharedHub == dbFolder.IsSharedHub &&
+            x.ParentFolderId == dbFolder.ParentFolderId &&
+            x.Name.ToLower() == name.ToLower());
+
+        if (exists)
+        {
+            Message = "A folder with this name already exists here.";
+            return;
+        }
+
+        dbFolder.Name = name;
 
         await Db.SaveChangesAsync();
 
-        await LoadCurrentFolder();
+        if (ShowingHub)
+            await LoadHubFiles();
+        else
+            await LoadCurrentFolder();
+    }
+
+    private async Task DeleteFolder(FileFolder folder)
+    {
+        var dbFolder = await Db.FileFolders
+            .FirstOrDefaultAsync(x => x.Id == folder.Id);
+
+        if (dbFolder is null || !CanManageFolder(dbFolder))
+        {
+            Message = "You do not have permission to delete this folder.";
+            return;
+        }
+
+        var hasChildren = await Db.FileFolders
+            .AnyAsync(x => x.ParentFolderId == dbFolder.Id);
+        var hasFiles = await Db.StoredFiles
+            .AnyAsync(x => x.FolderId == dbFolder.Id);
+
+        if (hasChildren || hasFiles)
+        {
+            Message = "Only empty folders can be deleted.";
+            return;
+        }
+
+        var confirmed = await JS.InvokeAsync<bool>(
+            "confirm",
+            $"Delete the empty folder '{dbFolder.Name}'?");
+
+        if (!confirmed)
+            return;
+
+        Db.FileFolders.Remove(dbFolder);
+        await Db.SaveChangesAsync();
+
+        if (ShowingHub)
+            await LoadHubFiles();
+        else
+            await LoadCurrentFolder();
+    }
+
+    private bool CanManageFolder(FileFolder folder) =>
+        folder.IsSharedHub
+            ? CanManageHub
+            : folder.OwnerId == CurrentUserId;
+
+    private async Task<bool> IsCurrentFolderValid()
+    {
+        if (!CurrentFolderId.HasValue)
+            return true;
+
+        return await Db.FileFolders.AnyAsync(x =>
+            x.Id == CurrentFolderId.Value &&
+            x.IsSharedHub == ShowingHub &&
+            (ShowingHub || x.OwnerId == CurrentUserId));
+    }
+
+    private static string? NormalizeFolderName(string? value)
+    {
+        var name = value?.Trim();
+
+        if (string.IsNullOrWhiteSpace(name) ||
+            name.Length > 180 ||
+            name is "." or ".." ||
+            name.IndexOfAny(['<', '>', ':', '"', '/', '\\', '|', '?', '*']) >= 0)
+        {
+            return null;
+        }
+
+        return name;
     }
 
     private void PreviewFile(StoredFile file)
@@ -1736,8 +1503,7 @@
             var link =
                 await Db.FileShareLinks.FirstOrDefaultAsync(x =>
                     x.Id == id &&
-                    x.FileId == ShareTarget.Id &&
-                    x.CreatedByUserId == CurrentUserId);
+                    x.FileId == ShareTarget.Id);
 
             if (link is null)
                 return;
@@ -1808,7 +1574,10 @@
     {
         try
         {
-            if (!await CanEdit(file))
+            var dbFile = await Db.StoredFiles
+                .FirstOrDefaultAsync(x => x.Id == file.Id);
+
+            if (dbFile is null || !await CanEdit(dbFile))
             {
                 Message =
                     "You do not have edit permission for this file.";
@@ -1820,17 +1589,20 @@
                 await JS.InvokeAsync<string?>(
                     "prompt",
                     "New file name",
-                    file.OriginalName);
+                    dbFile.OriginalName);
 
-            if (string.IsNullOrWhiteSpace(name))
+            name = NormalizeFileName(name);
+
+            if (name is null)
+            {
+                Message = "File names must be 1–255 characters and cannot contain path characters.";
+                return;
+            }
+
+            if (name == dbFile.OriginalName)
                 return;
 
-            name = Path.GetFileName(name.Trim());
-
-            if (name == file.OriginalName)
-                return;
-
-            file.OriginalName = name;
+            dbFile.OriginalName = name;
 
             await Db.SaveChangesAsync();
 
@@ -1860,7 +1632,10 @@
     {
         try
         {
-            if (!await CanEdit(file))
+            var dbFile = await Db.StoredFiles
+                .FirstOrDefaultAsync(x => x.Id == file.Id);
+
+            if (dbFile is null || !await CanEdit(dbFile))
             {
                 Message =
                     "You do not have edit permission for this file.";
@@ -1871,16 +1646,18 @@
             var confirmed =
                 await JS.InvokeAsync<bool>(
                     "confirm",
-                    $"Delete '{file.OriginalName}'?");
+                    $"Delete '{dbFile.OriginalName}'?");
 
             if (!confirmed)
                 return;
 
-            await Storage.DeleteAsync(file.RelativePath);
-
-            Db.StoredFiles.Remove(file);
+            Db.StoredFiles.Remove(dbFile);
 
             await Db.SaveChangesAsync();
+
+            // The database record is removed first so a transient storage
+            // failure cannot leave a downloadable file behind.
+            await Storage.DeleteAsync(dbFile.RelativePath);
 
             ClosePreview();
             CloseShare();
@@ -1917,6 +1694,24 @@
             x.FileId == file.Id &&
             x.UserId == CurrentUserId &&
             x.Permission == "edit");
+    }
+
+    private static string? NormalizeFileName(string? value)
+    {
+        var name = value?.Trim().Replace('\\', '/');
+
+        if (!string.IsNullOrWhiteSpace(name))
+            name = Path.GetFileName(name);
+
+        if (string.IsNullOrWhiteSpace(name) ||
+            name.Length > 255 ||
+            name is "." or ".." ||
+            name.IndexOfAny(['<', '>', ':', '"', '/', '\\', '|', '?', '*']) >= 0)
+        {
+            return null;
+        }
+
+        return name;
     }
 
     private bool IsImage(StoredFile file)

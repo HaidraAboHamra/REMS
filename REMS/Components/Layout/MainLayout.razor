@@ -1,7 +1,9 @@
 ﻿@inherits LayoutComponentBase
 @using MudBlazor
+@inject IJSRuntime JS
 
-<MudThemeProvider IsDarkMode="true" />
+<div data-theme="@(_isDarkMode ? "dark" : "light")" class="rems-shell">
+<MudThemeProvider IsDarkMode="_isDarkMode" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
@@ -10,6 +12,9 @@
     <MudAppBar Elevation="1" Class="app-topbar">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
         <MudSpacer />
+        <MudTooltip Text="تبديل المظهر">
+            <MudIconButton Icon="@(_isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)" Color="Color.Inherit" OnClick="ToggleTheme" />
+        </MudTooltip>
         <div class="brand-status">
             <span class="status-dot"></span>
             <span class="status-text">ONLINE</span>
@@ -26,9 +31,27 @@
         </MudContainer>
     </MudMainContent>
 </MudLayout>
+</div>
 
 @code {
     private bool _drawerOpen = true;
+    private bool _isDarkMode = true;
+    private bool _themeLoaded;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || _themeLoaded) return;
+        var value = await JS.InvokeAsync<string?>("localStorage.getItem", "rems-theme");
+        _isDarkMode = value != "light";
+        _themeLoaded = true;
+        StateHasChanged();
+    }
+
+    private async Task ToggleTheme()
+    {
+        _isDarkMode = !_isDarkMode;
+        await JS.InvokeVoidAsync("localStorage.setItem", "rems-theme", _isDarkMode ? "dark" : "light");
+    }
 
     private void ToggleDrawer()
     {

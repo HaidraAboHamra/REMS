@@ -1,13 +1,107 @@
 /* =========================================
+   REMS DESIGN SYSTEM
+   ========================================= */
+:root {
+    color-scheme: dark;
+    --rems-bg: #070b14;
+    --rems-surface: rgba(15, 23, 42, .86);
+    --rems-surface-raised: #111b2e;
+    --rems-surface-muted: rgba(30, 41, 59, .72);
+    --rems-text: #f8fafc;
+    --rems-text-muted: #94a3b8;
+    --rems-border: rgba(148, 163, 184, .18);
+    --rems-primary: #6366f1;
+    --rems-primary-strong: #818cf8;
+    --rems-success: #22c55e;
+    --rems-warning: #f59e0b;
+    --rems-danger: #ef4444;
+    --rems-radius-sm: 10px;
+    --rems-radius-md: 16px;
+    --rems-radius-lg: 24px;
+    --rems-shadow: 0 20px 60px rgba(2, 6, 23, .28);
+    --rems-focus: 0 0 0 3px rgba(99, 102, 241, .35);
+}
+
+.form-control, .form-select, .form-check-input {
+    border-color: var(--rems-border);
+    background-color: var(--rems-surface-muted);
+    color: var(--rems-text);
+}
+
+.form-control::placeholder {
+    color: var(--rems-text-muted);
+    opacity: .8;
+}
+
+.table-responsive {
+    border: 1px solid var(--rems-border);
+    border-radius: var(--rems-radius-md);
+}
+
+@media (max-width: 576px) {
+    .mud-main-content > .mud-container {
+        padding-left: .75rem !important;
+        padding-right: .75rem !important;
+    }
+
+    .table-responsive {
+        border-radius: var(--rems-radius-sm);
+    }
+}
+
+[data-theme="light"] {
+    color-scheme: light;
+    --rems-bg: #f4f7fb;
+    --rems-surface: rgba(255, 255, 255, .92);
+    --rems-surface-raised: #ffffff;
+    --rems-surface-muted: #eef2f7;
+    --rems-text: #172033;
+    --rems-text-muted: #64748b;
+    --rems-border: rgba(15, 23, 42, .12);
+    --rems-primary: #4f46e5;
+    --rems-primary-strong: #4338ca;
+    --rems-shadow: 0 18px 45px rgba(30, 41, 59, .12);
+}
+
+/* =========================================
    1. تثبيت الخلفية والهيكل الداكن
    ========================================= */
 html, body, .mud-layout, .mud-main-content {
-    background: linear-gradient(135deg, #030305 0%, #070811 42%, #11102b 72%, #1e1b4b 100%) !important;
-    color: #f8fafc !important;
+    background: var(--rems-bg) !important;
+    color: var(--rems-text) !important;
     min-height: 100vh !important;
     margin: 0 !important;
     padding: 0 !important;
-    font-family: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
+    font-family: Inter, "Segoe UI", Tahoma, Arial, sans-serif;
+    transition: background-color .2s ease, color .2s ease;
+}
+
+:where(button, a, input, select, textarea):focus-visible {
+    outline: none;
+    box-shadow: var(--rems-focus);
+}
+
+:where(.mud-paper, .card, .task-card, .summary-card, .toolbar) {
+    border-color: var(--rems-border) !important;
+}
+
+.rems-surface {
+    background: var(--rems-surface);
+    border: 1px solid var(--rems-border);
+    border-radius: var(--rems-radius-md);
+    box-shadow: var(--rems-shadow);
+    backdrop-filter: blur(18px);
+}
+
+.rems-muted { color: var(--rems-text-muted) !important; }
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+    }
 }
 
 *, *::before, *::after {
@@ -75,13 +169,14 @@ table {
 }
 
 .mud-drawer {
-    background: radial-gradient(circle at 85% 5%, rgba(67, 56, 202, 0.23), transparent 28%), linear-gradient(135deg, #030305 0%, #070811 42%, #11102b 72%, #1e1b4b 100%) !important;
-    border-left: 1px solid rgba(129, 140, 248, 0.15) !important;
+    background: var(--rems-surface) !important;
+    border-left: 1px solid var(--rems-border) !important;
+    box-shadow: var(--rems-shadow) !important;
 }
 
 .app-topbar, .mud-appbar {
-    background: radial-gradient(circle at 90% -20%, rgba(99, 102, 241, 0.25), transparent 30%), #030305 !important;
-    border-bottom: 1px solid rgba(129, 140, 248, 0.15) !important;
+    background: color-mix(in srgb, var(--rems-surface) 92%, transparent) !important;
+    border-bottom: 1px solid var(--rems-border) !important;
     backdrop-filter: blur(20px) !important;
 }
 

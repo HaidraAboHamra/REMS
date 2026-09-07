@@ -1,4 +1,4 @@
-﻿@page "/Complaint"
+@page "/Complaint"
 @using REMS.Interfaces
 @using REMS.Enititys
 @inject IReportService ComplaintService
@@ -38,16 +38,7 @@
     </div>
 </div>
 
-<style>
-    .watermark-container {
-        position: relative;
-        background-image: url('logo1.png');
-        background-position: center;
-        background-repeat: no-repeat;
-        background-size: 600px 600px;
-        opacity: 0.1;
-    }
-</style>
+
 
 @code {
     private Complaint Complaint = new Complaint();

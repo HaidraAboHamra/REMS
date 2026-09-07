@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using REMS.Interfaces;
 using System.Security.Claims;
+using REMS.Services;
 
 namespace REMS.Pages
 {
@@ -19,9 +20,12 @@ namespace REMS.Pages
         public bool LoginFailed { get; set; }
         public IAuthentication Authentication { get; set; }
 
-        public LoginModel(IAuthentication _authentication)
+        private readonly AuditLogService _audit;
+
+        public LoginModel(IAuthentication _authentication, AuditLogService audit)
         {
             Authentication = _authentication;
+            _audit = audit;
         }
 
         public async Task<IActionResult> OnGetAsync()
@@ -54,6 +58,7 @@ namespace REMS.Pages
             };
 
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal, authProperties);
+            await _audit.WriteAsync("Login", "تم تسجيل الدخول بنجاح.", int.Parse(claimsPrincipal.FindFirstValue("Id")!));
 
             return Redirect("~/home");
         }

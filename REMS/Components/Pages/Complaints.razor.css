@@ -1,0 +1,8 @@
+.watermark-container {
+        position: relative;
+        background-image: url('logo1.png');
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: 600px 600px;
+        opacity: 0.1;
+    }

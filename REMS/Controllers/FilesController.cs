@@ -31,6 +31,9 @@ public class FilesController : Controller
     [HttpGet("share/{token}")]
     public async Task<IActionResult> PublicShare(string token)
     {
+        if (string.IsNullOrWhiteSpace(token) || token.Length != 43)
+            return NotFound();
+
         var link = await _db.Set<FileShareLink>()
             .AsNoTracking()
             .Include(x => x.File)
@@ -39,7 +42,17 @@ public class FilesController : Controller
         if (link?.File is null || (link.ExpiresAt.HasValue && link.ExpiresAt.Value <= DateTime.UtcNow))
             return NotFound();
 
-        var path = _storage.GetAbsolutePath(link.File.RelativePath);
+        string path;
+
+        try
+        {
+            path = _storage.GetAbsolutePath(link.File.RelativePath);
+        }
+        catch (InvalidOperationException)
+        {
+            return NotFound();
+        }
+
         if (!System.IO.File.Exists(path)) return NotFound();
 
         var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 128 * 1024, true);
@@ -48,7 +61,8 @@ public class FilesController : Controller
 
     private async Task<IActionResult> Serve(long id, bool inline)
     {
-        var userId = GetUserId();
+        if (!TryGetUserId(out var userId))
+            return Forbid();
 
         var file = await _db.Set<StoredFile>()
             .AsNoTracking()
@@ -56,7 +70,17 @@ public class FilesController : Controller
 
         if (file is null || !await CanRead(file, userId)) return NotFound();
 
-        var path = _storage.GetAbsolutePath(file.RelativePath);
+        string path;
+
+        try
+        {
+            path = _storage.GetAbsolutePath(file.RelativePath);
+        }
+        catch (InvalidOperationException)
+        {
+            return NotFound();
+        }
+
         if (!System.IO.File.Exists(path)) return NotFound();
 
         if (inline)
@@ -71,22 +95,13 @@ public class FilesController : Controller
 
     private async Task<bool> CanRead(StoredFile file, int userId)
     {
-        if (User.IsInRole("Manager") ||
-            User.IsInRole("Admin") ||
-            User.IsInRole("Admin1"))
-        {
-            return true;
-        }
-
         if (file.IsSharedHub || file.OwnerId == userId) return true;
         return await _db.Set<FilePermission>().AnyAsync(x => x.FileId == file.Id && x.UserId == userId);
     }
 
-    private int GetUserId()
+    private bool TryGetUserId(out int userId)
     {
         var value = User.FindFirstValue("Id");
-        if (!int.TryParse(value, out var userId) || userId <= 0)
-            throw new UnauthorizedAccessException("Invalid user identity.");
-        return userId;
+        return int.TryParse(value, out userId) && userId > 0;
     }
 }

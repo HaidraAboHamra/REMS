@@ -3,7 +3,19 @@
 
         <div class="nav-section-title">MAIN</div>
 
+        <AuthorizeView Roles="Manager,Admin">
+            <Authorized>
         <div class="nav-item">
+                    <NavLink class="nav-link premium-link" href="/follow-up-employees">
+                        <div class="nav-emoji-box">🧑‍💼</div>
+                        <div class="nav-text"><span class="nav-title">إدارة موظفي المتابعة</span><span class="nav-subtitle">الحسابات والصور والأرشيف</span></div>
+                        <div class="nav-arrow"><i class="bi bi-chevron-left"></i></div>
+                    </NavLink>
+                </div>
+            </Authorized>
+        </AuthorizeView>
+
+                <div class="nav-item">
             <NavLink class="nav-link premium-link" href="/user">
                 <div class="nav-emoji-box">👤</div>
                 <div class="nav-text">

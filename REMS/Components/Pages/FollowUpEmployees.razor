@@ -1,0 +1,122 @@
+@page "/follow-up-employees"
+@attribute [Authorize(Roles = "Admin,Manager")]
+@using Microsoft.EntityFrameworkCore
+@using REMS.Data
+@using REMS.DTOs
+@inject IDbContextFactory<AppDbContext> DbFactory
+@inject UserService UserRepo
+@inject AuditLogService Audit
+@inject IHttpContextAccessor HttpContextAccessor
+
+<div class="container py-4 employee-admin-page" dir="rtl">
+    <header class="rems-page-header">
+        <div><span class="rems-eyebrow">REMS · ADMINISTRATION</span><h2>إدارة موظفي قسم المتابعة</h2><p class="rems-muted">الحسابات التي تحمل صفة موظف متابعة فقط.</p></div>
+        <span class="rems-count">@Employees.Count موظف</span>
+    </header>
+
+    @if (!string.IsNullOrWhiteSpace(Message))
+    {
+        <div class="alert alert-info">@Message</div>
+    }
+
+    <div class="row g-3">
+        <div class="col-lg-5">
+            <div class="list-group rems-surface p-2">
+                @foreach (var employee in Employees)
+                {
+                    <button class="list-group-item list-group-item-action @(Selected?.Id == employee.Id ? "active" : "")" @onclick="() => Select(employee)">
+                        <img class="rounded-circle me-2" width="42" height="42" src="@(employee.ProfileImagePath is null ? "" : $"/profile-images/{employee.Id}")" alt="" />
+                        @employee.FullName <small class="d-block">@employee.Email</small>
+                    </button>
+                }
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            @if (Edit is not null)
+            {
+                <EditForm Model="Edit" OnValidSubmit="SaveAsync">
+                    <DataAnnotationsValidator />
+                    <div class="card rems-surface p-3">
+                        <InputText class="form-control mb-2" @bind-Value="Edit.FullName" placeholder="الاسم الكامل" />
+                        <ValidationMessage For="() => Edit.FullName" />
+                        <InputText class="form-control mb-2" @bind-Value="Edit.Email" placeholder="البريد الإلكتروني" />
+                        <InputText class="form-control mb-2" @bind-Value="Edit.PhoneNumber" placeholder="الهاتف" />
+                        <InputText class="form-control mb-2" @bind-Value="Edit.TelegramUsername" placeholder="Telegram" />
+                        <InputText type="password" class="form-control mb-3" @bind-Value="Edit.NewPassword" placeholder="كلمة مرور جديدة (اختياري)" />
+                        <div class="form-check"><InputCheckbox class="form-check-input" @bind-Value="Edit.IsFUser" /> موظف متابعة</div>
+                        <div class="form-check"><InputCheckbox class="form-check-input" @bind-Value="Edit.IsFollowUpAdmin" /> مسؤول متابعة</div>
+                        <div class="form-check"><InputCheckbox class="form-check-input" @bind-Value="Edit.IsAdmin" /> مدير</div>
+                        <div class="form-check mb-3"><InputCheckbox class="form-check-input" @bind-Value="Edit.IsItAdmin" /> مسؤول تقنية</div>
+                        <InputFile OnChange="UploadAsync" accept="image/jpeg,image/png,image/webp" class="form-control mb-3" />
+                        <button class="btn btn-primary" type="submit">حفظ التعديلات</button>
+                    </div>
+                </EditForm>
+
+                <div class="card rems-surface p-3 mt-3">
+                    <h5>أرشيف العمليات (12 شهراً)</h5>
+                    @foreach (var log in Logs)
+                    {
+                        <div class="border-bottom py-2"><strong>@log.Action</strong> - @log.Description <small class="text-muted d-block">@log.CreatedAt.ToLocalTime()</small></div>
+                    }
+
+
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<User> Employees = new();
+    private User? Selected;
+    private EmployeeUpdateDto? Edit;
+    private List<AuditLog> Logs = new();
+    private string Message = string.Empty;
+    private bool IsBusy;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadEmployeesAsync();
+    }
+
+    private async Task Select(User employee)
+    {
+        Selected = employee;
+        Edit = new EmployeeUpdateDto { FullName = employee.FullName ?? "", Email = employee.Email ?? "", PhoneNumber = employee.PhoneNumber, TelegramUsername = employee.TelegramUsername, IsFUser = employee.IsFUser, IsAdmin = employee.IsAdmin, IsFollowUpAdmin = employee.IsFollowUpAdmin, IsItAdmin = employee.IsItAdmin };
+        Logs = await Audit.GetForUserAsync(employee.Id);
+    }
+
+    private async Task SaveAsync()
+    {
+        if (IsBusy || Selected is null || Edit is null || !int.TryParse(HttpContextAccessor.HttpContext?.User.FindFirst("Id")?.Value, out var actorId)) return;
+        IsBusy = true;
+        try
+        {
+            var saved = await UserRepo.UpdateEmployeeAsync(actorId, Selected.Id, Edit);
+            Message = saved is null ? "لا تملك صلاحية تعديل هذا المستخدم." : "تم حفظ التعديلات.";
+            if (saved is not null) await Select(saved);
+            await LoadEmployeesAsync();
+        }
+        finally { IsBusy = false; }
+    }
+
+    private async Task LoadEmployeesAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        Employees = await db.Users.AsNoTracking().Where(x => x.IsFUser).OrderBy(x => x.FullName).ToListAsync();
+    }
+
+    private async Task UploadAsync(InputFileChangeEventArgs args)
+    {
+        if (IsBusy || Selected is null || !int.TryParse(HttpContextAccessor.HttpContext?.User.FindFirst("Id")?.Value, out var actorId)) return;
+        IsBusy = true;
+        try
+        {
+            Message = await UserRepo.UpdateEmployeeImageAsync(actorId, Selected.Id, args.File) ? "تم تحديث الصورة." : "لا تملك صلاحية رفع الصورة.";
+            await Select(Selected);
+        }
+        catch (Exception ex) { Message = ex.Message; }
+        finally { IsBusy = false; }
+    }
+}

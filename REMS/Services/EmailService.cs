@@ -14,6 +14,7 @@ namespace REMS.Services
         private readonly int _smtpPort;
         private readonly string _emailSender;
         private readonly string _emailPassword;
+        private readonly bool _isConfigured;
 
         public EmailService(
             IConfiguration config,
@@ -33,15 +34,13 @@ namespace REMS.Services
                     ? port
                     : 587;
 
-            _emailSender =
-                _config["EmailSenderAddress"]
-                ?? throw new InvalidOperationException(
-                    "EmailSenderAddress غير موجود.");
+            _emailSender = _config["EmailSenderAddress"] ?? string.Empty;
+            _emailPassword = _config["EmailSenderPassword"] ?? string.Empty;
+            _isConfigured = !string.IsNullOrWhiteSpace(_emailSender)
+                && !string.IsNullOrWhiteSpace(_emailPassword);
 
-            _emailPassword =
-                _config["EmailSenderPassword"]
-                ?? throw new InvalidOperationException(
-                    "EmailSenderPassword غير موجود.");
+            if (!_isConfigured)
+                _logger.LogWarning("Email integration is disabled because SMTP credentials are not configured.");
         }
 
         // =========================================================
@@ -54,6 +53,12 @@ namespace REMS.Services
             string body,
             AttachmentCollection? attachments = null)
         {
+            if (!_isConfigured)
+            {
+                _logger.LogWarning("Email was not sent because SMTP integration is disabled. Recipient={Recipient}", toEmail);
+                return;
+            }
+
             try
             {
                 using var client = CreateClient();
@@ -118,6 +123,12 @@ namespace REMS.Services
             string subject,
             string body)
         {
+            if (!_isConfigured)
+            {
+                _logger.LogWarning("Email was not sent because SMTP integration is disabled. Recipient={Recipient}", toEmail);
+                return;
+            }
+
             try
             {
                 using var client = CreateClient();
@@ -153,6 +164,12 @@ namespace REMS.Services
             string subject,
             string body)
         {
+            if (!_isConfigured)
+            {
+                _logger.LogWarning("Email was not sent because SMTP integration is disabled. Recipient={Recipient}", toEmail);
+                return;
+            }
+
             try
             {
                 using var client = CreateClient();

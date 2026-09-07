@@ -4,6 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>REMS-Development-Secrets</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,12 +29,6 @@
     <PackageReference Include="MudBlazor" Version="7.8.0" />
     <PackageReference Include="Telegram.Bot" Version="16.0.0" />
     <PackageReference Include="Telegram.Bots.Extensions.Polling" Version="5.9.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Update="wwwroot\REMS.db">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
 
 </Project>

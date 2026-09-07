@@ -15,3 +15,13 @@
 .sidebar-nav {
     flex: 1 !important;
 }
+
+@media (max-width: 768px) {
+    .nav-scrollable {
+        padding: .75rem .6rem !important;
+    }
+
+    .premium-link {
+        min-height: 56px !important;
+    }
+}

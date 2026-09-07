@@ -14,6 +14,13 @@ public class FileFolder
 
     public int? ParentFolderId { get; set; }
 
+    /// <summary>
+    /// True when this folder belongs to the company-wide Hub. Hub folders are
+    /// visible to every signed-in user, while only Hub administrators can
+    /// create, rename, or remove them.
+    /// </summary>
+    public bool IsSharedHub { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public virtual FileFolder? ParentFolder { get; set; }

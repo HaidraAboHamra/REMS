@@ -1,5 +1,6 @@
-﻿using Irony.Parsing;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using REMS.DTOs;
 using REMS.Enititys;
@@ -17,11 +18,13 @@ namespace REMS.Controllers
         private readonly IConfiguration _configuration = configuration;
 
         [HttpPost]
+        [EnableRateLimiting("login")]
+        [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            if (request == null || string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
+            if (!ModelState.IsValid)
             {
-                return BadRequest("Invalid login request.");
+                return ValidationProblem(ModelState);
             }
 
             var user = await _userService.LoginAsync(request.Email, request.Password);
@@ -56,6 +59,7 @@ namespace REMS.Controllers
         }
 
         [HttpPost("rigester")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Register([FromBody] RigesterUserDto rigesterUser)
         {
             if (string.IsNullOrEmpty(rigesterUser.Email) || string.IsNullOrEmpty(rigesterUser.Password))
@@ -63,7 +67,14 @@ namespace REMS.Controllers
                 return BadRequest("Invalid reg request.");
             }
 
-            var user = await _userService.CreateUserAsync(new Enititys.User { FullName = rigesterUser.FullName, Email = rigesterUser.Email, IsAdmin = rigesterUser.IsAdmin, PasswordHash = rigesterUser.Password });
+            var user = await _userService.CreateUserAsync(new Enititys.User
+            {
+                FullName = rigesterUser.FullName,
+                Email = rigesterUser.Email,
+                // Other administrative flags are deliberately server-controlled.
+                IsAdmin = rigesterUser.IsAdmin,
+                PasswordHash = rigesterUser.Password
+            });
 
             if (user == null)
             {
@@ -77,8 +88,8 @@ namespace REMS.Controllers
             List<Claim> Claims =
             [
                 new Claim(ClaimTypes.NameIdentifier,user.Id.ToString()),
-                new Claim(ClaimTypes.MobilePhone,user.PhoneNumber),
-                new Claim(ClaimTypes.Email,user.Email!),
+                new Claim(ClaimTypes.MobilePhone, user.PhoneNumber ?? string.Empty),
+                new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
                 new Claim(ClaimTypes.Role,"User")
             ];
 
@@ -103,7 +114,9 @@ namespace REMS.Controllers
             var token = new JwtSecurityToken(
                 claims: Claims,
                 signingCredentials: cred,
-                expires: DateTime.Now.AddDays(2)
+                expires: DateTime.UtcNow.AddHours(8),
+                issuer: _configuration["Jwt:Issuer"],
+                audience: _configuration["Jwt:Audience"]
                 );
 
             var jwt = new JwtSecurityTokenHandler().WriteToken(token);
@@ -113,7 +126,9 @@ namespace REMS.Controllers
 
     public class LoginRequest
     {
-        public string Email { get; set; }
-        public string Password { get; set; }
+        [System.ComponentModel.DataAnnotations.Required, System.ComponentModel.DataAnnotations.EmailAddress]
+        public string Email { get; set; } = string.Empty;
+        [System.ComponentModel.DataAnnotations.Required, System.ComponentModel.DataAnnotations.StringLength(256, MinimumLength = 8)]
+        public string Password { get; set; } = string.Empty;
     }
 }

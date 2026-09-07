@@ -21,6 +21,8 @@ namespace REMS.Enititys
         [DisplayName("الايميل")]
         public string? Email { get; set; }
         public string? PasswordHash { get; set; }
+        public string? ProfileImagePath { get; set; }
+        public string? ProfileImageContentType { get; set; }
         public bool IsAdmin { get; set; } = false;
         public bool IsItAdmin { get; set; } = false;
         public bool IsFollowUpAdmin { get; set; } = false;

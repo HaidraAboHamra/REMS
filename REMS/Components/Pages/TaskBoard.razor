@@ -10,13 +10,13 @@
 <PageTitle>لوحة المهام | REMS</PageTitle>
 
 <section class="task-board" dir="rtl">
-    <header class="board-header">
+    <header class="board-header rems-surface">
         <div>
             <span class="eyebrow">REMS • TASK CENTER</span>
             <h1>لوحة المهام</h1>
             <p>نظرة واضحة للمهام المعلقة، قيد الإنجاز، والمتأخرة.</p>
         </div>
-        <button class="refresh" @onclick="LoadAsync" disabled="@IsLoading">↻ تحديث</button>
+            <button class="refresh" @onclick="LoadAsync" disabled="@IsLoading" aria-label="تحديث المهام">↻ تحديث</button>
     </header>
 
     @if (IsLoading)
@@ -25,6 +25,10 @@
     }
     else
     {
+        @if (!string.IsNullOrWhiteSpace(LoadError))
+        {
+            <div class="state error-state">@LoadError <button class="clear" @onclick="LoadAsync">إعادة المحاولة</button></div>
+        }
         <div class="summary" aria-label="ملخص حالات المهام">
             <button class="summary-card pending @(SelectedStatus == "معلقة" ? "selected" : "")" @onclick="ShowPending">
                 <span>معلقة</span><strong>@PendingCount</strong>
@@ -40,7 +44,7 @@
             </button>
         </div>
 
-        <div class="toolbar">
+            <div class="toolbar rems-surface">
             <input @bind="Search" @bind:event="oninput" placeholder="ابحث باسم المهمة أو المشروع أو الموظف…" aria-label="بحث المهام" />
             <button class="clear" @onclick="ClearFilters">عرض الكل</button>
         </div>
@@ -83,6 +87,7 @@
 @code {
     private List<FollowUpReport> Reports = [];
     private bool IsLoading = true;
+    private string? LoadError;
     private bool IsAdministrator;
     private int CurrentUserId;
     private string? SelectedStatus;
@@ -101,10 +106,19 @@
     private async Task LoadAsync()
     {
         IsLoading = true;
-        Reports = await ReportService.GetReports(new ReportFilter
+        LoadError = null;
+        try
         {
-            AssignedEmployeeId = IsAdministrator ? null : CurrentUserId
-        });
+            Reports = await ReportService.GetReports(new ReportFilter
+            {
+                AssignedEmployeeId = IsAdministrator ? null : CurrentUserId
+            });
+        }
+        catch
+        {
+            Reports = [];
+            LoadError = "تعذر تحميل المهام حالياً. حاول مرة أخرى.";
+        }
         IsLoading = false;
     }
 
@@ -142,6 +156,4 @@
     private void ClearFilters() { SelectedStatus = null; Search = string.Empty; }
 }
 
-<style>
-    .task-board{max-width:1280px;margin:auto;padding:clamp(1rem,3vw,2.5rem);color:#e8edf9}.board-header{display:flex;justify-content:space-between;gap:1rem;align-items:end;margin-bottom:1.5rem}.eyebrow{font-size:.68rem;letter-spacing:.18em;color:#93c5fd}.board-header h1{margin:.35rem 0;font-size:clamp(1.65rem,4vw,2.7rem)}.board-header p{margin:0;color:#aab6cf}.refresh,.clear,.summary-card{font:inherit;cursor:pointer}.refresh,.clear{border:1px solid #475569;border-radius:.75rem;padding:.7rem 1rem;color:#e8edf9;background:#172033}.refresh:hover,.clear:hover{background:#24324d}.summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem}.summary-card{display:flex;flex-direction:column;gap:.35rem;text-align:right;border:1px solid #334155;border-radius:1rem;padding:1rem;color:#cbd5e1;background:linear-gradient(135deg,#151d31,#0e1424);transition:transform .2s,border-color .2s}.summary-card:hover,.summary-card.selected{transform:translateY(-2px);border-color:#818cf8}.summary-card strong{font-size:1.9rem;color:white}.pending strong{color:#cbd5e1}.progress strong{color:#facc15}.overdue strong{color:#fb7185}.complete strong{color:#4ade80}.toolbar{display:flex;gap:.75rem;margin:1.5rem 0}.toolbar input{flex:1;min-width:0;border:1px solid #334155;border-radius:.75rem;padding:.75rem 1rem;color:white;background:#0d1424}.state{padding:3rem;text-align:center;border:1px dashed #475569;border-radius:1rem;color:#aab6cf}.task-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:1rem}.task-card{border:1px solid #334155;border-radius:1rem;padding:1rem;background:rgba(15,23,42,.8);box-shadow:0 12px 30px rgba(0,0,0,.15)}.task-card.is-overdue{border-color:rgba(251,113,133,.65)}.task-card.is-progress{border-color:rgba(250,204,21,.55)}.task-card.is-complete{border-color:rgba(74,222,128,.45)}.task-card-top{display:flex;justify-content:space-between;gap:1rem}.task-card h2{font-size:1.05rem;margin:.55rem 0}.task-card p{margin:0;color:#aab6cf;min-height:2.5rem}.status,.priority{height:max-content;border-radius:99px;padding:.25rem .55rem;font-size:.72rem;background:#26334a}.is-overdue .status{background:#4c1725;color:#fecdd3}.is-progress .status{background:#453812;color:#fef08a}.is-complete .status{background:#133c28;color:#bbf7d0}.task-meta{display:flex;flex-wrap:wrap;gap:.55rem;margin:1rem 0;color:#aab6cf;font-size:.78rem}.progress-row{display:flex;align-items:center;gap:.75rem;font-size:.76rem}.bar{overflow:hidden;flex:1;height:.5rem;border-radius:99px;background:#26334a}.bar span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#6366f1,#38bdf8);transition:width .4s}@@media(max-width:760px){.board-header{align-items:stretch;flex-direction:column}.summary{grid-template-columns:repeat(2,minmax(0,1fr))}.toolbar{flex-direction:column}.clear,.refresh{width:100%}}@@media(prefers-reduced-motion:reduce){.summary-card,.bar span{transition:none}}
-</style>
+

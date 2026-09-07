@@ -1,0 +1,8 @@
+.rems-page-header { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; margin-bottom:1.25rem; }
+    .rems-page-header h2 { margin:.35rem 0; font-weight:800; }
+    .rems-eyebrow { color:var(--rems-primary-strong); font-size:.72rem; letter-spacing:.12em; font-weight:800; }
+    .rems-count { background:var(--rems-surface-muted); border:1px solid var(--rems-border); border-radius:999px; padding:.5rem .8rem; white-space:nowrap; }
+    .employee-admin-page .list-group-item { background:transparent; color:var(--rems-text); border-color:var(--rems-border); }
+    .employee-admin-page .list-group-item.active { background:rgba(99,102,241,.22); border-color:var(--rems-primary); }
+    .employee-admin-page .form-control { background:var(--rems-surface-muted); color:var(--rems-text); border-color:var(--rems-border); }
+@media (max-width: 600px) { .rems-page-header { flex-direction:column; } }

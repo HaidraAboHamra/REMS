@@ -8,9 +8,11 @@ public sealed class FileStorageService
     // MAX FILE SIZE
     // =========================================================
 
-    // 1 GB
+    // Kept in sync with the UI. Limiting each upload also prevents one user
+    // from exhausting local disk through a single Blazor request.
+    // 100 MB
     public const long MaxFileSize =
-        1024L * 1024L * 1024L;
+        100L * 1024L * 1024L;
 
     private readonly string _rootPath;
 

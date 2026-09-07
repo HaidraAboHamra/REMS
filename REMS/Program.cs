@@ -43,7 +43,13 @@ builder.Services.AddRateLimiter(options =>
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
     options.AddFixedWindowLimiter("login", limiter =>
     {
-        limiter.PermitLimit = 10;
+        limiter.PermitLimit = 5;
+        limiter.Window = TimeSpan.FromMinutes(1);
+        limiter.QueueLimit = 0;
+    });
+    options.AddFixedWindowLimiter("api", limiter =>
+    {
+        limiter.PermitLimit = 120;
         limiter.Window = TimeSpan.FromMinutes(1);
         limiter.QueueLimit = 0;
     });
@@ -77,8 +83,9 @@ builder.WebHost.UseUrls("http://127.0.0.1:2004");
 
 //builder.Services.AddDbContext<AppDbContext>(options =>
 //    options.UseSqlite($"Data Source={dbPath}"));
-var dbPath =
-    builder.Configuration.GetConnectionString("DefaultConnection");
+var dbPath = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? builder.Configuration.GetConnectionString("DefultConnection")
+    ?? throw new InvalidOperationException("A database connection string is required.");
 
 builder.Services.AddDbContextFactory<AppDbContext>(options =>
     options.UseSqlite(dbPath));
@@ -93,12 +100,19 @@ builder.Services.AddHostedService<ReportEmailHostedService>();
 builder.Services.AddHostedService<LateTaskPenaltyService>();
 
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<AuditLogService>();
+builder.Services.AddHostedService<AuditLogCleanupService>();
 
 builder.Services.AddSingleton<FileStorageService>();
-builder.Services.AddSingleton<TelegramService>();
+builder.Services.AddSingleton<ProfileImageService>();
 
-builder.Services.AddHostedService<TelegramMessageScheduler>();
-builder.Services.AddHostedService<TelegramBotHostedService>();
+var telegramToken = builder.Configuration["TelegramBotToken"];
+if (!string.IsNullOrWhiteSpace(telegramToken))
+{
+    builder.Services.AddSingleton<TelegramService>();
+    builder.Services.AddHostedService<TelegramMessageScheduler>();
+    builder.Services.AddHostedService<TelegramBotHostedService>();
+}
 
 builder.Services.AddScoped<IAuthentication, AuthenticationRepository>();
 builder.Services.AddScoped<IFollowUpReportService, FollowUpReportService>();
@@ -114,9 +128,21 @@ var jwtKey = builder.Configuration["Jwt:Key"];
 
 if (string.IsNullOrWhiteSpace(jwtKey))
 {
-    throw new InvalidOperationException(
-        "JWT key is missing. Configure Jwt:Key in production.");
+    if (builder.Environment.IsDevelopment())
+        jwtKey = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(48));
+    else
+        throw new InvalidOperationException("JWT key is missing. Configure it with user-secrets or an environment variable in production.");
 }
+
+if (Encoding.UTF8.GetByteCount(jwtKey) < 32)
+{
+    throw new InvalidOperationException(
+        "JWT key must contain at least 32 bytes.");
+}
+
+// Keep the generated development key available to LoginController as well.
+// Production still requires Jwt:Key from an external secret provider.
+builder.Configuration["Jwt:Key"] = jwtKey;
 
 builder.Services
     .AddAuthentication(options =>
@@ -145,7 +171,9 @@ builder.Services
             ValidateIssuerSigningKey = true,
             ValidateAudience = false,
             ValidateIssuer = false,
-            RequireExpirationTime = false
+            RequireExpirationTime = true,
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.FromMinutes(2)
         };
     })
     .AddCookie(
@@ -156,8 +184,11 @@ builder.Services
             options.ExpireTimeSpan = TimeSpan.FromHours(12);
             options.SlidingExpiration = true;
             options.Cookie.HttpOnly = true;
-            options.Cookie.SameSite = SameSiteMode.Lax;
-            options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+            options.Cookie.SameSite = SameSiteMode.Strict;
+            options.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
+                ? CookieSecurePolicy.SameAsRequest
+                : CookieSecurePolicy.Always;
+            options.Cookie.Name = "REMS.Auth";
         });
 
 // ======================================================
@@ -199,7 +230,16 @@ await using (var scope = app.Services.CreateAsyncScope())
 {
     var dbFactory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<AppDbContext>>();
     await using var db = await dbFactory.CreateDbContextAsync();
-    await db.Database.MigrateAsync();
+
+    // Older installations have a database but no EF migration history. New
+    // installations still need a complete initial schema, so use migrations
+    // where they exist and EF's initializer otherwise.
+    if (db.Database.GetMigrations().Any())
+        await db.Database.MigrateAsync();
+    else
+        await db.Database.EnsureCreatedAsync();
+
+    await FileStorageSchemaInitializer.EnsureCurrentAsync(db);
 }
 
 // ======================================================
@@ -240,6 +280,7 @@ app.Use(async (context, next) =>
     context.Response.Headers.TryAdd("X-Frame-Options", "SAMEORIGIN");
     context.Response.Headers.TryAdd("Referrer-Policy", "strict-origin-when-cross-origin");
     context.Response.Headers.TryAdd("Permissions-Policy", "camera=(), microphone=(), geolocation=(), unload=*");
+    context.Response.Headers.TryAdd("Content-Security-Policy", "default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' ws: wss:; frame-ancestors 'self'; base-uri 'self'; form-action 'self'");
     await next();
 });
 
@@ -257,7 +298,7 @@ app.UseAntiforgery();
 // Endpoints
 // ======================================================
 
-app.MapControllers();
+app.MapControllers().RequireRateLimiting("api");
 
 app.MapRazorPages().RequireRateLimiting("login");
 
