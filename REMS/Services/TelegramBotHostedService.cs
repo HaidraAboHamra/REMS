@@ -1,4 +1,6 @@
 ﻿using System.Collections.Concurrent;
+using Microsoft.EntityFrameworkCore;
+using REMS.Data;
 using REMS.Enititys;
 using Telegram.Bot;
 using Telegram.Bot.Args;
@@ -10,15 +12,24 @@ public class TelegramBotHostedService : BackgroundService
 {
     private readonly TelegramService _telegram;
     private readonly ILogger<TelegramBotHostedService> _logger;
+    private readonly IDbContextFactory<AppDbContext> _dbFactory;
 
     private readonly ConcurrentDictionary<long, BotState> _states = new();
 
     public TelegramBotHostedService(
         TelegramService telegram,
-        ILogger<TelegramBotHostedService> logger)
+        ILogger<TelegramBotHostedService> logger,
+        IDbContextFactory<AppDbContext> dbFactory)
     {
         _telegram = telegram;
         _logger = logger;
+        _dbFactory = dbFactory;
+    }
+
+    private async Task<TelegramBotSettings> GetSettingsAsync(CancellationToken cancellationToken = default)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
+        return await db.TelegramBotSettings.AsNoTracking().SingleAsync(cancellationToken);
     }
 
     // =========================================================
@@ -28,6 +39,12 @@ public class TelegramBotHostedService : BackgroundService
     private static string GetArabicMonthName(
         int month)
     {
+        var settings = await GetSettingsAsync();
+        if (!settings.IsEnabled)
+        {
+            await _telegram.SendMessageAsync(user.ChatId!.Value, "⛔ بوت Telegram متوقف مؤقتًا من لوحة الإدارة.");
+            return;
+        }
         return month switch
         {
             1 => "يناير",
@@ -466,7 +483,16 @@ public class TelegramBotHostedService : BackgroundService
                     user);
                 break;
 
+            case "/today":
+                await SendTodayTasksAsync(user);
+                break;
+
+            case "/help":
+                await SendHelpAsync(user.ChatId!.Value);
+                break;
+
             case "/add":
+                if (!settings.AllowTaskCreation) { await SendAccessDeniedAsync(user); break; }
                 await StartAddTaskAsync(
                     user);
                 break;
@@ -478,12 +504,14 @@ public class TelegramBotHostedService : BackgroundService
                 break;
 
             case "/edit":
+                if (!settings.AllowTaskEditing) { await SendAccessDeniedAsync(user); break; }
                 await SendTaskSelectionAsync(
                     user,
                     "edit");
                 break;
 
             case "/delete":
+                if (!settings.AllowTaskDeletion) { await SendAccessDeniedAsync(user); break; }
                 await SendTaskSelectionAsync(
                     user,
                     "delete");
@@ -547,6 +575,34 @@ public class TelegramBotHostedService : BackgroundService
                 break;
         }
     }
+
+    private async Task SendTodayTasksAsync(User user)
+    {
+        var tasks = await _telegram.GetUserTasksForDateAsync(user.Id, DateTime.Today);
+        if (tasks.Count == 0)
+        {
+            await _telegram.SendMessageAsync(user.ChatId!.Value, "✅ لا توجد مهام مستحقة اليوم.");
+            return;
+        }
+
+        await _telegram.SendMessageAsync(user.ChatId!.Value, $"📅 مهام اليوم: {tasks.Count}");
+        foreach (var task in tasks)
+            await SendTaskCardAsync(user, task);
+    }
+
+    private Task SendHelpAsync(long chatId) => _telegram.SendMessageAsync(
+        chatId,
+        "🆘 أوامر REMS المتاحة:\n\n" +
+        "/menu - القائمة الرئيسية\n" +
+        "/tasks - مهامي المفتوحة\n" +
+        "/today - مهام اليوم\n" +
+        "/overdue - المهام المتأخرة\n" +
+        "/add - إضافة مهمة\n" +
+        "/finish - إنهاء مهمة\n" +
+        "/edit - تعديل مهمة\n" +
+        "/report - التقرير اليومي\n" +
+        "/weekly - التقرير الأسبوعي\n" +
+        "/help - عرض المساعدة");
 
     // =========================================================
     // MAIN MENU

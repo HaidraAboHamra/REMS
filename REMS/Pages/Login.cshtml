@@ -13,6 +13,15 @@
             box-sizing: border-box;
         }
 
+        @if (Model.IsDevelopment && !string.IsNullOrWhiteSpace(Model.BootstrapAdminEmail))
+        {
+            <div class="alert alert-warning">
+                <strong>بيانات مطور محلية فقط</strong><br />
+                البريد: <code>@Model.BootstrapAdminEmail</code><br />
+                كلمة المرور: <code>@Model.BootstrapAdminPassword</code>
+            </div>
+        }
+
         body {
             font-family: 'Arial', sans-serif;
             background: linear-gradient(120deg, red,black);
@@ -180,12 +189,12 @@
 
         <div class="mb-3">
             <label for="email">البريد الإلكتروني</label>
-            <input id="email" name="Email" type="email" class="form-control" />
+            <input id="email" name="Email" type="text" class="form-control" value="@Model.Email" />
         </div>
 
         <div class="mb-3">
             <label for="password">كلمة المرور</label>
-            <input id="password" name="Password" type="password" class="form-control" />
+            <input id="password" name="Password" type="password" class="form-control" value="@Model.Password" />
         </div>
         <br />
         <a href="/complaint">اضافة شكوى</a>

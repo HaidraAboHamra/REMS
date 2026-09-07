@@ -15,19 +15,32 @@
             </Authorized>
         </AuthorizeView>
 
-                <div class="nav-item">
-            <NavLink class="nav-link premium-link" href="/user">
-                <div class="nav-emoji-box">👤</div>
-                <div class="nav-text">
-                    <span class="nav-title">الحساب الشخصي</span>
-                    <span class="nav-subtitle">إدارة معلومات الحساب وكلمة المرور</span>
-                </div>
-                <div class="nav-arrow"><i class="bi bi-chevron-left"></i></div>
-            </NavLink>
-        </div>
+                <AuthorizeView Policy="AdminHealth">
+                    <Authorized>
+                        <div class="nav-item">
+                            <NavLink class="nav-link premium-link" href="/admin/audit">
+                                <div class="nav-emoji-box">🧭</div>
+                                <div class="nav-text"><span class="nav-title">التدقيق والصحة</span><span class="nav-subtitle">صحة النظام وسجل العمليات</span></div>
+                                <div class="nav-arrow"><i class="bi bi-chevron-left"></i></div>
+                            </NavLink>
+                        </div>
+                    </Authorized>
+                </AuthorizeView>
 
+                <div class="nav-item">
+                    <NavLink class="nav-link premium-link" href="/user">
+                        <div class="nav-emoji-box">👤</div>
+                        <div class="nav-text">
+                            <span class="nav-title">الحساب الشخصي</span>
+                            <span class="nav-subtitle">إدارة معلومات الحساب وكلمة المرور</span>
+                        </div>
+                        <div class="nav-arrow"><i class="bi bi-chevron-left"></i></div>
+                    </NavLink>
+                </div>
         <AuthorizeView Roles="User,Manager,Admin,Admin1">
             <Authorized Context="mainNav">
+                <AuthorizeView Policy="AdminUsers">
+                <Authorized>
                 <div class="nav-item">
                     <NavLink class="nav-link premium-link" href="/home" Match="NavLinkMatch.All">
                         <div class="nav-emoji-box">🏠</div>
@@ -77,6 +90,8 @@
                         <div class="nav-arrow"><i class="bi bi-chevron-left"></i></div>
                     </NavLink>
                 </div>
+                </Authorized>
+                </AuthorizeView>
 
                 <AuthorizeView Roles="Manager,Admin,Admin1">
                     <Authorized Context="todayTasks">
@@ -105,9 +120,20 @@
         </AuthorizeView>
 
 
-        <AuthorizeView Roles="Manager,Admin,Admin1,FUser">
+        <AuthorizeView Policy="AdminCenter">
             <Authorized Context="adminNav">
                 <div class="nav-section-title">الإدارة</div>
+
+                <div class="nav-item">
+                    <NavLink class="nav-link premium-link admin-nav-link" href="/admin">
+                        <div class="nav-emoji-box">🛡️</div>
+                        <div class="nav-text">
+                            <span class="nav-title">مركز التحكم الإداري</span>
+                            <span class="nav-subtitle">إدارة شاملة للنظام والبوت والصلاحيات</span>
+                        </div>
+                        <div class="nav-arrow"><i class="bi bi-chevron-left"></i></div>
+                    </NavLink>
+                </div>
 
                 <div class="nav-item">
                     <NavLink class="nav-link premium-link" href="/users-and-reports">

@@ -1,0 +1,20 @@
+.admin-section-page { min-height: 60vh; padding: 2rem 0; color: var(--rems-text); }
+.admin-section-page h1 { margin: 1.25rem 0 .5rem; }
+.admin-section-page p { color: var(--rems-text-muted); }
+.back-link { color: var(--rems-primary-strong); text-decoration: none; }
+.coming-card { margin-top: 2rem; padding: 2rem; border: 1px solid var(--rems-border); border-radius: var(--rems-radius-md); background: var(--rems-surface); color: var(--rems-text-muted); }
+.coming-card.is-error { color: var(--rems-danger); }
+.permission-table-wrap { margin-top: 1.5rem; overflow-x: auto; border: 1px solid var(--rems-border); border-radius: var(--rems-radius-md); }
+.permission-table { width: 100%; min-width: 850px; border-collapse: collapse; background: var(--rems-surface); color: var(--rems-text); }
+.permission-table th, .permission-table td { padding: .85rem; border-bottom: 1px solid var(--rems-border); text-align: center; white-space: nowrap; }
+.permission-table th { color: var(--rems-text-muted); font-size: .78rem; background: var(--rems-surface-raised); }
+.permission-table td:first-child, .permission-table th:first-child { text-align: right; }
+.permission-table td:first-child { display: grid; gap: .2rem; }
+.permission-table td small { color: var(--rems-text-muted); }
+.permission-toggle { min-width: 70px; padding: .4rem .55rem; border: 1px solid var(--rems-border); border-radius: .55rem; background: transparent; color: var(--rems-text-muted); cursor: pointer; }
+.permission-toggle.is-on { border-color: color-mix(in srgb, var(--rems-success) 60%, var(--rems-border)); background: rgba(34, 197, 94, .14); color: var(--rems-success); }
+.permission-toggle:disabled { cursor: wait; opacity: .6; }
+.permission-toolbar { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.25rem; }
+.permission-search { flex: 1 1 18rem; min-width: 12rem; padding: .7rem .9rem; border: 1px solid var(--rems-border); border-radius: .65rem; background: var(--rems-surface); color: var(--rems-text); }
+.toolbar-button { padding: .7rem .9rem; border: 1px solid var(--rems-primary-strong); border-radius: .65rem; background: rgba(99,102,241,.16); color: var(--rems-text); cursor: pointer; }
+.toolbar-button:hover:not(:disabled) { background: rgba(99,102,241,.3); }

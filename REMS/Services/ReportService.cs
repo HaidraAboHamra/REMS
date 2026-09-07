@@ -564,7 +564,7 @@ namespace ReportApp.Services
             string email,
             DateTime date)
         {
-            throw new NotImplementedException();
+            return SendDailyTaskReports(email, date);
         }
 
         #endregion

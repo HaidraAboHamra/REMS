@@ -10,7 +10,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using MudBlazor.Services;
 using REMS.Components;
+using REMS.Authorization;
 using REMS.Data;
+using REMS.Infrastructure;
 using REMS.Interfaces;
 using REMS.Services;
 using ReportApp.Services;
@@ -117,6 +119,8 @@ if (!string.IsNullOrWhiteSpace(telegramToken))
 builder.Services.AddScoped<IAuthentication, AuthenticationRepository>();
 builder.Services.AddScoped<IFollowUpReportService, FollowUpReportService>();
 builder.Services.AddScoped<ISettings, SettingsRepository>();
+builder.Services.AddScoped<AdminCenterService>();
+builder.Services.AddScoped<TelegramAdminService>();
 builder.Services.AddScoped<ExcelService>();
 builder.Services.AddScoped<Test>();
 builder.Services.AddHttpContextAccessor();
@@ -218,6 +222,25 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddControllers();
 
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminCenter", policy =>
+        policy.Requirements.Add(new AdminPermissionRequirement(AdminPermissions.DashboardView)));
+    options.AddPolicy("AdminPermissions", policy =>
+        policy.Requirements.Add(new AdminPermissionRequirement(AdminPermissions.SensitiveActions)));
+    options.AddPolicy("AdminTelegram", policy =>
+        policy.Requirements.Add(new AdminPermissionRequirement(AdminPermissions.TelegramManage)));
+    options.AddPolicy("AdminUsers", policy =>
+        policy.Requirements.Add(new AdminPermissionRequirement(AdminPermissions.UsersManage)));
+    options.AddPolicy("AdminUserStatus", policy =>
+        policy.Requirements.Add(new AdminPermissionRequirement(AdminPermissions.UserStatusManage)));
+    options.AddPolicy("AdminSettings", policy =>
+        policy.Requirements.Add(new AdminPermissionRequirement(AdminPermissions.SettingsManage)));
+    options.AddPolicy("AdminHealth", policy =>
+        policy.Requirements.Add(new AdminPermissionRequirement(AdminPermissions.HealthView)));
+});
+builder.Services.AddSingleton<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, AdminPermissionHandler>();
+
 // ======================================================
 // Build
 // ======================================================
@@ -226,21 +249,7 @@ var app = builder.Build();
 
 // Keep the local SQLite schema aligned with the application on first startup.
 // This is especially important for desktop deployments where migrations are not run separately.
-await using (var scope = app.Services.CreateAsyncScope())
-{
-    var dbFactory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<AppDbContext>>();
-    await using var db = await dbFactory.CreateDbContextAsync();
-
-    // Older installations have a database but no EF migration history. New
-    // installations still need a complete initial schema, so use migrations
-    // where they exist and EF's initializer otherwise.
-    if (db.Database.GetMigrations().Any())
-        await db.Database.MigrateAsync();
-    else
-        await db.Database.EnsureCreatedAsync();
-
-    await FileStorageSchemaInitializer.EnsureCurrentAsync(db);
-}
+await app.Services.InitializeRemsDatabaseAsync(builder.Configuration, app.Environment.IsDevelopment());
 
 // ======================================================
 // Reverse Proxy / Nginx
@@ -274,15 +283,7 @@ if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
-app.Use(async (context, next) =>
-{
-    context.Response.Headers.TryAdd("X-Content-Type-Options", "nosniff");
-    context.Response.Headers.TryAdd("X-Frame-Options", "SAMEORIGIN");
-    context.Response.Headers.TryAdd("Referrer-Policy", "strict-origin-when-cross-origin");
-    context.Response.Headers.TryAdd("Permissions-Policy", "camera=(), microphone=(), geolocation=(), unload=*");
-    context.Response.Headers.TryAdd("Content-Security-Policy", "default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' ws: wss:; frame-ancestors 'self'; base-uri 'self'; form-action 'self'");
-    await next();
-});
+app.UseRemsSecurityHeaders(app.Environment);
 
 app.UseStaticFiles();
 

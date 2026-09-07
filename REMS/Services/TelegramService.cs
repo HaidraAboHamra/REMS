@@ -112,6 +112,26 @@ public class TelegramService
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<List<FollowUpReport>> GetUserTasksForDateAsync(
+        int userId,
+        DateTime date,
+        CancellationToken cancellationToken = default)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
+        var start = date.Date;
+        var end = start.AddDays(1);
+
+        return await db.FollowUpReports.AsNoTracking()
+            .Where(x => x.AssignedEmployeeId == userId
+                && !x.IsDone
+                && x.DueDate.HasValue
+                && x.DueDate.Value >= start
+                && x.DueDate.Value < end)
+            .OrderBy(x => x.Priority)
+            .ThenBy(x => x.DueDate)
+            .ToListAsync(cancellationToken);
+    }
+
     // =========================================================
     // LINK TELEGRAM ACCOUNT USING PHONE CONTACT
     // =========================================================

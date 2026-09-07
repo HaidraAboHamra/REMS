@@ -1,0 +1,51 @@
+@page "/admin/audit"
+@attribute [Authorize(Policy = "AdminHealth")]
+@using REMS.Enititys
+@inject AdminCenterService AdminCenter
+
+<PageTitle>التدقيق والصحة | REMS</PageTitle>
+
+<div class="admin-section-page" dir="rtl">
+    <a class="back-link" href="/admin">← العودة إلى مركز الأدمن</a>
+    <h1>التدقيق والصحة التشغيلية</h1>
+    <p>تتبع العمليات الإدارية وتحقق من جاهزية قاعدة البيانات.</p>
+    <div class="permission-toolbar">
+        <input class="permission-search" placeholder="ابحث في العمليات والوصف..." @bind="_search" @bind:event="oninput" />
+        <button class="toolbar-button" @onclick="LoadAsync" disabled="@_loading">تحديث</button>
+    </div>
+    @if (_health is not null)
+    {
+        <div class="coming-card">قاعدة البيانات: <strong class="@(_health.Value.Database ? "health-ok" : "health-error")">@(_health.Value.Database ? "متصلة" : "غير متصلة")</strong> — إجمالي سجلات التدقيق: @_health.Value.AuditEntries</div>
+    }
+    @if (_loading) { <div class="coming-card">جارٍ التحميل...</div> }
+    else if (_logs.Count == 0) { <div class="coming-card">لا توجد سجلات مطابقة.</div> }
+    else
+    {
+        <div class="audit-list">
+            @foreach (var log in _logs)
+            {
+                <article class="audit-row"><div><strong>@log.Action</strong><small>@log.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</small></div><p>@log.Description</p><span>@(log.EntityType ?? "عام") #@(log.EntityId ?? "-")</span></article>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private string _search = string.Empty;
+    private bool _loading = true;
+    private IReadOnlyList<AuditLog> _logs = [];
+    private (bool Database, int AuditEntries)? _health;
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        try
+        {
+            _logs = await AdminCenter.SearchAuditAsync(_search);
+            _health = await AdminCenter.GetSystemHealthAsync();
+        }
+        finally { _loading = false; }
+    }
+}

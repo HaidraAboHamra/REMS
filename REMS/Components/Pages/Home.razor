@@ -51,12 +51,23 @@
 
         </section>
 
-        <section class="home-overview" aria-label="ملخص النظام">
-            <div class="overview-card"><span>إجمالي المهام</span><strong>@Reports.Count</strong><small>المهام الظاهرة لك</small></div>
-            <div class="overview-card"><span>قيد التنفيذ</span><strong>@InProgressCount</strong><small>تحتاج إلى متابعة</small></div>
-            <div class="overview-card is-danger"><span>متأخرة</span><strong>@OverdueCount</strong><small>تحتاج إلى إجراء</small></div>
-            <div class="overview-card is-success"><span>مكتملة</span><strong>@CompletedCount</strong><small>تم إنجازها</small></div>
-        </section>
+        @if (_isLoading)
+        {
+            <section class="home-state" aria-live="polite">جارٍ تحميل ملخص المهام...</section>
+        }
+        else if (!string.IsNullOrWhiteSpace(_loadError))
+        {
+            <section class="home-state home-state-error" role="alert">@_loadError</section>
+        }
+        else
+        {
+            <section class="home-overview" aria-label="ملخص النظام">
+                <div class="overview-card"><span>إجمالي المهام</span><strong>@Reports.Count</strong><small>المهام الظاهرة لك</small></div>
+                <div class="overview-card"><span>قيد التنفيذ</span><strong>@InProgressCount</strong><small>تحتاج إلى متابعة</small></div>
+                <div class="overview-card is-danger"><span>متأخرة</span><strong>@OverdueCount</strong><small>تحتاج إلى إجراء</small></div>
+                <div class="overview-card is-success"><span>مكتملة</span><strong>@CompletedCount</strong><small>تم إنجازها</small></div>
+            </section>
+        }
 
         <section class="home-actions">
             <a href="/Tasks-m" class="home-action"><span>📊</span><div><strong>لوحة المهام</strong><small>استعرض الحالات والتقدم</small></div><b>←</b></a>
@@ -78,16 +89,29 @@
 @code {
     [CascadingParameter] private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
     private List<FollowUpReport> Reports = [];
+    private bool _isLoading = true;
+    private string? _loadError;
     private int InProgressCount => Reports.Count(x => !x.IsDone && x.IsDoneOrNot == "قيد التنفيذ");
     private int OverdueCount => Reports.Count(x => !x.IsDone && x.DueDate?.Date < DateTime.Today);
     private int CompletedCount => Reports.Count(x => x.IsDone);
 
     protected override async Task OnInitializedAsync()
     {
-        var state = await AuthenticationStateTask;
-        _ = int.TryParse(state.User.FindFirstValue("Id"), out var userId);
-        var isAdministrator = state.User.IsInRole("Manager") || state.User.IsInRole("Admin") || state.User.IsInRole("Admin1");
-        Reports = await ReportService.GetReports(new ReportFilter { AssignedEmployeeId = isAdministrator ? null : userId });
+        try
+        {
+            var state = await AuthenticationStateTask;
+            _ = int.TryParse(state.User.FindFirstValue("Id"), out var userId);
+            var isAdministrator = state.User.IsInRole("Manager") || state.User.IsInRole("Admin") || state.User.IsInRole("Admin1");
+            Reports = await ReportService.GetReports(new ReportFilter { AssignedEmployeeId = isAdministrator ? null : userId });
+        }
+        catch (Exception)
+        {
+            _loadError = "تعذر تحميل بيانات لوحة التحكم. حاول تحديث الصفحة.";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
     }
 }
 

@@ -33,6 +33,9 @@ public class AuthenticationRepository(UserService userService) : IAuthentication
         if (result.IsFUser)
             claims.Add(new Claim(ClaimTypes.Role, "FUser"));
 
+        var permissions = await userService.GetGrantedAdminPermissionsAsync(result.Id);
+        claims.AddRange(permissions.Select(permission => new Claim("permission", permission)));
+
         var identity = new ClaimsIdentity(claims, "AuthenticationType");
         return Result<ClaimsPrincipal>.Success(new ClaimsPrincipal(identity));
     }

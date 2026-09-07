@@ -1,0 +1,8 @@
+.audit-list { display: grid; gap: .65rem; margin-top: 1rem; }
+.audit-row { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 1rem; align-items: center; padding: 1rem; border: 1px solid var(--rems-border); border-radius: var(--rems-radius-md); background: var(--rems-surface); }
+.audit-row div { display: grid; gap: .3rem; }
+.audit-row small, .audit-row span { color: var(--rems-text-muted); font-size: .8rem; }
+.audit-row p { margin: 0; color: var(--rems-text-muted); }
+.health-ok { color: var(--rems-success); }
+.health-error { color: var(--rems-danger); }
+@media (max-width: 700px) { .audit-row { grid-template-columns: 1fr; } }

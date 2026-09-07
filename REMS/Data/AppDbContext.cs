@@ -23,6 +23,9 @@ public class AppDbContext : DbContext
     public DbSet<FilePermission> FilePermissions { get; set; }
     public DbSet<FileShareLink> FileShareLinks { get; set; }
     public DbSet<AuditLog> AuditLogs { get; set; }
+    public DbSet<AdminPermissionAssignment> AdminPermissionAssignments { get; set; }
+    public DbSet<TelegramBotSettings> TelegramBotSettings { get; set; }
+    public DbSet<TelegramDeliveryLog> TelegramDeliveryLogs { get; set; }
 
 
 
@@ -77,6 +80,16 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<AuditLog>()
             .HasIndex(x => x.CreatedAt);
+
+        modelBuilder.Entity<AdminPermissionAssignment>()
+            .HasIndex(x => new { x.UserId, x.PermissionKey })
+            .IsUnique();
+
+        modelBuilder.Entity<TelegramDeliveryLog>()
+            .HasIndex(x => new { x.Operation, x.CreatedAt });
+
+        modelBuilder.Entity<TelegramBotSettings>()
+            .HasData(new TelegramBotSettings { Id = 1 });
         base.OnModelCreating(modelBuilder);
     }
 }

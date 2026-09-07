@@ -5,6 +5,21 @@
         margin-top: 1.25rem;
     }
 
+    .home-state {
+        margin-top: 1.25rem;
+        padding: 1.25rem;
+        border: 1px solid var(--rems-border);
+        border-radius: var(--rems-radius-md);
+        background: var(--rems-surface);
+        color: var(--rems-text-muted);
+        text-align: center;
+    }
+
+    .home-state-error {
+        border-color: color-mix(in srgb, var(--rems-danger) 45%, var(--rems-border));
+        color: var(--rems-danger);
+    }
+
     .overview-card, .home-action {
         border: 1px solid var(--rems-border);
         background: var(--rems-surface);

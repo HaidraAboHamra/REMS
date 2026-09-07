@@ -1,0 +1,151 @@
+@page "/admin/telegram"
+@attribute [Authorize(Policy = "AdminTelegram")]
+@using REMS.DTOs
+@using REMS.Enititys
+@inject AdminCenterService AdminCenter
+@inject TelegramAdminService TelegramAdmin
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>إدارة Telegram | REMS</PageTitle>
+
+<div class="admin-section-page telegram-admin" dir="rtl">
+    <a class="back-link" href="/admin">← العودة إلى مركز الأدمن</a>
+    <header class="telegram-header">
+        <div><span class="admin-eyebrow">TELEGRAM OPERATIONS</span><h1>غرفة عمليات البوت</h1><p>تحكم في الحالة، سياسات الإرسال، وربط البوت بالنظام.</p></div>
+        <button class="health-button" @onclick="CheckHealthAsync" disabled="@_loading">@(_loading ? "جارٍ الفحص..." : "فحص الاتصال")</button>
+    </header>
+
+    @if (_message is not null)
+    {
+        <div class="telegram-message @(_isError ? "is-error" : "is-success")" role="status">@_message</div>
+    }
+
+    <section class="telegram-settings-card delivery-history-card">
+        <div class="section-heading"><div><span class="panel-icon">📜</span><div><h2>سجل عمليات الإرسال</h2><p>آخر عمليات Telegram وحالات النجاح والفشل.</p></div></div><button class="save-button" @onclick="LoadLogsAsync" disabled="@_logsLoading">تحديث السجل</button></div>
+        @if (_logsLoading) { <p>جارٍ تحميل السجل...</p> }
+        else if (_logs.Count == 0) { <p>لا توجد عمليات مسجلة بعد.</p> }
+        else
+        {
+            <div class="delivery-log-list">
+                @foreach (var log in _logs)
+                {
+                    <div class="delivery-log-row"><span class="delivery-status @(log.Status.Equals("Success", StringComparison.OrdinalIgnoreCase) ? "is-success" : "is-failure")">@log.Status</span><strong>@log.Operation</strong><small>@log.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</small><span>@(log.ErrorMessage ?? "بدون أخطاء")</span></div>
+                }
+            </div>
+        }
+    </section>
+
+    @if (_health is not null)
+    {
+        <section class="telegram-health-card @(_health.IsReachable ? "is-online" : "is-offline")">
+            <span class="health-dot"></span>
+            <div><strong>@(_health.IsReachable ? "البوت متصل ويعمل" : "البوت غير متصل")</strong><small>@_health.Message</small></div>
+            @if (_health.IsReachable) { <span class="bot-name">@_health.BotName (@_health.BotUsername)</span> }
+        </section>
+    }
+
+    @if (_settings is not null)
+    {
+        <section class="telegram-settings-card">
+            <div class="section-heading"><div><span class="panel-icon">⚙️</span><div><h2>سياسات التشغيل</h2><p>تحكم في العمليات التي يسمح بها البوت.</p></div></div><button class="save-button" @onclick="SaveAsync" disabled="@_saving">@(_saving ? "جارٍ الحفظ..." : "حفظ الإعدادات")</button></div>
+            <div class="settings-grid">
+                <label><input type="checkbox" @bind="_settings.IsEnabled" /> تشغيل البوت</label>
+                <label><input type="checkbox" @bind="_settings.NotificationsEnabled" /> الإشعارات المجدولة</label>
+                <label><input type="checkbox" @bind="_settings.BroadcastEnabled" /> السماح بالبث الجماعي</label>
+                <label><input type="checkbox" @bind="_settings.AllowTaskCreation" /> إنشاء المهام</label>
+                <label><input type="checkbox" @bind="_settings.AllowTaskEditing" /> تعديل المهام</label>
+                <label><input type="checkbox" @bind="_settings.AllowTaskDeletion" /> حذف المهام</label>
+                <label>الحد الأقصى للمستلمين<input type="number" min="1" max="10000" @bind="_settings.MaxBroadcastRecipients" /></label>
+                <label>عدد محاولات الإعادة<input type="number" min="0" max="10" @bind="_settings.RetryCount" /></label>
+            </div>
+        </section>
+    }
+
+    <section class="telegram-token-card">
+        <div><span class="panel-icon">🔐</span><div><h2>رمز البوت</h2><p>يُخفى افتراضيًا ولا يُكشف إلا بعد إعادة إدخال كلمة مرور الأدمن.</p></div></div>
+        <div class="token-row"><code>@TelegramAdmin.GetMaskedToken()</code><button class="reveal-button" @onclick="RevealTokenAsync">كشف مؤقت</button></div>
+        @if (_revealedToken is not null)
+        {
+            <div class="reveal-box"><code>@_revealedToken</code><button @onclick="() => _revealedToken = null">إخفاء</button></div>
+        }
+    </section>
+
+    @if (_showPasswordPrompt)
+    {
+        <div class="password-prompt"><label>أدخل كلمة مرور الأدمن للتأكيد<input type="password" @bind="_confirmationPassword" autocomplete="current-password" /></label><button class="save-button" @onclick="ConfirmRevealAsync">تأكيد الكشف</button><button @onclick="CancelReveal">إلغاء</button></div>
+    }
+</div>
+
+@code {
+    private TelegramBotSettings? _settings;
+    private TelegramBotHealth? _health;
+    private string? _message;
+    private string? _revealedToken;
+    private string _confirmationPassword = string.Empty;
+    private bool _showPasswordPrompt;
+    private bool _loading = true;
+    private bool _saving;
+    private bool _isError;
+    private IReadOnlyList<TelegramDeliveryLogDto> _logs = [];
+    private bool _logsLoading;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _settings = await AdminCenter.GetTelegramSettingsAsync();
+            _health = await TelegramAdmin.CheckHealthAsync();
+            await LoadLogsAsync();
+        }
+        catch (Exception)
+        {
+            SetMessage("تعذر تحميل إعدادات Telegram.", true);
+        }
+        finally { _loading = false; }
+    }
+
+    private async Task LoadLogsAsync()
+    {
+        _logsLoading = true;
+        try { _logs = await AdminCenter.GetTelegramDeliveryLogsAsync(); }
+        catch (Exception) { SetMessage("تعذر تحميل سجل Telegram.", true); }
+        finally { _logsLoading = false; }
+    }
+
+    private async Task CheckHealthAsync()
+    {
+        _loading = true;
+        _health = await TelegramAdmin.CheckHealthAsync();
+        _loading = false;
+        SetMessage(_health.Message, !_health.IsReachable);
+    }
+
+    private async Task SaveAsync()
+    {
+        if (_settings is null || await TryGetActorIdAsync() is not int actorId) return;
+        _saving = true;
+        try { await AdminCenter.UpdateTelegramSettingsAsync(_settings, actorId); SetMessage("تم حفظ إعدادات Telegram.", false); }
+        catch (Exception) { SetMessage("تعذر حفظ إعدادات Telegram.", true); }
+        finally { _saving = false; }
+    }
+
+    private Task RevealTokenAsync() { _showPasswordPrompt = true; _message = null; return Task.CompletedTask; }
+    private void CancelReveal() { _showPasswordPrompt = false; _confirmationPassword = string.Empty; }
+
+    private async Task ConfirmRevealAsync()
+    {
+        if (await TryGetActorIdAsync() is not int actorId) return;
+        var result = await TelegramAdmin.RevealTokenAsync(actorId, _confirmationPassword);
+        CancelReveal();
+        if (result.Succeeded) _revealedToken = result.Token;
+        SetMessage(result.Message, !result.Succeeded);
+    }
+
+    private async Task<int?> TryGetActorIdAsync()
+    {
+        var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        return int.TryParse(state.User.FindFirst("Id")?.Value, out var actorId) ? actorId : null;
+    }
+
+    private void SetMessage(string message, bool error) { _message = message; _isError = error; }
+}

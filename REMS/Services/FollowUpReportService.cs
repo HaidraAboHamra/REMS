@@ -753,7 +753,9 @@ namespace REMS.Services
 
         public Task SendWeeklyComplaint()
         {
-            throw new NotImplementedException();
+            // Weekly complaint delivery is owned by ReportService. Keep this
+            // compatibility member harmless for callers using the older service.
+            return Task.CompletedTask;
         }
     }
 }

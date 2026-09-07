@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using REMS.Interfaces;
+using REMS.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace REMS.Services;
 
@@ -8,15 +10,18 @@ public class TelegramMessageScheduler : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<TelegramMessageScheduler> _logger;
+    private readonly IDbContextFactory<AppDbContext> _dbFactory;
 
     private DateOnly? _lastSentDate;
 
     public TelegramMessageScheduler(
         IServiceProvider serviceProvider,
-        ILogger<TelegramMessageScheduler> logger)
+        ILogger<TelegramMessageScheduler> logger,
+        IDbContextFactory<AppDbContext> dbFactory)
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
+        _dbFactory = dbFactory;
     }
 
     protected override async Task ExecuteAsync(
@@ -28,6 +33,14 @@ public class TelegramMessageScheduler : BackgroundService
             {
                 using var scope =
                     _serviceProvider.CreateScope();
+
+                await using var db = await _dbFactory.CreateDbContextAsync(stoppingToken);
+                var botSettings = await db.TelegramBotSettings.AsNoTracking().SingleAsync(stoppingToken);
+                if (!botSettings.IsEnabled || !botSettings.NotificationsEnabled)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken);
+                    continue;
+                }
 
                 var settings =
                     scope.ServiceProvider

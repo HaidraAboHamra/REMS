@@ -63,6 +63,7 @@ public class UserService
     public async Task<User> CreateUserAsync(User user, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(user);
+        ArgumentException.ThrowIfNullOrWhiteSpace(user.PasswordHash);
         user.PasswordHash = _passwordHasher.HashPassword(user, user.PasswordHash);
         user.TelegramUsername = NormalizeTelegramUsername(user.TelegramUsername);
         user.TelegramLinkToken ??= CreateTelegramLinkToken();
@@ -85,7 +86,7 @@ public class UserService
     {
         var users = await _context.Users.AsNoTracking().ToListAsync();
 
-        if (users == null || users.Count == 0)
+        if (users.Count == 0)
         {
             return Result<List<User>>.Failure(new Error("لا يوجد مستخدمون في النظام."));
         }
@@ -93,8 +94,18 @@ public class UserService
         return Result<List<User>>.Success(users);
 
     }
+
+    public Task<List<string>> GetGrantedAdminPermissionsAsync(int userId, CancellationToken cancellationToken = default) =>
+        _context.AdminPermissionAssignments
+            .AsNoTracking()
+            .Where(x => x.UserId == userId && x.IsGranted)
+            .Select(x => x.PermissionKey)
+            .ToListAsync(cancellationToken);
+
     public async Task<User?> LoginAsync(string email, string password, CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(email);
+        ArgumentException.ThrowIfNullOrWhiteSpace(password);
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email.Trim(), cancellationToken);
 
         if (user == null)
@@ -104,11 +115,13 @@ public class UserService
 
         var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, password);
 
-        return result == PasswordVerificationResult.Success ? user : null;
+        return result == PasswordVerificationResult.Success && user.IsActive ? user : null;
     }
 
 	public async Task<Result> ChangePasswordAsync(int userId, string currentPassword, string newPassword)
 	{
+        ArgumentException.ThrowIfNullOrWhiteSpace(currentPassword);
+        ArgumentException.ThrowIfNullOrWhiteSpace(newPassword);
 		var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
 		if (user == null)
 		{

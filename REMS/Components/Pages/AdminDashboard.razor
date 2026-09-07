@@ -1,0 +1,151 @@
+@page "/admin"
+@attribute [Authorize(Policy = "AdminCenter")]
+@using REMS.Authorization
+@using REMS.DTOs
+@using REMS.Enititys
+@inject AdminCenterService AdminCenter
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>مركز الأدمن | REMS</PageTitle>
+
+<div class="admin-center" dir="rtl">
+    <header class="admin-hero">
+        <div>
+            <span class="admin-eyebrow">REMS COMMAND CENTER</span>
+            <h1>مركز التحكم الإداري</h1>
+            <p>إدارة النظام، المهام، المستخدمين، Telegram والخدمات الحساسة من لوحة واحدة.</p>
+        </div>
+        <div class="admin-health @(Snapshot is null ? "is-loading" : "is-ready")">
+            <span class="health-dot"></span>
+            <span>@(Snapshot is null ? "جارٍ التحقق" : "النظام متصل")</span>
+            <button class="refresh-button" @onclick="RefreshAsync" disabled="@_isLoading" title="تحديث المؤشرات">↻</button>
+        </div>
+    </header>
+
+    @if (_isLoading)
+    {
+        <section class="admin-state">جارٍ تحميل مؤشرات مركز التحكم...</section>
+    }
+    else if (!string.IsNullOrWhiteSpace(_error))
+    {
+        <section class="admin-state is-error" role="alert">@_error</section>
+    }
+    else if (Snapshot is not null)
+    {
+        <section class="admin-kpis" aria-label="مؤشرات النظام">
+            <article class="admin-kpi kpi-primary"><span>إجمالي المستخدمين</span><strong>@Snapshot.TotalUsers</strong><small>حسابات النظام</small></article>
+            <article class="admin-kpi kpi-cyan"><span>Telegram مرتبط</span><strong>@Snapshot.LinkedTelegramUsers</strong><small>حسابات فعالة</small></article>
+            <article class="admin-kpi kpi-warning"><span>مهام مفتوحة</span><strong>@Snapshot.OpenTasks</strong><small>تحتاج متابعة</small></article>
+            <article class="admin-kpi kpi-danger"><span>مهام متأخرة</span><strong>@Snapshot.OverdueTasks</strong><small>تحتاج تدخل</small></article>
+            <article class="admin-kpi kpi-success"><span>مهام مكتملة</span><strong>@Snapshot.CompletedTasks</strong><small>من إجمالي @Snapshot.TotalTasks</small></article>
+            <article class="admin-kpi kpi-primary"><span>حسابات فعالة</span><strong>@Snapshot.ActiveUsers</strong><small>غير فعال: @Snapshot.InactiveUsers</small></article>
+        </section>
+
+        <section class="admin-command-grid">
+            <article class="admin-panel admin-panel-featured">
+                <div class="panel-heading"><div><span class="panel-icon">🤖</span><h2>غرفة عمليات Telegram</h2></div><span class="panel-badge">LIVE CONTROL</span></div>
+                <p>تحكم في الإشعارات، إنشاء المهام، التعديل، البث الجماعي، وسياسات التشغيل.</p>
+                <div class="panel-actions">
+                    <a class="admin-action action-primary" href="/admin/telegram">إدارة البوت <span>←</span></a>
+                    <a class="admin-action" href="/setting">إعدادات التنبيهات <span>←</span></a>
+                </div>
+            </article>
+
+            @if (_decision is not null)
+            {
+                <article class="admin-panel decision-panel">
+                    <div class="panel-heading"><div><span class="panel-icon">🧠</span><h2>مساعد القرار التشغيلي</h2></div><span class="panel-badge">REMS SIGNAL</span></div>
+                    <div class="decision-grid"><div><strong>@_decision.AtRiskTasks</strong><span>مهمة معرضة للتأخير</span></div><div><strong>@_decision.CriticalTasks</strong><span>مهمة حرجة</span></div><div><strong>@_decision.UnlinkedActiveUsers</strong><span>حساب نشط غير مرتبط</span></div></div>
+                    <p class="decision-recommendation">@_decision.Recommendation</p>
+                </article>
+            }
+
+            <article class="admin-panel">
+                <div class="panel-heading"><div><span class="panel-icon">⚡</span><h2>المهام وسير العمل</h2></div></div>
+                <p>راقب المهام المتأخرة، الحقول، الأولويات، والتوزيع على الموظفين.</p>
+                <div class="panel-actions"><a class="admin-action" href="/Tasks-m">فتح لوحة المهام <span>←</span></a><button class="admin-action action-button" @onclick="ReviewOverdueAsync" disabled="@_reviewingOverdue">@(_reviewingOverdue ? "جارٍ المراجعة..." : "مراجعة المتأخرات")</button></div>
+                @if (_reviewMessage is not null) { <small class="action-feedback">@_reviewMessage</small> }
+            </article>
+
+            <article class="admin-panel">
+                <div class="panel-heading"><div><span class="panel-icon">🛡️</span><h2>الصلاحيات والتدقيق</h2></div></div>
+                <p>صلاحيات قابلة للتخصيص لكل ميزة مع سجل واضح للعمليات الحساسة.</p>
+                <div class="panel-actions"><a class="admin-action" href="/admin/permissions">إدارة الصلاحيات <span>←</span></a></div>
+            </article>
+
+            <article class="admin-panel">
+                <div class="panel-heading"><div><span class="panel-icon">👥</span><h2>المستخدمون والربط</h2></div></div>
+                <p>إدارة الحسابات، أدوار الوصول، وربط حسابات Telegram بالموظفين.</p>
+                <div class="panel-actions"><a class="admin-action" href="/users-and-reports">إدارة المستخدمين <span>←</span></a></div>
+            </article>
+
+            <article class="admin-panel admin-panel-summary">
+                <div class="panel-heading"><div><span class="panel-icon">📈</span><h2>ملخص التشغيل</h2></div><span class="panel-badge">LIVE DATA</span></div>
+                <div class="summary-list">
+                    <div><span>نسبة إنجاز المهام</span><strong>@CompletionPercentage%</strong></div>
+                    <div><span>نسبة ربط Telegram</span><strong>@TelegramLinkPercentage%</strong></div>
+                    <div><span>حسابات تحتاج ربطًا</span><strong>@Snapshot.UnlinkedTelegramUsers</strong></div>
+                    <div><span>حالة المتابعة</span><strong class="@(Snapshot?.OverdueTasks > 0 ? "text-danger" : "text-success")">@(Snapshot?.OverdueTasks > 0 ? "تحتاج تدخلاً" : "مستقرة")</strong></div>
+                </div>
+            </article>
+        </section>
+    }
+
+    <footer class="admin-footer">آخر تحديث: @(Snapshot?.GeneratedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm") ?? "-")</footer>
+</div>
+
+@code {
+    private AdminDashboardSnapshot? Snapshot;
+    private bool _isLoading = true;
+    private string? _error;
+    private bool _reviewingOverdue;
+    private string? _reviewMessage;
+    private AdminDecisionSummary? _decision;
+
+    private int CompletionPercentage => Snapshot is { TotalTasks: > 0 }
+        ? (int)Math.Round(Snapshot.CompletedTasks * 100d / Snapshot.TotalTasks)
+        : 0;
+
+    private int TelegramLinkPercentage => Snapshot is { TotalUsers: > 0 }
+        ? (int)Math.Round(Snapshot.LinkedTelegramUsers * 100d / Snapshot.TotalUsers)
+        : 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshAsync();
+    }
+
+    private async Task RefreshAsync()
+    {
+        _isLoading = true;
+        _error = null;
+        try
+        {
+            Snapshot = await AdminCenter.GetSnapshotAsync();
+            _decision = await AdminCenter.GetDecisionSummaryAsync();
+        }
+        catch (Exception)
+        {
+            _error = "تعذر تحميل مؤشرات مركز الأدمن. راجع سجل التدقيق أو حاول مرة أخرى.";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task ReviewOverdueAsync()
+    {
+        var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (!int.TryParse(state.User.FindFirst("Id")?.Value, out var actorId)) return;
+        _reviewingOverdue = true;
+        try
+        {
+            var count = await AdminCenter.CompleteOverdueTasksAsync(actorId);
+            _reviewMessage = $"تمت مراجعة {count} مهمة متأخرة.";
+            await RefreshAsync();
+        }
+        catch (Exception) { _reviewMessage = "تعذرت مراجعة المهام المتأخرة."; }
+        finally { _reviewingOverdue = false; }
+    }
+}

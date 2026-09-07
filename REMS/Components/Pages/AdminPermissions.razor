@@ -1,0 +1,145 @@
+@page "/admin/permissions"
+@attribute [Authorize(Policy = "AdminPermissions")]
+@using REMS.Authorization
+@using REMS.DTOs
+@using PermissionCatalog = REMS.Authorization.AdminPermissions
+@inject AdminCenterService AdminCenter
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>صلاحيات الأدمن | REMS</PageTitle>
+
+<div class="admin-section-page" dir="rtl">
+    <a class="back-link" href="/admin">← العودة إلى مركز الأدمن</a>
+    <h1>مصفوفة صلاحيات مركز الأدمن</h1>
+    <p>فعّل الميزات لكل مسؤول. كل تغيير يُسجل تلقائيًا في سجل التدقيق.</p>
+
+    @if (_loading)
+    {
+        <div class="coming-card">جارٍ تحميل مصفوفة الصلاحيات...</div>
+    }
+    else if (_error is not null)
+    {
+        <div class="coming-card is-error">@_error</div>
+    }
+    else
+    {
+        <div class="permission-toolbar">
+            <input class="permission-search" placeholder="ابحث بالاسم أو البريد الإلكتروني..." @bind="_search" @bind:event="oninput" />
+            <button class="toolbar-button" @onclick="LoadAsync" disabled="@_loading">تحديث المستخدمين</button>
+        </div>
+        <div class="permission-table-wrap">
+            <table class="permission-table">
+                <thead>
+                    <tr>
+                        <th>المستخدم</th>
+                        @foreach (var permission in PermissionKeys)
+                        {
+                            <th>@PermissionLabels[permission]</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in FilteredRows)
+                    {
+                        <tr>
+                            <td><strong>@row.DisplayName</strong><small>#@row.UserId</small></td>
+                            @foreach (var permission in PermissionKeys)
+                            {
+                                <td>
+                                    <button class="permission-toggle @(row.Permissions[permission] ? "is-on" : "")"
+                                            @onclick="() => ToggleAsync(row, permission)"
+                                             disabled="@_saving">
+                                        @(row.Permissions[permission] ? "مفعلة" : "موقفة")
+                                    </button>
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@code {
+    private static readonly IReadOnlyList<string> PermissionKeys = PermissionCatalog.All;
+
+    private static readonly IReadOnlyDictionary<string, string> PermissionLabels =
+        new Dictionary<string, string>
+        {
+            [PermissionCatalog.DashboardView] = "لوحة التحكم",
+            [PermissionCatalog.SettingsManage] = "إعدادات النظام",
+            [PermissionCatalog.TasksManage] = "إدارة المهام",
+            [PermissionCatalog.UsersManage] = "المستخدمون",
+            [PermissionCatalog.TelegramManage] = "إدارة Telegram",
+            [PermissionCatalog.TelegramBroadcast] = "البث الجماعي",
+            [PermissionCatalog.AuditView] = "سجل التدقيق",
+            [PermissionCatalog.SensitiveActions] = "العمليات الحساسة",
+            [PermissionCatalog.UserStatusManage] = "تفعيل وتعطيل المستخدمين",
+            [PermissionCatalog.HealthView] = "صحة النظام والتدقيق"
+        };
+
+    private IReadOnlyList<AdminPermissionMatrixRow> _rows = [];
+    private string _search = string.Empty;
+    private bool _loading = true;
+    private bool _saving;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            await LoadAsync();
+        }
+        catch (Exception)
+        {
+            _error = "تعذر تحميل الصلاحيات.";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private IEnumerable<AdminPermissionMatrixRow> FilteredRows =>
+        string.IsNullOrWhiteSpace(_search)
+            ? _rows
+            : _rows.Where(x => x.DisplayName.Contains(_search.Trim(), StringComparison.OrdinalIgnoreCase));
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        _error = null;
+        try { _rows = await AdminCenter.GetPermissionMatrixAsync(PermissionKeys); }
+        catch (Exception) { _error = "تعذر تحميل مصفوفة الصلاحيات."; }
+        finally { _loading = false; }
+    }
+    private async Task ToggleAsync(AdminPermissionMatrixRow row, string permission)
+    {
+        if (_saving || !int.TryParse((await AuthenticationStateProvider.GetAuthenticationStateAsync()).User.FindFirst("Id")?.Value, out var actorId))
+            return;
+
+        _saving = true;
+        try
+        {
+            var currentValue = row.Permissions.TryGetValue(permission, out var granted) && granted;
+            var nextValue = !currentValue;
+            await AdminCenter.SetPermissionAsync(row.UserId, permission, nextValue, actorId);
+            var updatedPermissions = new Dictionary<string, bool>(row.Permissions, StringComparer.OrdinalIgnoreCase)
+            {
+                [permission] = nextValue
+            };
+            var index = _rows.ToList().IndexOf(row);
+            var updatedRow = new AdminPermissionMatrixRow(row.UserId, row.DisplayName, updatedPermissions);
+            _rows = _rows.Select((item, itemIndex) => itemIndex == index ? updatedRow : item).ToList();
+        }
+        catch (Exception)
+        {
+            _error = "تعذر حفظ التغيير وتسجيله.";
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}
